@@ -51,7 +51,7 @@ export default function PolicyScreen() {
     if (currentSlide < slides.length - 1) {
       setCurrentSlide(currentSlide + 1);
     } else {
-      router.push('/auth/signin');
+      router.replace('/auth/signin');
     }
   };
 
@@ -62,7 +62,7 @@ export default function PolicyScreen() {
   };
 
   const skipToAuth = () => {
-    router.push('/auth/signin');
+    router.replace('/auth/signin');
   };
 
   const slide = slides[currentSlide];

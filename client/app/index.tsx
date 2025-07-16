@@ -6,13 +6,16 @@ export default function HomeScreen() {
   useEffect(() => {
     // Defer navigation to next tick to ensure Root Layout is mounted
     setTimeout(() => {
-      // Check if user is authenticated (simplified for demo)
+      // Check if user has completed onboarding (simplified for demo)
+      const hasCompletedOnboarding = false; // In real app, check AsyncStorage
       const isAuthenticated = false; // In real app, check auth state
       
-      if (isAuthenticated) {
-        router.replace('/dashboard');
-      } else {
+      if (!hasCompletedOnboarding) {
         router.replace('/onboarding');
+      } else if (!isAuthenticated) {
+        router.replace('/auth/signin');
+      } else {
+        router.replace('/(tabs)/scan');
       }
     }, 0);
   }, []);
