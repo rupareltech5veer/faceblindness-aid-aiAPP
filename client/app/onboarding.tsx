@@ -331,4 +331,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
   },
-});
+}); df
