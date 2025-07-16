@@ -34,14 +34,16 @@ export default function RootLayout() {
           name="auth/signin" 
           options={{ 
             title: 'Sign In',
-            headerShown: false 
+            headerShown: false,
+            headerBackVisible: false
           }} 
         />
         <Stack.Screen 
           name="auth/signup" 
           options={{ 
             title: 'Sign Up',
-            headerShown: false 
+            headerShown: false,
+            headerBackVisible: false
           }} 
         />
         <Stack.Screen 

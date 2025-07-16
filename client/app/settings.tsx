@@ -275,6 +275,7 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.dangerZone}>
+          <Text style={styles.dangerZoneTitle}>Account Actions</Text>
           <TouchableOpacity
             style={styles.signOutButton}
             onPress={handleSignOut}
@@ -382,6 +383,12 @@ const styles = StyleSheet.create({
   dangerZone: {
     marginTop: 16,
     marginBottom: 32,
+  },
+  dangerZoneTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 16,
   },
   signOutButton: {
     backgroundColor: '#FEF2F2',
