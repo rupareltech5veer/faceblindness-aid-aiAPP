@@ -1,334 +1,163 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  SafeAreaView,
-  Dimensions,
-  ScrollView,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { Eye, Mail, Lock, User, ArrowRight } from 'lucide-react';
 
-const { width, height } = Dimensions.get('window');
-
-export default function OnboardingScreen() {
-  return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Animated Background Elements */}
-        <View style={styles.backgroundElements}>
-          <View style={[styles.floatingCircle, styles.circle1]} />
-          <View style={[styles.floatingCircle, styles.circle2]} />
-          <View style={[styles.floatingCircle, styles.circle3]} />
-          <View style={[styles.floatingCircle, styles.circle4]} />
-        </View>
-
-        {/* Hero Section */}
-        <View style={styles.heroSection}>
-          <View style={styles.iconContainer}>
-            <View style={styles.mainIcon}>
-              <Ionicons name="eye-outline" size={48} color="#ffffff" />
-            </View>
-            <View style={styles.accentDot1} />
-            <View style={styles.accentDot2} />
-            <View style={styles.accentDot3} />
-            <View style={styles.glowEffect} />
-          </View>
-          
-          <Text style={styles.title}>FaceAssist</Text>
-          <Text style={styles.subtitle}>
-            Your personal companion for recognizing and remembering faces
-          </Text>
-        </View>
-
-        {/* Features Section */}
-        <View style={styles.featuresSection}>
-          <View style={[styles.featureCard, styles.featureCard1]}>
-            <View style={[styles.featureIcon, styles.featureIcon1]}>
-              <Ionicons name="scan-outline" size={32} color="#4F46E5" />
-            </View>
-            <Text style={styles.featureTitle}>Smart Recognition</Text>
-            <Text style={styles.featureDescription}>
-              Capture photos and get detailed facial descriptions to help you remember
-            </Text>
-          </View>
-
-          <View style={[styles.featureCard, styles.featureCard2]}>
-            <View style={[styles.featureIcon, styles.featureIcon2]}>
-              <Ionicons name="library-outline" size={32} color="#059669" />
-            </View>
-            <Text style={styles.featureTitle}>Personal Directory</Text>
-            <Text style={styles.featureDescription}>
-              Build your own collection of faces with custom memory aids
-            </Text>
-          </View>
-
-          <View style={[styles.featureCard, styles.featureCard3]}>
-            <View style={[styles.featureIcon, styles.featureIcon3]}>
-              <Ionicons name="school-outline" size={32} color="#DC2626" />
-            </View>
-            <Text style={styles.featureTitle}>Practice & Learn</Text>
-            <Text style={styles.featureDescription}>
-              Improve your face recognition skills with guided exercises
-            </Text>
-          </View>
-        </View>
-
-        {/* CTA Section */}
-        <View style={styles.ctaSection}>
-          <TouchableOpacity 
-            style={styles.primaryButton}
-            onPress={() => router.push('/policy')}
-            accessibilityLabel="Get started with FaceAssist"
-            accessibilityHint="Navigate to the welcome and policy information"
-          >
-            <Text style={styles.primaryButtonText}>Get Started</Text>
-            <Ionicons name="arrow-forward" size={20} color="#ffffff" />
-          </TouchableOpacity>
-          
-          <Text style={styles.supportText}>
-            Designed specifically for individuals with face blindness
-          </Text>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+interface AuthScreenProps {
+  onAuthComplete: () => void;
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0F172A',
-  },
-  content: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-  },
-  backgroundElements: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  floatingCircle: {
-    position: 'absolute',
-    borderRadius: 50,
-    opacity: 0.1,
-  },
-  circle1: {
-    width: 100,
-    height: 100,
-    backgroundColor: '#4F46E5',
-    top: 100,
-    right: 20,
-  },
-  circle2: {
-    width: 60,
-    height: 60,
-    backgroundColor: '#10B981',
-    top: 300,
-    left: 30,
-  },
-  circle3: {
-    width: 80,
-    height: 80,
-    backgroundColor: '#F59E0B',
-    bottom: 200,
-    right: 40,
-  },
-  circle4: {
-    width: 40,
-    height: 40,
-    backgroundColor: '#EF4444',
-    bottom: 400,
-    left: 50,
-  },
-  heroSection: {
-    alignItems: 'center',
-    paddingTop: 80,
-    paddingBottom: 60,
-  },
-  iconContainer: {
-    position: 'relative',
-    marginBottom: 32,
-  },
-  mainIcon: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#4F46E5',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#4F46E5',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 20,
-    elevation: 12,
-  },
-  glowEffect: {
-    position: 'absolute',
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: '#4F46E5',
-    opacity: 0.2,
-    top: -10,
-    left: -10,
-  },
-  accentDot1: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#10B981',
-    shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  accentDot2: {
-    position: 'absolute',
-    bottom: 20,
-    left: -10,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#F59E0B',
-    shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  accentDot3: {
-    position: 'absolute',
-    top: 40,
-    left: -20,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: '#EF4444',
-    shadowColor: '#EF4444',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  title: {
-    fontSize: 42,
-    fontWeight: '900',
-    color: '#FFFFFF',
-    marginBottom: 16,
-    textAlign: 'center',
-    textShadowColor: 'rgba(79, 70, 229, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: '#CBD5E1',
-    textAlign: 'center',
-    lineHeight: 26,
-    paddingHorizontal: 20,
-  },
-  featuresSection: {
-    paddingVertical: 20,
-  },
-  featureCard: {
-    borderRadius: 20,
-    padding: 28,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
-    borderWidth: 1,
-  },
-  featureCard1: {
-    backgroundColor: 'rgba(79, 70, 229, 0.1)',
-    borderColor: 'rgba(79, 70, 229, 0.2)',
-  },
-  featureCard2: {
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    borderColor: 'rgba(16, 185, 129, 0.2)',
-  },
-  featureCard3: {
-    backgroundColor: 'rgba(220, 38, 38, 0.1)',
-    borderColor: 'rgba(220, 38, 38, 0.2)',
-  },
-  featureIcon: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  featureIcon1: {
-    backgroundColor: 'rgba(79, 70, 229, 0.15)',
-    shadowColor: '#4F46E5',
-  },
-  featureIcon2: {
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-    shadowColor: '#10B981',
-  },
-  featureIcon3: {
-    backgroundColor: 'rgba(220, 38, 38, 0.15)',
-    shadowColor: '#DC2626',
-  },
-  featureTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 12,
-  },
-  featureDescription: {
-    fontSize: 16,
-    color: '#94A3B8',
-    lineHeight: 24,
-  },
-  ctaSection: {
-    alignItems: 'center',
-    paddingTop: 40,
-    paddingBottom: 60,
-  },
-  primaryButton: {
-    backgroundColor: '#4F46E5',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 20,
-    paddingHorizontal: 40,
-    borderRadius: 16,
-    shadowColor: '#4F46E5',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 8,
-    marginBottom: 20,
-    minWidth: 220,
-  },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '700',
-    marginRight: 8,
-  },
-  supportText: {
-    fontSize: 14,
-    color: '#64748B',
-    textAlign: 'center',
-    fontStyle: 'italic',
-  },
-}); df
+export default function AuthScreen({ onAuthComplete }: AuthScreenProps) {
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Simulate authentication
+    setTimeout(() => {
+      onAuthComplete();
+    }, 1000);
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="max-w-sm sm:max-w-md w-full bg-white rounded-xl sm:rounded-2xl shadow-xl p-6 sm:p-8">
+        {/* Logo and Header */}
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="bg-blue-600 w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+            <Eye className="text-white" size={28} />
+          </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+            {isSignUp ? 'Create Account' : 'Welcome Back'}
+          </h1>
+          <p className="text-sm sm:text-base text-gray-600 px-2">
+            {isSignUp 
+              ? 'Join FaceAssist to start recognizing faces better'
+              : 'Sign in to continue your face recognition journey'
+            }
+          </p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+          {isSignUp && (
+            <div>
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                Full Name
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-2.5 sm:top-3 text-gray-400" size={18} />
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm sm:text-base"
+                  placeholder="Enter your full name"
+                  required={isSignUp}
+                />
+              </div>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+              Email Address
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-2.5 sm:top-3 text-gray-400" size={18} />
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm sm:text-base"
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+              Password
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-2.5 sm:top-3 text-gray-400" size={18} />
+              <input
+                type="password"
+                value={formData.password}
+                onChange={(e) => handleInputChange('password', e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm sm:text-base"
+                placeholder="Enter your password"
+                required
+              />
+            </div>
+          </div>
+
+          {isSignUp && (
+            <div>
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-2.5 sm:top-3 text-gray-400" size={18} />
+                <input
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-sm sm:text-base"
+                  placeholder="Confirm your password"
+                  required={isSignUp}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center group text-sm sm:text-base"
+          >
+            {isSignUp ? 'Create Account' : 'Sign In'}
+            <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
+          </button>
+        </form>
+
+        {/* Forgot Password (Sign In only) */}
+        {!isSignUp && (
+          <div className="text-center mt-3 sm:mt-4">
+            <button className="text-blue-600 hover:text-blue-700 text-xs sm:text-sm transition-colors">
+              Forgot your password?
+            </button>
+          </div>
+        )}
+
+        {/* Toggle Sign Up/Sign In */}
+        <div className="text-center mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
+          <p className="text-gray-600 mb-2 text-sm sm:text-base">
+            {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+          </p>
+          <button
+            onClick={() => setIsSignUp(!isSignUp)}
+            className="text-blue-600 hover:text-blue-700 font-semibold transition-colors text-sm sm:text-base"
+          >
+            {isSignUp ? 'Sign In' : 'Sign Up'}
+          </button>
+        </div>
+
+        {/* Privacy Note */}
+        <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-blue-50 rounded-lg sm:rounded-xl">
+          <p className="text-xs sm:text-xs text-blue-800 text-center">
+            🔒 Your privacy is protected. All face recognition data is processed locally on your device.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
