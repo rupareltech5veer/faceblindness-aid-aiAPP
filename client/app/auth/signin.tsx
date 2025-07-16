@@ -32,7 +32,7 @@ export default function SignInScreen() {
     // TODO: Implement actual authentication
     setTimeout(() => {
       setIsLoading(false);
-      router.replace('/dashboard');
+      router.replace('/(tabs)/scan');
     }, 1500);
   };
 

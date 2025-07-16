@@ -82,7 +82,7 @@ export default function OnboardingScreen() {
             <View style={styles.actionContainer}>
               <TouchableOpacity 
                 style={styles.primaryButton}
-                onPress={() => router.push('/policy')}
+                onPress={() => router.replace('/policy')}
                 accessibilityLabel="Begin your journey with FaceAssist"
               >
                 <Text style={styles.primaryButtonText}>Begin Your Journey</Text>
@@ -91,7 +91,7 @@ export default function OnboardingScreen() {
 
               <TouchableOpacity 
                 style={styles.skipButton}
-                onPress={() => router.push('/auth/signin')}
+                onPress={() => router.replace('/auth/signin')}
                 accessibilityLabel="Skip introduction"
               >
                 <Text style={styles.skipButtonText}>Skip introduction</Text>

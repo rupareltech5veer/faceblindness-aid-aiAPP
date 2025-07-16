@@ -66,7 +66,7 @@ export default function SignUpScreen() {
       Alert.alert(
         'Account Created!',
         'Your account has been created successfully.',
-        [{ text: 'Continue', onPress: () => router.replace('/dashboard') }]
+        [{ text: 'Continue', onPress: () => router.replace('/(tabs)/scan') }]
       );
     }, 1500);
   };
