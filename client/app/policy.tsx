@@ -18,8 +18,6 @@ const slides = [
     id: 1,
     icon: 'hand-right-outline',
     iconColor: '#4F46E5',
-    backgroundColor: 'rgba(79, 70, 229, 0.1)',
-    accentColor: '#6366F1',
     title: 'Welcome to FaceAssist',
     description: 'Your journey to better face recognition starts here. We understand the challenges of prosopagnosia and are here to help.',
     points: [
@@ -33,8 +31,6 @@ const slides = [
     id: 2,
     icon: 'scan-circle-outline',
     iconColor: '#059669',
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    accentColor: '#10B981',
     title: 'Scan & Identify',
     description: 'Our smart recognition system helps you capture and analyze faces with detailed descriptions.',
     points: [
@@ -48,8 +44,6 @@ const slides = [
     id: 3,
     icon: 'school-outline',
     iconColor: '#DC2626',
-    backgroundColor: 'rgba(220, 38, 38, 0.1)',
-    accentColor: '#EF4444',
     title: 'Learn & Practice',
     description: 'Improve your face recognition skills through structured exercises and progress tracking.',
     points: [
@@ -63,8 +57,6 @@ const slides = [
     id: 4,
     icon: 'shield-checkmark-outline',
     iconColor: '#7C3AED',
-    backgroundColor: 'rgba(124, 58, 237, 0.1)',
-    accentColor: '#8B5CF6',
     title: 'Private & Secure',
     description: 'Your privacy is our priority. All data is encrypted and stored securely on your device.',
     points: [
@@ -100,34 +92,24 @@ export default function PolicyScreen() {
   const slide = slides[currentSlide];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: slide.backgroundColor }]}>
-      {/* Animated Background Elements */}
-      <View style={styles.backgroundElements}>
-        <View style={[styles.floatingShape, styles.shape1, { backgroundColor: slide.accentColor }]} />
-        <View style={[styles.floatingShape, styles.shape2, { backgroundColor: slide.iconColor }]} />
-        <View style={[styles.floatingShape, styles.shape3, { backgroundColor: slide.accentColor }]} />
-      </View>
-
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity 
           onPress={skipToAuth}
           style={styles.skipButton}
           accessibilityLabel="Skip introduction"
         >
-          <Text style={[styles.skipText, { color: slide.iconColor }]}>Skip</Text>
+          <Text style={styles.skipText}>Skip</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.slideContainer}>
-          <View style={[styles.iconContainer, { backgroundColor: slide.backgroundColor }]}>
-            <View style={styles.iconGlow}>
-              <Ionicons name={slide.icon as any} size={64} color={slide.iconColor} />
-            </View>
-            <View style={[styles.iconShadow, { backgroundColor: slide.iconColor }]} />
+          <View style={[styles.iconContainer, { backgroundColor: `${slide.iconColor}15` }]}>
+            <Ionicons name={slide.icon as any} size={64} color={slide.iconColor} />
           </View>
 
-          <Text style={[styles.slideTitle, { color: slide.iconColor }]}>{slide.title}</Text>
+          <Text style={styles.slideTitle}>{slide.title}</Text>
           <Text style={styles.slideDescription}>{slide.description}</Text>
 
           <View style={styles.pointsContainer}>
@@ -148,7 +130,7 @@ export default function PolicyScreen() {
               key={index}
               style={[
                 styles.paginationDot,
-                index === currentSlide && [styles.paginationDotActive, { backgroundColor: slide.iconColor }]
+                index === currentSlide && styles.paginationDotActive
               ]}
             />
           ))}
@@ -164,13 +146,13 @@ export default function PolicyScreen() {
             <Ionicons 
               name="chevron-back" 
               size={24} 
-              color={currentSlide === 0 ? '#CBD5E1' : slide.iconColor} 
+              color={currentSlide === 0 ? '#CBD5E1' : '#64748B'} 
             />
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={nextSlide}
-            style={[styles.navButton, styles.nextButton, { backgroundColor: slide.iconColor }]}
+            style={[styles.navButton, styles.nextButton]}
             accessibilityLabel={currentSlide === slides.length - 1 ? "Continue to sign in" : "Go to next slide"}
           >
             {currentSlide === slides.length - 1 ? (
@@ -191,39 +173,7 @@ export default function PolicyScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  backgroundElements: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  floatingShape: {
-    position: 'absolute',
-    borderRadius: 20,
-    opacity: 0.1,
-  },
-  shape1: {
-    width: 80,
-    height: 80,
-    top: 120,
-    right: 30,
-    transform: [{ rotate: '45deg' }],
-  },
-  shape2: {
-    width: 60,
-    height: 60,
-    bottom: 300,
-    left: 20,
-    borderRadius: 30,
-  },
-  shape3: {
-    width: 100,
-    height: 40,
-    bottom: 150,
-    right: 50,
-    borderRadius: 20,
+    backgroundColor: '#F8FAFC',
   },
   header: {
     flexDirection: 'row',
@@ -232,14 +182,13 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   skipButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
   },
   skipText: {
     fontSize: 16,
-    fontWeight: '600',
+    color: '#64748B',
+    fontWeight: '500',
   },
   content: {
     flexGrow: 1,
@@ -251,55 +200,27 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   iconContainer: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 32,
-    position: 'relative',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  iconGlow: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 2,
-  },
-  iconShadow: {
-    position: 'absolute',
-    width: 130,
-    height: 130,
-    borderRadius: 65,
-    opacity: 0.2,
-    top: 5,
-    left: 5,
-    zIndex: 1,
+    marginBottom: 32,
   },
   slideTitle: {
-    fontSize: 32,
-    fontWeight: '900',
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#1E293B',
     textAlign: 'center',
     marginBottom: 16,
-    textShadowColor: 'rgba(0, 0, 0, 0.1)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
   },
   slideDescription: {
     fontSize: 18,
-    color: '#1E293B',
+    color: '#64748B',
     textAlign: 'center',
     lineHeight: 26,
     marginBottom: 32,
     paddingHorizontal: 20,
-    fontWeight: '500',
   },
   pointsContainer: {
     width: '100%',
@@ -309,33 +230,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginBottom: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    padding: 16,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
   },
   pointDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     marginTop: 8,
     marginRight: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
   },
   pointText: {
     flex: 1,
     fontSize: 16,
-    color: '#1E293B',
+    color: '#374151',
     lineHeight: 24,
-    fontWeight: '500',
   },
   footer: {
     paddingHorizontal: 24,
@@ -347,19 +254,15 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   paginationDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: 'rgba(30, 41, 59, 0.3)',
-    marginHorizontal: 6,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#CBD5E1',
+    marginHorizontal: 4,
   },
   paginationDotActive: {
-    width: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
+    backgroundColor: '#4F46E5',
+    width: 24,
   },
   navigationButtons: {
     flexDirection: 'row',
@@ -372,26 +275,21 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
   },
   backButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: '#F1F5F9',
   },
   nextButton: {
+    backgroundColor: '#4F46E5',
     flexDirection: 'row',
     paddingHorizontal: 20,
     width: 'auto',
     minWidth: 56,
-    shadowOpacity: 0.3,
   },
   nextButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     marginRight: 8,
   },
 });
