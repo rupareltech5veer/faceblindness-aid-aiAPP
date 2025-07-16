@@ -34,7 +34,7 @@ Create `client/.env`:
 ```
 EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-EXPO_PUBLIC_BACKEND_URL=http://localhost:8000
+EXPO_PUBLIC_BACKEND_URL=http://<your-computer's-ip>:8000
 ```
 
 ### 4. Run the App
