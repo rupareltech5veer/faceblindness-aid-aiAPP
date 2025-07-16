@@ -1,91 +1,127 @@
-import { Stack } from 'expo-router';
+import { Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function RootLayout() {
   return (
     <>
       <StatusBar style="auto" />
-      <Stack
+      <Tabs
         screenOptions={{
-          headerStyle: {
-            backgroundColor: '#6366f1',
+          tabBarActiveTintColor: '#6366F1',
+          tabBarInactiveTintColor: '#94A3B8',
+          tabBarStyle: {
+            backgroundColor: '#FFFFFF',
+            borderTopWidth: 1,
+            borderTopColor: '#E2E8F0',
+            paddingBottom: 8,
+            paddingTop: 8,
+            height: 80,
           },
-          headerTintColor: '#fff',
-          headerTitleStyle: {
-            fontWeight: 'bold',
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: '500',
+            marginTop: 4,
           },
+          headerShown: false,
         }}
       >
-        <Stack.Screen 
-          name="onboarding" 
-          options={{ 
-            title: 'Welcome',
-            headerShown: false 
-          }} 
+        <Tabs.Screen
+          name="scan"
+          options={{
+            title: 'Scan',
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="camera-outline" size={size} color={color} />
+            ),
+          }}
         />
-        <Stack.Screen 
-          name="policy" 
-          options={{ 
-            title: 'Getting Started',
-            headerShown: false 
-          }} 
+        <Tabs.Screen
+          name="contacts"
+          options={{
+            title: 'Contacts',
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="people-outline" size={size} color={color} />
+            ),
+          }}
         />
-        <Stack.Screen 
-          name="auth/signin" 
-          options={{ 
-            title: 'Sign In',
-            headerShown: false 
-          }} 
+        <Tabs.Screen
+          name="learn"
+          options={{
+            title: 'Learn',
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="book-outline" size={size} color={color} />
+            ),
+          }}
         />
-        <Stack.Screen 
-          name="auth/signup" 
-          options={{ 
-            title: 'Sign Up',
-            headerShown: false 
-          }} 
+        <Tabs.Screen
+          name="progress"
+          options={{
+            title: 'Progress',
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="bar-chart-outline" size={size} color={color} />
+            ),
+          }}
         />
-        <Stack.Screen 
-          name="dashboard" 
-          options={{ 
-            title: 'FaceAssist',
-            headerShown: true 
-          }} 
-        />
-        <Stack.Screen 
-          name="learning" 
-          options={{ 
-            title: 'Learning Center',
-            headerShown: true 
-          }} 
-        />
-        <Stack.Screen 
-          name="settings" 
-          options={{ 
+        <Tabs.Screen
+          name="settings"
+          options={{
             title: 'Settings',
-            headerShown: true 
-          }} 
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="settings-outline" size={size} color={color} />
+            ),
+          }}
         />
-        <Stack.Screen 
-          name="index" 
-          options={{ 
-            title: 'Face Blindness Aid',
-            headerShown: true 
-          }} 
+        
+        {/* Hidden screens */}
+        <Tabs.Screen
+          name="onboarding"
+          options={{
+            href: null,
+          }}
         />
-        <Stack.Screen 
-          name="upload" 
-          options={{ 
-            title: 'Upload Photo',
-            presentation: 'modal'
-          }} 
+        <Tabs.Screen
+          name="policy"
+          options={{
+            href: null,
+          }}
         />
-        <Stack.Screen 
-          name="directory" 
-          options={{ 
-            title: 'Photo Directory'
-          }} 
+        <Tabs.Screen
+          name="auth"
+          options={{
+            href: null,
+          }}
         />
-      </Stack>
+        <Tabs.Screen
+          name="dashboard"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="learning"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="upload"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="directory"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="index"
+          options={{
+            href: null,
+          }}
+        />
+      </Tabs>
     </>
   );
 }

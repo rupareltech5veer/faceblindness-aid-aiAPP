@@ -12,198 +12,55 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
-const settingsGroups = [
-  {
-    title: 'Accessibility',
-    items: [
-      {
-        id: 'high_contrast',
-        title: 'High Contrast Mode',
-        description: 'Enhance visual contrast for better readability',
-        type: 'toggle',
-        icon: 'contrast-outline',
-        value: false,
-      },
-      {
-        id: 'large_text',
-        title: 'Large Text',
-        description: 'Increase font size throughout the app',
-        type: 'toggle',
-        icon: 'text-outline',
-        value: false,
-      },
-      {
-        id: 'voice_guidance',
-        title: 'Voice Guidance',
-        description: 'Enable audio instructions and feedback',
-        type: 'toggle',
-        icon: 'volume-high-outline',
-        value: true,
-      },
-      {
-        id: 'haptic_feedback',
-        title: 'Haptic Feedback',
-        description: 'Vibration feedback for interactions',
-        type: 'toggle',
-        icon: 'phone-portrait-outline',
-        value: true,
-      },
-    ],
-  },
-  {
-    title: 'Recognition Settings',
-    items: [
-      {
-        id: 'auto_analysis',
-        title: 'Auto Analysis',
-        description: 'Automatically analyze uploaded photos',
-        type: 'toggle',
-        icon: 'scan-outline',
-        value: true,
-      },
-      {
-        id: 'detailed_descriptions',
-        title: 'Detailed Descriptions',
-        description: 'Generate comprehensive facial descriptions',
-        type: 'toggle',
-        icon: 'list-outline',
-        value: true,
-      },
-      {
-        id: 'memory_aids',
-        title: 'Memory Aids',
-        description: 'Create custom mnemonics for each face',
-        type: 'toggle',
-        icon: 'bulb-outline',
-        value: true,
-      },
-    ],
-  },
-  {
-    title: 'Privacy & Security',
-    items: [
-      {
-        id: 'local_storage',
-        title: 'Local Storage Only',
-        description: 'Keep all data on your device',
-        type: 'toggle',
-        icon: 'shield-checkmark-outline',
-        value: true,
-      },
-      {
-        id: 'biometric_lock',
-        title: 'Biometric Lock',
-        description: 'Require fingerprint or face ID to open app',
-        type: 'toggle',
-        icon: 'finger-print-outline',
-        value: false,
-      },
-      {
-        id: 'data_encryption',
-        title: 'Data Encryption',
-        description: 'Encrypt stored photos and data',
-        type: 'toggle',
-        icon: 'lock-closed-outline',
-        value: true,
-      },
-    ],
-  },
-  {
-    title: 'Learning & Practice',
-    items: [
-      {
-        id: 'daily_reminders',
-        title: 'Daily Practice Reminders',
-        description: 'Get notified to practice face recognition',
-        type: 'toggle',
-        icon: 'notifications-outline',
-        value: true,
-      },
-      {
-        id: 'adaptive_difficulty',
-        title: 'Adaptive Difficulty',
-        description: 'Adjust exercise difficulty based on progress',
-        type: 'toggle',
-        icon: 'trending-up-outline',
-        value: true,
-      },
-    ],
-  },
-];
+const userProfile = {
+  name: 'John Doe',
+  email: 'john.doe@email.com',
+  membershipType: 'Premium Member',
+};
 
-const accountItems = [
+const accountSettings = [
   {
     id: 'profile',
     title: 'Profile Settings',
-    description: 'Manage your account information',
+    description: 'Edit your profile information',
     icon: 'person-outline',
-    action: 'navigate',
+    color: '#6366F1',
   },
   {
-    id: 'export_data',
-    title: 'Export Data',
-    description: 'Download your face directory and settings',
-    icon: 'download-outline',
-    action: 'function',
+    id: 'privacy',
+    title: 'Privacy & Security',
+    description: 'Manage your privacy settings',
+    icon: 'shield-checkmark-outline',
+    color: '#10B981',
+  },
+];
+
+const appSettings = [
+  {
+    id: 'notifications',
+    title: 'Notifications',
+    description: 'Configure alerts and reminders',
+    icon: 'notifications-outline',
+    color: '#F59E0B',
   },
   {
-    id: 'help_support',
-    title: 'Help & Support',
-    description: 'Get help and contact support',
-    icon: 'help-circle-outline',
-    action: 'navigate',
-  },
-  {
-    id: 'about',
-    title: 'About FaceAssist',
-    description: 'App version and information',
-    icon: 'information-circle-outline',
-    action: 'navigate',
+    id: 'audio',
+    title: 'Audio Feedback',
+    description: 'Voice prompts and sounds',
+    icon: 'volume-high-outline',
+    color: '#EF4444',
   },
 ];
 
 export default function SettingsScreen() {
-  const [settings, setSettings] = useState<Record<string, boolean>>({
-    high_contrast: false,
-    large_text: false,
-    voice_guidance: true,
-    haptic_feedback: true,
-    auto_analysis: true,
-    detailed_descriptions: true,
-    memory_aids: true,
-    local_storage: true,
-    biometric_lock: false,
-    data_encryption: true,
-    daily_reminders: true,
-    adaptive_difficulty: true,
-  });
+  const [darkMode, setDarkMode] = useState(false);
 
-  const handleToggle = (settingId: string) => {
-    setSettings(prev => ({
-      ...prev,
-      [settingId]: !prev[settingId],
-    }));
-  };
-
-  const handleAccountAction = (itemId: string) => {
-    switch (itemId) {
-      case 'export_data':
-        Alert.alert(
-          'Export Data',
-          'This feature will be available in the next update.',
-          [{ text: 'OK' }]
-        );
-        break;
-      case 'profile':
-      case 'help_support':
-      case 'about':
-        Alert.alert(
-          'Coming Soon',
-          'This feature will be available in the next update.',
-          [{ text: 'OK' }]
-        );
-        break;
-    }
+  const handleSettingPress = (settingId: string) => {
+    Alert.alert(
+      'Settings',
+      'This setting will be available in the next update.',
+      [{ text: 'OK' }]
+    );
   };
 
   const handleSignOut = () => {
@@ -223,73 +80,105 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Header */}
         <View style={styles.header}>
+          <View style={styles.iconContainer}>
+            <Ionicons name="settings-outline" size={32} color="#FFFFFF" />
+            <View style={styles.sparkleIcon}>
+              <Ionicons name="sparkles-outline" size={16} color="#64748B" />
+            </View>
+          </View>
           <Text style={styles.title}>Settings</Text>
-          <Text style={styles.subtitle}>Customize your FaceAssist experience</Text>
+          <Text style={styles.subtitle}>Customize your app experience</Text>
         </View>
 
-        {settingsGroups.map((group, groupIndex) => (
-          <View key={groupIndex} style={styles.settingsGroup}>
-            <Text style={styles.groupTitle}>{group.title}</Text>
-            {group.items.map((item) => (
-              <View key={item.id} style={styles.settingItem}>
-                <View style={styles.settingIcon}>
-                  <Ionicons name={item.icon as any} size={24} color="#4F46E5" />
+        {/* User Profile */}
+        <View style={styles.profileSection}>
+          <View style={styles.profileCard}>
+            <View style={styles.profileIcon}>
+              <Ionicons name="person-outline" size={32} color="#FFFFFF" />
+            </View>
+            <View style={styles.profileInfo}>
+              <View style={styles.profileNameRow}>
+                <Ionicons name="star" size={16} color="#F59E0B" />
+                <Text style={styles.profileName}>{userProfile.name}</Text>
+              </View>
+              <Text style={styles.profileEmail}>{userProfile.email}</Text>
+              <View style={styles.membershipBadge}>
+                <Text style={styles.membershipText}>{userProfile.membershipType}</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Account Settings */}
+        <View style={styles.settingsSection}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Account</Text>
+          </View>
+          <View style={styles.settingsGroup}>
+            {accountSettings.map((setting) => (
+              <TouchableOpacity
+                key={setting.id}
+                style={styles.settingItem}
+                onPress={() => handleSettingPress(setting.id)}
+                accessibilityLabel={setting.title}
+              >
+                <View style={[styles.settingIcon, { backgroundColor: setting.color }]}>
+                  <Ionicons name={setting.icon as any} size={20} color="#FFFFFF" />
                 </View>
                 <View style={styles.settingContent}>
-                  <Text style={styles.settingTitle}>{item.title}</Text>
-                  <Text style={styles.settingDescription}>{item.description}</Text>
+                  <Text style={styles.settingTitle}>{setting.title}</Text>
+                  <Text style={styles.settingDescription}>{setting.description}</Text>
                 </View>
-                <Switch
-                  value={settings[item.id]}
-                  onValueChange={() => handleToggle(item.id)}
-                  trackColor={{ false: '#E2E8F0', true: '#A5B4FC' }}
-                  thumbColor={settings[item.id] ? '#4F46E5' : '#F1F5F9'}
-                  accessibilityLabel={`Toggle ${item.title}`}
-                />
-              </View>
+                <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
+              </TouchableOpacity>
             ))}
           </View>
-        ))}
+        </View>
 
-        <View style={styles.settingsGroup}>
-          <Text style={styles.groupTitle}>Account</Text>
-          {accountItems.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              style={styles.accountItem}
-              onPress={() => handleAccountAction(item.id)}
-              accessibilityLabel={item.title}
-            >
-              <View style={styles.settingIcon}>
-                <Ionicons name={item.icon as any} size={24} color="#4F46E5" />
+        {/* App Settings */}
+        <View style={styles.settingsSection}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>App Settings</Text>
+          </View>
+          <View style={styles.settingsGroup}>
+            {appSettings.map((setting) => (
+              <TouchableOpacity
+                key={setting.id}
+                style={styles.settingItem}
+                onPress={() => handleSettingPress(setting.id)}
+                accessibilityLabel={setting.title}
+              >
+                <View style={[styles.settingIcon, { backgroundColor: setting.color }]}>
+                  <Ionicons name={setting.icon as any} size={20} color="#FFFFFF" />
+                </View>
+                <View style={styles.settingContent}>
+                  <Text style={styles.settingTitle}>{setting.title}</Text>
+                  <Text style={styles.settingDescription}>{setting.description}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
+              </TouchableOpacity>
+            ))}
+            
+            {/* Dark Mode Toggle */}
+            <View style={styles.settingItem}>
+              <View style={[styles.settingIcon, { backgroundColor: '#64748B' }]}>
+                <Ionicons name="moon-outline" size={20} color="#FFFFFF" />
               </View>
               <View style={styles.settingContent}>
-                <Text style={styles.settingTitle}>{item.title}</Text>
-                <Text style={styles.settingDescription}>{item.description}</Text>
+                <Text style={styles.settingTitle}>Dark Mode</Text>
+                <Text style={styles.settingDescription}>Toggle dark theme</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <View style={styles.dangerZone}>
-          <TouchableOpacity
-            style={styles.signOutButton}
-            onPress={handleSignOut}
-            accessibilityLabel="Sign out of your account"
-          >
-            <Ionicons name="log-out-outline" size={20} color="#DC2626" />
-            <Text style={styles.signOutText}>Sign Out</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.footer}>
-          <Text style={styles.versionText}>FaceAssist v1.0.0</Text>
-          <Text style={styles.copyrightText}>
-            Designed for individuals with prosopagnosia
-          </Text>
+              <Switch
+                value={darkMode}
+                onValueChange={setDarkMode}
+                trackColor={{ false: '#E2E8F0', true: '#A5B4FC' }}
+                thumbColor={darkMode ? '#6366F1' : '#F1F5F9'}
+              />
+            </View>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -299,68 +188,154 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F1F5F9',
   },
-  content: {
-    paddingHorizontal: 24,
-    paddingBottom: 32,
+  scrollView: {
+    flex: 1,
   },
   header: {
-    paddingTop: 20,
-    paddingBottom: 24,
     alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingTop: 60,
+    paddingBottom: 40,
+  },
+  iconContainer: {
+    position: 'relative',
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    backgroundColor: '#64748B',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+    shadowColor: '#64748B',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  sparkleIcon: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '800',
-    color: '#1E293B',
+    color: '#6366F1',
     marginBottom: 8,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
     color: '#64748B',
     textAlign: 'center',
   },
-  settingsGroup: {
+  profileSection: {
+    paddingHorizontal: 24,
     marginBottom: 32,
   },
-  groupTitle: {
-    fontSize: 18,
+  profileCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  profileIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    backgroundColor: '#6366F1',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  profileNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  profileName: {
+    fontSize: 20,
     fontWeight: '700',
     color: '#1E293B',
-    marginBottom: 16,
+    marginLeft: 8,
+  },
+  profileEmail: {
+    fontSize: 16,
+    color: '#64748B',
+    marginBottom: 8,
+  },
+  membershipBadge: {
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  membershipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#92400E',
+  },
+  settingsSection: {
+    paddingHorizontal: 24,
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    backgroundColor: '#6366F1',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  settingsGroup: {
+    backgroundColor: '#FFFFFF',
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
   },
   settingItem: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  accountItem: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
   },
   settingIcon: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: '#EEF2FF',
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -372,46 +347,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#1E293B',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   settingDescription: {
     fontSize: 14,
     color: '#64748B',
-    lineHeight: 20,
-  },
-  dangerZone: {
-    marginTop: 16,
-    marginBottom: 32,
-  },
-  signOutButton: {
-    backgroundColor: '#FEF2F2',
-    borderRadius: 12,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#FECACA',
-  },
-  signOutText: {
-    color: '#DC2626',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  footer: {
-    alignItems: 'center',
-    paddingTop: 16,
-  },
-  versionText: {
-    fontSize: 14,
-    color: '#94A3B8',
-    marginBottom: 4,
-  },
-  copyrightText: {
-    fontSize: 12,
-    color: '#CBD5E1',
-    textAlign: 'center',
-    fontStyle: 'italic',
   },
 });
