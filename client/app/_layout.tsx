@@ -13,7 +13,8 @@ export default function RootLayout() {
         {/* Initial flow screens */}
         <Stack.Screen name="index" />
         <Stack.Screen name="onboarding" />
-        <Stack.Screen name="policy" />
+        <Stack.Screen name="setup" />
+        <Stack.Screen name="title" />
         
         {/* Authentication screens */}
         <Stack.Screen name="auth/signin" />
@@ -22,11 +23,17 @@ export default function RootLayout() {
         {/* Main app with tabs */}
         <Stack.Screen name="(tabs)" />
         
-        {/* Other screens */}
+        {/* Legacy screens for backward compatibility */}
+        <Stack.Screen name="policy" />
         <Stack.Screen name="dashboard" />
         <Stack.Screen name="learning" />
         <Stack.Screen name="upload" />
         <Stack.Screen name="directory" />
+        <Stack.Screen name="contacts" />
+        <Stack.Screen name="learn" />
+        <Stack.Screen name="progress" />
+        <Stack.Screen name="scan" />
+        <Stack.Screen name="settings" />
       </Stack>
     </>
   );

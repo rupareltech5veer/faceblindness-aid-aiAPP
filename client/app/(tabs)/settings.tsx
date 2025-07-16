@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,12 +11,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-
-const userProfile = {
-  name: 'John Doe',
-  email: 'john.doe@email.com',
-  membershipType: 'Premium Member',
-};
+import { supabase, UserProfile, AppSettings } from '../../lib/supabase';
+import { StorageService } from '../../lib/storage';
 
 const accountSettings = [
   {
@@ -35,7 +31,7 @@ const accountSettings = [
   },
 ];
 
-const appSettings = [
+const appSettingsConfig = [
   {
     id: 'notifications',
     title: 'Notifications',
@@ -53,7 +49,64 @@ const appSettings = [
 ];
 
 export default function SettingsScreen() {
-  const [darkMode, setDarkMode] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Fetch user profile
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      setUserProfile(profile);
+
+      // Fetch app settings
+      const { data: settings } = await supabase
+        .from('app_settings')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      setAppSettings(settings);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateAppSetting = async (key: keyof AppSettings, value: boolean) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('app_settings')
+        .upsert({
+          user_id: user.id,
+          [key]: value,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (error) throw error;
+
+      setAppSettings(prev => prev ? { ...prev, [key]: value } : null);
+    } catch (error) {
+      console.error('Error updating setting:', error);
+      Alert.alert('Error', 'Failed to update setting. Please try again.');
+    }
+  };
 
   const handleSettingPress = (settingId: string) => {
     Alert.alert(
@@ -72,27 +125,43 @@ export default function SettingsScreen() {
         {
           text: 'Sign Out',
           style: 'destructive',
-          onPress: () => router.replace('/auth/signin'),
+          onPress: async () => {
+            try {
+              await supabase.auth.signOut();
+              await StorageService.clearAll();
+              router.replace('/auth/signin');
+            } catch (error) {
+              console.error('Error signing out:', error);
+              Alert.alert('Error', 'Failed to sign out. Please try again.');
+            }
+          },
         },
       ]
     );
   };
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Ionicons name="settings-outline" size={48} color="#94A3B8" />
+          <Text style={styles.loadingText}>Loading settings...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.iconContainer}>
-            <Ionicons name="settings-outline" size={32} color="#FFFFFF" />
-            <View style={styles.sparkleIcon}>
-              <Ionicons name="sparkles-outline" size={16} color="#64748B" />
-            </View>
-          </View>
-          <Text style={styles.title}>Settings</Text>
-          <Text style={styles.subtitle}>Customize your app experience</Text>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.logoContainer}>
+          <Ionicons name="settings" size={24} color="#6366F1" />
+          <Text style={styles.logoText}>Settings</Text>
         </View>
+      </View>
 
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* User Profile */}
         <View style={styles.profileSection}>
           <View style={styles.profileCard}>
@@ -102,11 +171,15 @@ export default function SettingsScreen() {
             <View style={styles.profileInfo}>
               <View style={styles.profileNameRow}>
                 <Ionicons name="star" size={16} color="#F59E0B" />
-                <Text style={styles.profileName}>{userProfile.name}</Text>
+                <Text style={styles.profileName}>
+                  {userProfile?.full_name || 'User'}
+                </Text>
               </View>
-              <Text style={styles.profileEmail}>{userProfile.email}</Text>
+              <Text style={styles.profileEmail}>
+                {userProfile?.user_id ? 'Memora Member' : 'Guest User'}
+              </Text>
               <View style={styles.membershipBadge}>
-                <Text style={styles.membershipText}>{userProfile.membershipType}</Text>
+                <Text style={styles.membershipText}>Premium Member</Text>
               </View>
             </View>
           </View>
@@ -144,7 +217,7 @@ export default function SettingsScreen() {
             <Text style={styles.sectionTitle}>App Settings</Text>
           </View>
           <View style={styles.settingsGroup}>
-            {appSettings.map((setting) => (
+            {appSettingsConfig.map((setting) => (
               <TouchableOpacity
                 key={setting.id}
                 style={styles.settingItem}
@@ -162,6 +235,23 @@ export default function SettingsScreen() {
               </TouchableOpacity>
             ))}
             
+            {/* Notifications Toggle */}
+            <View style={styles.settingItem}>
+              <View style={[styles.settingIcon, { backgroundColor: '#F59E0B' }]}>
+                <Ionicons name="notifications-outline" size={20} color="#FFFFFF" />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingTitle}>Push Notifications</Text>
+                <Text style={styles.settingDescription}>Receive app notifications</Text>
+              </View>
+              <Switch
+                value={appSettings?.notifications_enabled ?? true}
+                onValueChange={(value) => updateAppSetting('notifications_enabled', value)}
+                trackColor={{ false: '#E2E8F0', true: '#A5B4FC' }}
+                thumbColor={appSettings?.notifications_enabled ? '#6366F1' : '#F1F5F9'}
+              />
+            </View>
+
             {/* Dark Mode Toggle */}
             <View style={styles.settingItem}>
               <View style={[styles.settingIcon, { backgroundColor: '#64748B' }]}>
@@ -172,10 +262,27 @@ export default function SettingsScreen() {
                 <Text style={styles.settingDescription}>Toggle dark theme</Text>
               </View>
               <Switch
-                value={darkMode}
-                onValueChange={setDarkMode}
+                value={appSettings?.dark_mode ?? false}
+                onValueChange={(value) => updateAppSetting('dark_mode', value)}
                 trackColor={{ false: '#E2E8F0', true: '#A5B4FC' }}
-                thumbColor={darkMode ? '#6366F1' : '#F1F5F9'}
+                thumbColor={appSettings?.dark_mode ? '#6366F1' : '#F1F5F9'}
+              />
+            </View>
+
+            {/* Sound Toggle */}
+            <View style={styles.settingItem}>
+              <View style={[styles.settingIcon, { backgroundColor: '#EF4444' }]}>
+                <Ionicons name="volume-high-outline" size={20} color="#FFFFFF" />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingTitle}>Sound Effects</Text>
+                <Text style={styles.settingDescription}>App sounds and feedback</Text>
+              </View>
+              <Switch
+                value={appSettings?.sound_enabled ?? true}
+                onValueChange={(value) => updateAppSetting('sound_enabled', value)}
+                trackColor={{ false: '#E2E8F0', true: '#A5B4FC' }}
+                thumbColor={appSettings?.sound_enabled ? '#6366F1' : '#F1F5F9'}
               />
             </View>
           </View>
@@ -203,63 +310,44 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F1F5F9',
-  },
-  scrollView: {
-    flex: 1,
+    backgroundColor: '#F8FAFC',
   },
   header: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 40,
-  },
-  iconContainer: {
-    position: 'relative',
-    width: 80,
-    height: 80,
-    borderRadius: 20,
-    backgroundColor: '#64748B',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-    shadowColor: '#64748B',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  sparkleIcon: {
-    position: 'absolute',
-    top: -8,
-    right: -8,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    paddingVertical: 16,
     backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logoText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginLeft: 8,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+  },
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#6366F1',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  subtitle: {
+  loadingText: {
     fontSize: 16,
     color: '#64748B',
-    textAlign: 'center',
+    marginTop: 16,
   },
   profileSection: {
-    paddingHorizontal: 24,
-    marginBottom: 32,
+    paddingVertical: 24,
   },
   profileCard: {
     backgroundColor: '#FFFFFF',
@@ -314,7 +402,6 @@ const styles = StyleSheet.create({
     color: '#92400E',
   },
   settingsSection: {
-    paddingHorizontal: 24,
     marginBottom: 24,
   },
   sectionHeader: {
@@ -369,8 +456,8 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   signOutSection: {
-    paddingHorizontal: 24,
     marginTop: 16,
+    marginBottom: 32,
   },
   signOutButton: {
     backgroundColor: '#FFFFFF',

@@ -1,24 +1,23 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   SafeAreaView,
-  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { StorageService } from '../lib/storage';
 
-const { width, height } = Dimensions.get('window');
+export default function TitleScreen() {
+  useEffect(() => {
+    // Auto-dismiss after 3 seconds
+    const timer = setTimeout(() => {
+      router.replace('/(tabs)/home');
+    }, 3000);
 
-export default function OnboardingScreen() {
-  const handleGetStarted = async () => {
-    await StorageService.setFirstLaunchComplete();
-    router.replace('/setup');
-  };
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <LinearGradient
@@ -30,16 +29,16 @@ export default function OnboardingScreen() {
           {/* Floating Background Icons */}
           <View style={styles.floatingIconsContainer}>
             <View style={[styles.floatingIcon, styles.floatingIcon1]}>
-              <Ionicons name="heart-outline" size={24} color="rgba(255,255,255,0.3)" />
+              <Ionicons name="heart-outline" size={20} color="rgba(255,255,255,0.3)" />
             </View>
             <View style={[styles.floatingIcon, styles.floatingIcon2]}>
-              <Ionicons name="eye-outline" size={24} color="rgba(255,255,255,0.3)" />
-            </View>
-            <View style={[styles.floatingIcon, styles.floatingIcon3]}>
               <Ionicons name="people-outline" size={20} color="rgba(255,255,255,0.3)" />
             </View>
+            <View style={[styles.floatingIcon, styles.floatingIcon3]}>
+              <Ionicons name="camera-outline" size={18} color="rgba(255,255,255,0.3)" />
+            </View>
             <View style={[styles.floatingIcon, styles.floatingIcon4]}>
-              <Ionicons name="sparkles-outline" size={20} color="rgba(255,255,255,0.3)" />
+              <Ionicons name="sparkles-outline" size={18} color="rgba(255,255,255,0.3)" />
             </View>
           </View>
 
@@ -48,23 +47,13 @@ export default function OnboardingScreen() {
             {/* Central Logo */}
             <View style={styles.logoContainer}>
               <View style={styles.logo}>
-                <Ionicons name="heart" size={64} color="#FFFFFF" />
+                <Ionicons name="heart" size={56} color="#FFFFFF" />
               </View>
             </View>
 
             {/* App Name and Slogan */}
             <Text style={styles.appName}>Memora</Text>
             <Text style={styles.slogan}>Faces that matter, memories that stay.</Text>
-
-            {/* Get Started Button */}
-            <TouchableOpacity 
-              style={styles.getStartedButton}
-              onPress={handleGetStarted}
-              accessibilityLabel="Get started with Memora"
-            >
-              <Text style={styles.getStartedText}>Get Started</Text>
-              <Ionicons name="chevron-forward" size={24} color="#FFFFFF" />
-            </TouchableOpacity>
           </View>
         </View>
       </SafeAreaView>
@@ -92,29 +81,29 @@ const styles = StyleSheet.create({
   },
   floatingIcon: {
     position: 'absolute',
-    width: 60,
-    height: 60,
-    borderRadius: 16,
+    width: 50,
+    height: 50,
+    borderRadius: 12,
     backgroundColor: 'rgba(255,255,255,0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     backdropFilter: 'blur(10px)',
   },
   floatingIcon1: {
-    top: 100,
-    left: 30,
+    top: 120,
+    left: 40,
   },
   floatingIcon2: {
     top: 200,
-    right: 40,
+    right: 50,
   },
   floatingIcon3: {
-    top: 300,
-    left: 50,
+    bottom: 250,
+    left: 60,
   },
   floatingIcon4: {
-    bottom: 200,
-    right: 30,
+    bottom: 180,
+    right: 40,
   },
   mainContent: {
     flex: 1,
@@ -123,58 +112,35 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   logoContainer: {
-    marginBottom: 60,
+    marginBottom: 40,
   },
   logo: {
-    width: 140,
-    height: 140,
-    borderRadius: 28,
+    width: 120,
+    height: 120,
+    borderRadius: 24,
     backgroundColor: 'rgba(255,255,255,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 12,
-  },
-  appName: {
-    fontSize: 56,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 16,
-    textAlign: 'center',
-    letterSpacing: -2,
-  },
-  slogan: {
-    fontSize: 20,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.9)',
-    textAlign: 'center',
-    lineHeight: 28,
-    marginBottom: 80,
-    paddingHorizontal: 20,
-  },
-  getStartedButton: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 20,
-    paddingHorizontal: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 8,
   },
-  getStartedText: {
+  appName: {
+    fontSize: 48,
+    fontWeight: '800',
     color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: '600',
-    marginRight: 12,
+    marginBottom: 12,
+    textAlign: 'center',
+    letterSpacing: -1,
+  },
+  slogan: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.9)',
+    textAlign: 'center',
+    lineHeight: 26,
+    paddingHorizontal: 20,
   },
 });

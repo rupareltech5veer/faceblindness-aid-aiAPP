@@ -14,6 +14,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { supabase } from '../../lib/supabase';
 
 export default function SignInScreen() {
   const [email, setEmail] = useState('');
@@ -29,11 +30,27 @@ export default function SignInScreen() {
 
     setIsLoading(true);
     
-    // TODO: Implement actual authentication
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.user) {
+        // Navigate to title screen on successful login
+        router.replace('/title');
+      }
+      
+    } catch (error: any) {
+      console.error('Signin error:', error);
+      Alert.alert('Sign In Failed', error.message || 'Failed to sign in. Please check your credentials.');
+    } finally {
       setIsLoading(false);
-      router.replace('/(tabs)/scan');
-    }, 1500);
+    }
   };
 
   const handleForgotPassword = () => {

@@ -14,6 +14,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { supabase } from '../../lib/supabase';
 
 export default function SignUpScreen() {
   const [formData, setFormData] = useState({
@@ -44,6 +45,10 @@ export default function SignUpScreen() {
       Alert.alert('Missing Information', 'Please enter a password.');
       return false;
     }
+    if (formData.password.length < 6) {
+      Alert.alert('Password Too Short', 'Password must be at least 6 characters long.');
+      return false;
+    }
     if (formData.password !== formData.confirmPassword) {
       Alert.alert('Password Mismatch', 'Passwords do not match.');
       return false;
@@ -60,15 +65,47 @@ export default function SignUpScreen() {
 
     setIsLoading(true);
     
-    // TODO: Implement actual registration
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email.trim(),
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName.trim(),
+          }
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.user) {
+        // Create user profile
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .insert({
+            user_id: data.user.id,
+            full_name: formData.fullName.trim(),
+          });
+
+        if (profileError) {
+          console.error('Error creating profile:', profileError);
+        }
+
+        Alert.alert(
+          'Account Created!',
+          'Your account has been created successfully. Please sign in to continue.',
+          [{ text: 'Continue', onPress: () => router.replace('/auth/signin') }]
+        );
+      }
+      
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      Alert.alert('Signup Failed', error.message || 'Failed to create account. Please try again.');
+    } finally {
       setIsLoading(false);
-      Alert.alert(
-        'Account Created!',
-        'Your account has been created successfully.',
-        [{ text: 'Continue', onPress: () => router.replace('/(tabs)/scan') }]
-      );
-    }, 1500);
+    }
   };
 
   return (
@@ -87,8 +124,8 @@ export default function SignUpScreen() {
               <View style={styles.iconContainer}>
                 <Ionicons name="person-add-outline" size={32} color="#FFFFFF" />
               </View>
-              <Text style={styles.title}>Create Account</Text>
-              <Text style={styles.subtitle}>Join FaceAssist and start your journey</Text>
+              <Text style={styles.title}>Join Memora</Text>
+              <Text style={styles.subtitle}>Create your account to get started</Text>
             </View>
 
             {/* Main Card */}

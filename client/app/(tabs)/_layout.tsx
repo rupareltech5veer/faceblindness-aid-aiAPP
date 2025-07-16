@@ -36,15 +36,6 @@ export default function TabsLayout() {
           }}
         />
         <Tabs.Screen
-          name="contacts"
-          options={{
-            title: 'Contacts',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="people-outline" size={size} color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
           name="learn"
           options={{
             title: 'Learn',
@@ -54,11 +45,20 @@ export default function TabsLayout() {
           }}
         />
         <Tabs.Screen
-          name="progress"
+          name="home"
           options={{
-            title: 'Progress',
+            title: 'Home',
             tabBarIcon: ({ color, size }) => (
-              <Ionicons name="bar-chart-outline" size={size} color={color} />
+              <Ionicons name="heart-outline" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="connections"
+          options={{
+            title: 'Connections',
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="people-outline" size={size} color={color} />
             ),
           }}
         />
