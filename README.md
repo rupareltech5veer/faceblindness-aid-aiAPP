@@ -1,12 +1,11 @@
 # Face Blindness Aid App
 
-An AI-powered assistive app for people with face blindness (prosopagnosia). Built with React Native (Expo), FastAPI, and Supabase.
+An AI-powered assistive app for people with face blindness (prosopagnosia). Built with React Native (Expo), Node.js/Express, and Supabase.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Node.js (v16+)
-- Python (v3.8+)
 - Expo CLI: `npm install -g @expo/cli`
 - Supabase account
 
@@ -31,7 +30,7 @@ EXPO_PUBLIC_BACKEND_URL=http://localhost:8000
 
 ### 4. Run the App
 ```bash
-# Terminal 1 - Start backend
+# Terminal 1 - Start Node.js backend
 npm run backend
 
 # Terminal 2 - Start React Native app
@@ -41,7 +40,7 @@ npm start
 ## 📁 Project Structure
 ```
 ├── client/          # React Native (Expo) app
-├── backend/         # FastAPI Python backend
+├── server/          # Node.js Express backend
 ├── supabase/        # Database migrations
 └── README.md
 ```
@@ -55,7 +54,7 @@ npm start
 
 ## 🔧 Tech Stack
 - **Frontend**: React Native, Expo, TypeScript
-- **Backend**: FastAPI, Python
+- **Backend**: Node.js, Express
 - **Database**: Supabase (PostgreSQL)
 - **Storage**: Supabase Storage
 - **Navigation**: Expo Router

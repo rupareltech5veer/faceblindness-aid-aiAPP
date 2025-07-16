@@ -8,8 +8,8 @@
     "android": "cd client && npm run android",
     "ios": "cd client && npm run ios",
     "web": "cd client && npm run web",
-    "backend": "cd backend && uvicorn main:app --reload --host 0.0.0.0 --port 8000",
-    "install-all": "npm install && cd client && npm install && cd ../backend && pip install -r requirements.txt"
+    "backend": "cd server && npm start",
+    "install-all": "npm install && cd client && npm install && cd ../server && npm install"
   },
   "keywords": [
     "react-native",
