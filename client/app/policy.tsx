@@ -10,62 +10,38 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const slides = [
   {
     id: 1,
-    icon: 'hand-right-outline',
-    iconColor: '#4F46E5',
+    icon: 'eye-outline',
+    iconColor: '#6366F1',
+    backgroundColor: ['#6366F1', '#8B5CF6'],
     title: 'Welcome to FaceAssist',
-    description: 'Your journey to better face recognition starts here. We understand the challenges of prosopagnosia and are here to help.',
-    points: [
-      'Designed specifically for face blindness',
-      'Evidence-based memory techniques',
-      'Supportive and judgment-free environment',
-      'Personalized learning experience'
-    ]
+    subtitle: 'Your personal face recognition companion',
+    description: 'Designed specifically for people with face blindness (prosopagnosia), FaceAssist helps you recognize and remember the people in your life.',
   },
   {
     id: 2,
-    icon: 'scan-circle-outline',
-    iconColor: '#059669',
+    icon: 'people-outline',
+    iconColor: '#10B981',
+    backgroundColor: ['#10B981', '#059669'],
     title: 'Scan & Identify',
-    description: 'Our smart recognition system helps you capture and analyze faces with detailed descriptions.',
-    points: [
-      'High-contrast photo capture interface',
-      'Detailed facial feature descriptions',
-      'Custom memory aids and mnemonics',
-      'Voice-guided instructions available'
-    ]
+    subtitle: 'Recognize faces instantly',
+    description: 'Use your camera to scan faces and get instant identification with confidence scores and helpful context about each person.',
   },
   {
     id: 3,
-    icon: 'school-outline',
-    iconColor: '#DC2626',
-    title: 'Learn & Practice',
-    description: 'Improve your face recognition skills through structured exercises and progress tracking.',
-    points: [
-      'Adaptive learning algorithms',
-      'Progress tracking and insights',
-      'Spaced repetition techniques',
-      'Confidence building exercises'
-    ]
-  },
-  {
-    id: 4,
     icon: 'shield-checkmark-outline',
-    iconColor: '#7C3AED',
+    iconColor: '#F97316',
+    backgroundColor: ['#F97316', '#DC2626'],
     title: 'Private & Secure',
-    description: 'Your privacy is our priority. All data is encrypted and stored securely on your device.',
-    points: [
-      'End-to-end encryption',
-      'Local data storage options',
-      'No sharing without permission',
-      'GDPR and accessibility compliant'
-    ]
-  }
+    subtitle: 'Your data stays safe',
+    description: 'All face data is processed locally on your device. Your privacy and security are our top priorities.',
+  },
 ];
 
 export default function PolicyScreen() {
@@ -90,96 +66,208 @@ export default function PolicyScreen() {
   };
 
   const slide = slides[currentSlide];
+  const isLastSlide = currentSlide === slides.length - 1;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={skipToAuth}
-          style={styles.skipButton}
-          accessibilityLabel="Skip introduction"
-        >
-          <Text style={styles.skipText}>Skip</Text>
-        </TouchableOpacity>
-      </View>
+    <LinearGradient
+      colors={slide.backgroundColor}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.content}>
+          {/* Main Card */}
+          <View style={styles.card}>
+            {/* Pagination Dots */}
+            <View style={styles.pagination}>
+              {slides.map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.paginationDot,
+                    index === currentSlide && [
+                      styles.paginationDotActive,
+                      { backgroundColor: slide.iconColor }
+                    ]
+                  ]}
+                />
+              ))}
+            </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.slideContainer}>
-          <View style={[styles.iconContainer, { backgroundColor: `${slide.iconColor}15` }]}>
-            <Ionicons name={slide.icon as any} size={64} color={slide.iconColor} />
+            {/* Icon */}
+            <View style={[styles.iconContainer, { backgroundColor: slide.iconColor }]}>
+              <Ionicons name={slide.icon as any} size={48} color="#FFFFFF" />
+            </View>
+
+            {/* Content */}
+            <Text style={styles.title}>{slide.title}</Text>
+            <Text style={[styles.subtitle, { color: slide.iconColor }]}>
+              {slide.subtitle}
+            </Text>
+            <Text style={styles.description}>{slide.description}</Text>
+
+            {/* Navigation Buttons */}
+            <View style={styles.navigationContainer}>
+              <TouchableOpacity
+                onPress={prevSlide}
+                style={[styles.backButton, currentSlide === 0 && styles.backButtonDisabled]}
+                disabled={currentSlide === 0}
+                accessibilityLabel="Go back"
+              >
+                <Ionicons 
+                  name="chevron-back" 
+                  size={20} 
+                  color={currentSlide === 0 ? '#CBD5E1' : '#64748B'} 
+                />
+                <Text style={[
+                  styles.backButtonText,
+                  currentSlide === 0 && styles.backButtonTextDisabled
+                ]}>
+                  Back
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={nextSlide}
+                style={[styles.nextButton, { backgroundColor: slide.iconColor }]}
+                accessibilityLabel={isLastSlide ? "Get started" : "Next slide"}
+              >
+                <Text style={styles.nextButtonText}>
+                  {isLastSlide ? 'Get Started' : 'Next'}
+                </Text>
+                <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Skip Button */}
+            <TouchableOpacity
+              onPress={skipToAuth}
+              style={styles.skipButton}
+              accessibilityLabel="Skip introduction"
+            >
+              <Text style={styles.skipText}>Skip introduction</Text>
+            </TouchableOpacity>
           </View>
-
-          <Text style={styles.slideTitle}>{slide.title}</Text>
-          <Text style={styles.slideDescription}>{slide.description}</Text>
-
-          <View style={styles.pointsContainer}>
-            {slide.points.map((point, index) => (
-              <View key={index} style={styles.pointItem}>
-                <View style={[styles.pointDot, { backgroundColor: slide.iconColor }]} />
-                <Text style={styles.pointText}>{point}</Text>
-              </View>
-            ))}
-          </View>
         </View>
-      </ScrollView>
-
-      <View style={styles.footer}>
-        <View style={styles.pagination}>
-          {slides.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.paginationDot,
-                index === currentSlide && styles.paginationDotActive
-              ]}
-            />
-          ))}
-        </View>
-
-        <View style={styles.navigationButtons}>
-          <TouchableOpacity
-            onPress={prevSlide}
-            style={[styles.navButton, styles.backButton]}
-            disabled={currentSlide === 0}
-            accessibilityLabel="Go to previous slide"
-          >
-            <Ionicons 
-              name="chevron-back" 
-              size={24} 
-              color={currentSlide === 0 ? '#CBD5E1' : '#64748B'} 
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={nextSlide}
-            style={[styles.navButton, styles.nextButton]}
-            accessibilityLabel={currentSlide === slides.length - 1 ? "Continue to sign in" : "Go to next slide"}
-          >
-            {currentSlide === slides.length - 1 ? (
-              <>
-                <Text style={styles.nextButtonText}>Continue</Text>
-                <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
-              </>
-            ) : (
-              <Ionicons name="chevron-forward" size={24} color="#FFFFFF" />
-            )}
-          </TouchableOpacity>
-        </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+  safeArea: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 24,
-    paddingTop: 16,
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 32,
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.25,
+    shadowRadius: 25,
+    elevation: 20,
+  },
+  pagination: {
+    flexDirection: 'row',
+    marginBottom: 32,
+    gap: 8,
+  },
+  paginationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#E2E8F0',
+  },
+  paginationDotActive: {
+    width: 24,
+  },
+  iconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#1E293B',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  subtitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  description: {
+    fontSize: 16,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 40,
+  },
+  navigationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 24,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  backButtonDisabled: {
+    opacity: 0.5,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: '#64748B',
+    marginLeft: 4,
+    fontWeight: '500',
+  },
+  backButtonTextDisabled: {
+    color: '#CBD5E1',
+  },
+  nextButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  nextButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    marginRight: 8,
   },
   skipButton: {
     paddingVertical: 8,
@@ -187,109 +275,7 @@ const styles = StyleSheet.create({
   },
   skipText: {
     fontSize: 16,
-    color: '#64748B',
+    color: '#94A3B8',
     fontWeight: '500',
-  },
-  content: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    justifyContent: 'center',
-  },
-  slideContainer: {
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  iconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  slideTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#1E293B',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  slideDescription: {
-    fontSize: 18,
-    color: '#64748B',
-    textAlign: 'center',
-    lineHeight: 26,
-    marginBottom: 32,
-    paddingHorizontal: 20,
-  },
-  pointsContainer: {
-    width: '100%',
-    maxWidth: 320,
-  },
-  pointItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  pointDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginTop: 8,
-    marginRight: 16,
-  },
-  pointText: {
-    flex: 1,
-    fontSize: 16,
-    color: '#374151',
-    lineHeight: 24,
-  },
-  footer: {
-    paddingHorizontal: 24,
-    paddingBottom: 32,
-  },
-  pagination: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 24,
-  },
-  paginationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#CBD5E1',
-    marginHorizontal: 4,
-  },
-  paginationDotActive: {
-    backgroundColor: '#4F46E5',
-    width: 24,
-  },
-  navigationButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  navButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backButton: {
-    backgroundColor: '#F1F5F9',
-  },
-  nextButton: {
-    backgroundColor: '#4F46E5',
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    width: 'auto',
-    minWidth: 56,
-  },
-  nextButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    marginRight: 8,
   },
 });
