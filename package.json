@@ -2,7 +2,6 @@
   "name": "faceblindness-aid-app",
   "version": "1.0.0",
   "description": "AI-powered assistive app for people with face blindness",
-  "main": "index.js",
   "scripts": {
     "start": "npx expo start",
     "android": "cd client && npm run android",
