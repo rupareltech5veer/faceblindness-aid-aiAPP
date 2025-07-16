@@ -1,3 +1,4 @@
+
 # Face Blindness Aid App
 
 An AI-powered assistive app for people with face blindness (prosopagnosia). Built with React Native (Expo), FastAPI (Python), and Supabase.
@@ -6,17 +7,19 @@ An AI-powered assistive app for people with face blindness (prosopagnosia). Buil
 
 ### Prerequisites
 - Node.js (v16+)
-- Expo CLI: `npm install -g @expo/cli`
+- Expo CLI: `npm install -g expo-cli`
 - Python 3.11+
 - pip
 - Supabase account
 
 ### 1. Install Dependencies
 ```bash
-npm run install-all
+# Install JS dependencies
+cd client
+npm install
 
 # Install Python dependencies
-cd backend
+cd ../backend
 pip install -r requirements.txt
 ```
 
@@ -37,26 +40,50 @@ EXPO_PUBLIC_BACKEND_URL=http://localhost:8000
 ### 4. Run the App
 ```bash
 # Terminal 1 - Start FastAPI backend
-npm run backend
+cd backend
+uvicorn main:app --reload
 
 # Terminal 2 - Start React Native app
+cd client
 npm start
 ```
 
 ## 📁 Project Structure
 ```
 ├── client/          # React Native (Expo) app
+│   ├── app/         # App screens (upload, directory, etc)
+│   ├── lib/         # API and Supabase helpers
+│   └── ...
 ├── backend/         # FastAPI Python backend
+│   └── main.py      # Backend API
 ├── supabase/        # Database migrations
 └── README.md
 ```
 
 ## 🛠 Features
-- Upload photos using Expo Image Picker
-- Generate AI facial memory cues (mock implementation)
-- Store faces in Supabase with descriptions
+- Upload photos using Expo Image Picker (with correct permissions)
+- Generate AI facial memory cues (mock implementation, backend returns description & mnemonic)
+- Store faces in Supabase with descriptions and mnemonics
 - Browse uploaded faces in a clean directory
 - Cross-platform mobile app (iOS/Android/Web)
+
+## 📝 How it Works
+1. User uploads a photo and enters a name
+2. Photo is uploaded to Supabase Storage
+3. The backend generates a facial cue (description & mnemonic) for the image
+4. The face, cue, and metadata are saved in Supabase
+5. User can browse all faces and cues in the directory
+
+## 🔗 Tech Stack
+- React Native (Expo Router, TypeScript)
+- FastAPI (Python)
+- Supabase (DB & Storage)
+- Expo Image Picker
+
+## ⚠️ Notes
+- The AI cue generation is currently a mock (randomized) implementation
+- User authentication is not yet implemented (uses a demo user)
+- Make sure your Supabase storage bucket is public or has correct policies
 
 ## 🔧 Tech Stack
 - **Frontend**: React Native, Expo, TypeScript
