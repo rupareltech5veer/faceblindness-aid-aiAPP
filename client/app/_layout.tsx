@@ -17,6 +17,55 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen 
+          name="onboarding" 
+          options={{ 
+            title: 'Welcome',
+            headerShown: false 
+          }} 
+        />
+        <Stack.Screen 
+          name="policy" 
+          options={{ 
+            title: 'Getting Started',
+            headerShown: false 
+          }} 
+        />
+        <Stack.Screen 
+          name="auth/signin" 
+          options={{ 
+            title: 'Sign In',
+            headerShown: false 
+          }} 
+        />
+        <Stack.Screen 
+          name="auth/signup" 
+          options={{ 
+            title: 'Sign Up',
+            headerShown: false 
+          }} 
+        />
+        <Stack.Screen 
+          name="dashboard" 
+          options={{ 
+            title: 'FaceAssist',
+            headerShown: true 
+          }} 
+        />
+        <Stack.Screen 
+          name="learning" 
+          options={{ 
+            title: 'Learning Center',
+            headerShown: true 
+          }} 
+        />
+        <Stack.Screen 
+          name="settings" 
+          options={{ 
+            title: 'Settings',
+            headerShown: true 
+          }} 
+        />
+        <Stack.Screen 
           name="index" 
           options={{ 
             title: 'Face Blindness Aid',
