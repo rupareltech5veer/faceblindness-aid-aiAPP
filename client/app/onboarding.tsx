@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -10,212 +10,233 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
 
 export default function OnboardingScreen() {
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Hero Section */}
-        <View style={styles.heroSection}>
-          <View style={styles.iconContainer}>
-            <View style={styles.mainIcon}>
-              <Ionicons name="eye-outline" size={48} color="#ffffff" />
+    <LinearGradient
+      colors={['#6366F1', '#8B5CF6', '#D946EF']}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+          {/* Floating Background Icons */}
+          <View style={styles.floatingIconsContainer}>
+            <View style={[styles.floatingIcon, styles.floatingIcon1]}>
+              <Ionicons name="heart-outline" size={24} color="rgba(255,255,255,0.3)" />
             </View>
-            <View style={styles.accentDot1} />
-            <View style={styles.accentDot2} />
-            <View style={styles.accentDot3} />
+            <View style={[styles.floatingIcon, styles.floatingIcon2]}>
+              <Ionicons name="eye-outline" size={24} color="rgba(255,255,255,0.3)" />
+            </View>
+            <View style={[styles.floatingIcon, styles.floatingIcon3]}>
+              <Ionicons name="bulb-outline" size={20} color="rgba(255,255,255,0.3)" />
+            </View>
+            <View style={[styles.floatingIcon, styles.floatingIcon4]}>
+              <Ionicons name="sparkles-outline" size={20} color="rgba(255,255,255,0.3)" />
+            </View>
           </View>
-          
-          <Text style={styles.title}>FaceAssist</Text>
-          <Text style={styles.subtitle}>
-            Your personal companion for recognizing and remembering faces
-          </Text>
-        </View>
 
-        {/* Features Section */}
-        <View style={styles.featuresSection}>
-          <View style={styles.featureCard}>
-            <View style={styles.featureIcon}>
-              <Ionicons name="scan-outline" size={32} color="#4F46E5" />
+          {/* Main Content */}
+          <View style={styles.mainContent}>
+            {/* Central Icon */}
+            <View style={styles.centralIconContainer}>
+              <View style={styles.centralIcon}>
+                <Ionicons name="eye-outline" size={48} color="#FFFFFF" />
+              </View>
             </View>
-            <Text style={styles.featureTitle}>Smart Recognition</Text>
-            <Text style={styles.featureDescription}>
-              Capture photos and get detailed facial descriptions to help you remember
+
+            {/* Title and Subtitle */}
+            <Text style={styles.title}>FaceAssist</Text>
+            <Text style={styles.subtitle}>Remember Every Face</Text>
+            <Text style={styles.description}>
+              Your intelligent companion for meaningful connections
             </Text>
-          </View>
 
-          <View style={styles.featureCard}>
-            <View style={styles.featureIcon}>
-              <Ionicons name="library-outline" size={32} color="#059669" />
+            {/* Feature Icons */}
+            <View style={styles.featuresContainer}>
+              <View style={styles.featureItem}>
+                <View style={styles.featureIcon}>
+                  <Ionicons name="bulb-outline" size={28} color="#FFFFFF" />
+                </View>
+                <Text style={styles.featureLabel}>Smart Recognition</Text>
+              </View>
+
+              <View style={styles.featureItem}>
+                <View style={styles.featureIcon}>
+                  <Ionicons name="heart-outline" size={28} color="#FFFFFF" />
+                </View>
+                <Text style={styles.featureLabel}>Personal Growth</Text>
+              </View>
+
+              <View style={styles.featureItem}>
+                <View style={styles.featureIcon}>
+                  <Ionicons name="sparkles-outline" size={28} color="#FFFFFF" />
+                </View>
+                <Text style={styles.featureLabel}>Confidence Builder</Text>
+              </View>
             </View>
-            <Text style={styles.featureTitle}>Personal Directory</Text>
-            <Text style={styles.featureDescription}>
-              Build your own collection of faces with custom memory aids
-            </Text>
-          </View>
 
-          <View style={styles.featureCard}>
-            <View style={styles.featureIcon}>
-              <Ionicons name="school-outline" size={32} color="#DC2626" />
+            {/* Action Buttons */}
+            <View style={styles.actionContainer}>
+              <TouchableOpacity 
+                style={styles.primaryButton}
+                onPress={() => router.push('/policy')}
+                accessibilityLabel="Begin your journey with FaceAssist"
+              >
+                <Text style={styles.primaryButtonText}>Begin Your Journey</Text>
+                <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.skipButton}
+                onPress={() => router.push('/auth/signin')}
+                accessibilityLabel="Skip introduction"
+              >
+                <Text style={styles.skipButtonText}>Skip introduction</Text>
+              </TouchableOpacity>
             </View>
-            <Text style={styles.featureTitle}>Practice & Learn</Text>
-            <Text style={styles.featureDescription}>
-              Improve your face recognition skills with guided exercises
-            </Text>
           </View>
-        </View>
-
-        {/* CTA Section */}
-        <View style={styles.ctaSection}>
-          <TouchableOpacity 
-            style={styles.primaryButton}
-            onPress={() => router.push('/policy')}
-            accessibilityLabel="Get started with FaceAssist"
-            accessibilityHint="Navigate to the welcome and policy information"
-          >
-            <Text style={styles.primaryButtonText}>Get Started</Text>
-            <Ionicons name="arrow-forward" size={20} color="#ffffff" />
-          </TouchableOpacity>
-          
-          <Text style={styles.supportText}>
-            Designed specifically for individuals with face blindness
-          </Text>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+  },
+  safeArea: {
+    flex: 1,
   },
   content: {
     flexGrow: 1,
     paddingHorizontal: 24,
   },
-  heroSection: {
+  floatingIconsContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  floatingIcon: {
+    position: 'absolute',
+    width: 60,
+    height: 60,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
     alignItems: 'center',
+    backdropFilter: 'blur(10px)',
+  },
+  floatingIcon1: {
+    top: 80,
+    left: 30,
+  },
+  floatingIcon2: {
+    top: 180,
+    left: 30,
+  },
+  floatingIcon3: {
+    top: 160,
+    right: 30,
+  },
+  floatingIcon4: {
+    bottom: 120,
+    right: 30,
+  },
+  mainContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingTop: 60,
     paddingBottom: 40,
   },
-  iconContainer: {
-    position: 'relative',
-    marginBottom: 32,
+  centralIconContainer: {
+    marginBottom: 40,
   },
-  mainIcon: {
+  centralIcon: {
     width: 120,
     height: 120,
-    borderRadius: 60,
-    backgroundColor: '#4F46E5',
+    borderRadius: 24,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#4F46E5',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 8,
   },
-  accentDot1: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#10B981',
-  },
-  accentDot2: {
-    position: 'absolute',
-    bottom: 20,
-    left: -10,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: '#F59E0B',
-  },
-  accentDot3: {
-    position: 'absolute',
-    top: 40,
-    left: -20,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#EF4444',
-  },
   title: {
-    fontSize: 36,
+    fontSize: 48,
     fontWeight: '800',
-    color: '#1E293B',
+    color: '#FFFFFF',
     marginBottom: 12,
     textAlign: 'center',
+    letterSpacing: -1,
   },
   subtitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.9)',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  description: {
     fontSize: 18,
-    color: '#64748B',
+    color: 'rgba(255,255,255,0.8)',
     textAlign: 'center',
     lineHeight: 26,
+    marginBottom: 60,
     paddingHorizontal: 20,
   },
-  featuresSection: {
-    paddingVertical: 20,
+  featuresContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginBottom: 80,
+    paddingHorizontal: 20,
   },
-  featureCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+  featureItem: {
+    alignItems: 'center',
+    flex: 1,
   },
   featureIcon: {
     width: 64,
     height: 64,
-    borderRadius: 32,
-    backgroundColor: '#F1F5F9',
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
-  featureTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1E293B',
-    marginBottom: 8,
+  featureLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.9)',
+    textAlign: 'center',
+    lineHeight: 18,
   },
-  featureDescription: {
-    fontSize: 16,
-    color: '#64748B',
-    lineHeight: 24,
-  },
-  ctaSection: {
+  actionContainer: {
+    width: '100%',
     alignItems: 'center',
-    paddingTop: 20,
-    paddingBottom: 40,
   },
   primaryButton: {
-    backgroundColor: '#4F46E5',
+    backgroundColor: 'rgba(255,255,255,0.2)',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 18,
     paddingHorizontal: 32,
-    borderRadius: 12,
-    shadowColor: '#4F46E5',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-    marginBottom: 16,
-    minWidth: 200,
+    borderRadius: 16,
+    marginBottom: 24,
+    minWidth: 280,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
   primaryButtonText: {
     color: '#FFFFFF',
@@ -223,10 +244,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginRight: 8,
   },
-  supportText: {
-    fontSize: 14,
-    color: '#64748B',
-    textAlign: 'center',
-    fontStyle: 'italic',
+  skipButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+  skipButtonText: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });
