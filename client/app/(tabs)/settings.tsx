@@ -180,6 +180,21 @@ export default function SettingsScreen() {
             </View>
           </View>
         </View>
+
+        {/* Sign Out Button */}
+        <View style={styles.signOutSection}>
+          <TouchableOpacity
+            style={styles.signOutButton}
+            onPress={handleSignOut}
+            accessibilityLabel="Sign out of your account"
+          >
+            <View style={styles.signOutIcon}>
+              <Ionicons name="log-out-outline" size={20} color="#EF4444" />
+            </View>
+            <Text style={styles.signOutText}>Sign Out</Text>
+            <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -352,5 +367,38 @@ const styles = StyleSheet.create({
   settingDescription: {
     fontSize: 14,
     color: '#64748B',
+  },
+  signOutSection: {
+    paddingHorizontal: 24,
+    marginTop: 16,
+  },
+  signOutButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
+  },
+  signOutIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#FEE2E2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  signOutText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#EF4444',
   },
 });
