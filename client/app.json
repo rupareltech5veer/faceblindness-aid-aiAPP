@@ -21,6 +21,9 @@
     "web": {
       "bundler": "metro"
     },
+    "experiments": {
+      "typedRoutes": false
+    },
     "plugins": [
       "expo-router"
     ],
