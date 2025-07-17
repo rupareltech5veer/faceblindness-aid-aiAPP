@@ -38,4 +38,12 @@ export class StorageService {
   static async setFirstLaunchComplete(): Promise<void> {
     await this.save('alreadyLaunched', 'true');
   }
+
+  static async clearAll(): Promise<void> {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.clear();
+    } else {
+      // AsyncStorage.clear() for React Native
+    }
+  }
 }

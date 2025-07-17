@@ -41,13 +41,7 @@
       "typedRoutes": false
     },
     "plugins": [
-      "expo-router",
-      [
-        "expo-linking",
-        {
-          "scheme": "faceblindness-aid"
-        }
-      ]
+      "expo-router"
     ],
     "extra": {
       "router": {

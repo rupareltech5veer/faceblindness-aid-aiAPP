@@ -23,7 +23,7 @@ const learningModules = [
     id: 'face-quiz',
     title: 'Face Recognition Quiz',
     description: 'Test your ability to identify familiar faces',
-    icon: 'target-outline',
+    icon: 'telescope-outline',
     color: '#10B981',
     progress: 78,
   },
@@ -47,7 +47,7 @@ const achievements = [
   {
     id: 'quick-learner',
     title: 'Quick Learner',
-    icon: 'target-outline',
+    icon: 'telescope-outline',
     color: '#10B981',
   },
 ];

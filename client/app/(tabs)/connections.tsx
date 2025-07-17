@@ -259,8 +259,10 @@ export default function ConnectionsScreen() {
 
   return (
     <LinearGradient
-      colors={['#F8FAFC', '#E2E8F0']}
-      style={styles.container}
+      colors={['rgba(76, 175, 80, 0.1)', 'rgba(33, 150, 243, 0.15)']}
+      start={[0, 0]}
+      end={[1, 1]}
+      style={{ flex: 1 }}
     >
       <SafeAreaView style={styles.safeArea}>
         {/* Header */}
@@ -283,7 +285,11 @@ export default function ConnectionsScreen() {
         </View>
 
         {/* Content */}
-        <View style={styles.content}>
+        <ScrollView 
+          style={styles.content}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 95 }}
+        >
           {loading ? (
             <View style={styles.loadingContainer}>
               <Ionicons name="people-outline" size={64} color="#6366F1" />
@@ -308,7 +314,7 @@ export default function ConnectionsScreen() {
               showsVerticalScrollIndicator={false}
             />
           )}
-        </View>
+        </ScrollView>
 
       {/* Add/Edit Modal */}
       <Modal

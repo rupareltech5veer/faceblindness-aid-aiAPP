@@ -8,6 +8,7 @@ import {
   Image,
   Dimensions,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -64,9 +65,16 @@ export default function ScanScreen() {
 
   return (
     <LinearGradient
-      colors={['#F8FAFC', '#E2E8F0']}
+      colors={['rgba(168, 224, 99, 0.1)', 'rgba(86, 171, 47, 0.15)']}
+      start={[0, 0]}
+      end={[1, 1]}
       style={{ flex: 1 }}
     >
+      <ScrollView 
+        style={{ flex: 1 }} 
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 95 }}
+        showsVerticalScrollIndicator={false}
+      >
       <SafeAreaView style={{ flex: 1 }}>
         {/* Header */}
         <View style={{
@@ -288,6 +296,7 @@ export default function ScanScreen() {
           )}
         </View>
       </SafeAreaView>
+      </ScrollView>
     </LinearGradient>
   );
 }

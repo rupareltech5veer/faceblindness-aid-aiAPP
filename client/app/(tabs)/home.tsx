@@ -201,11 +201,17 @@ export default function HomeScreen() {
 
   return (
     <LinearGradient
-      colors={['#F8FAFC', '#E2E8F0']}
-      style={styles.container}
+      colors={['rgba(255, 154, 158, 0.1)', 'rgba(250, 208, 196, 0.15)']}
+      start={[0, 0]}
+      end={[1, 1]}
+      style={{ flex: 1 }}
     >
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={styles.content} 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 95 }}
+        >
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.iconContainer}>

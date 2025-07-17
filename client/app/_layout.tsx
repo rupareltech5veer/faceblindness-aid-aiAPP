@@ -32,9 +32,6 @@ export default function RootLayout() {
         <Stack.Screen name="learning" />
         <Stack.Screen name="upload" />
         <Stack.Screen name="directory" />
-        <Stack.Screen name="learn" />
-        <Stack.Screen name="scan" />
-        <Stack.Screen name="settings" />
       </Stack>
     </View>
   );

@@ -2,10 +2,10 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-export default function TopNavBar({ userName = 'User' }) {
+export default function TopNavBar({ userName = 'User', gradientColors = ["#7C3AED", "#6366F1"] }) {
   return (
     <LinearGradient
-      colors={["#7C3AED", "#6366F1"]}
+      colors={gradientColors}
       start={[0, 0]}
       end={[1, 1]}
       style={styles.gradient}
@@ -36,8 +36,8 @@ const styles = StyleSheet.create({
   },
   text: {
     color: '#fff',
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
     textShadowColor: '#000',
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 1,
