@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "AI-powered assistive app for people with face blindness",
   "scripts": {
-    "start": "npx expo start",
+    "start": "cd client && npx expo start",
     "android": "cd client && npm run android",
     "ios": "cd client && npm run ios",
     "web": "cd client && npm run web",
