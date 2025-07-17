@@ -1,449 +1,118 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   SafeAreaView,
-  Alert,
   Image,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 
+const { width } = Dimensions.get('window');
+
 export default function ScanScreen() {
-  const [isScanning, setIsScanning] = useState(false);
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [showOverlay, setShowOverlay] = useState(false);
+  const cameraRef = useRef<any>(null);
+  const [permission, requestPermission] = useCameraPermissions();
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
 
-  const handleCameraCapture = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    
-    if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please grant camera permissions to capture photos.');
-      return;
-    }
-
+  const handleCapture = async () => {
     const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 0.8,
+      quality: 1,
     });
-
-    if (!result.canceled && result.assets[0]) {
-      setCapturedImage(result.assets[0].uri);
-      setShowOverlay(true);
-      
-      // Simulate AI processing
-      setIsScanning(true);
-      setTimeout(() => {
-        setIsScanning(false);
-      }, 2000);
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setPhotoUri(result.assets[0].uri);
     }
   };
-
-  const handleScanFace = () => {
-    setIsScanning(true);
-    // Simulate scanning process
-    setTimeout(() => {
-      setIsScanning(false);
-      Alert.alert(
-        'Face Scanned',
-        'AI facial recognition will be implemented in the next update.',
-        [{ text: 'OK' }]
-      );
-    }, 2000);
-  };
-
-  const resetScan = () => {
-    setCapturedImage(null);
-    setShowOverlay(false);
-    setIsScanning(false);
-  };
-
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.logoContainer}>
-          <Ionicons name="camera" size={24} color="#6366F1" />
-          <Text style={styles.logoText}>Scan</Text>
-        </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+      {/* Top Bar */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingTop: 18, paddingBottom: 8, borderBottomWidth: 1, borderColor: '#F1F5F9', backgroundColor: '#fff' }}>
+        <Ionicons name="camera" size={22} color="#7C3AED" />
+        <Text style={{ marginLeft: 8, fontSize: 18, fontWeight: '700', color: '#1E293B' }}>Scan</Text>
       </View>
 
-      <View style={styles.content}>
-        {/* Instructions */}
-        <View style={styles.instructionsContainer}>
-          <View style={styles.iconContainer}>
-            <Ionicons name="camera-outline" size={32} color="#FFFFFF" />
-            <View style={styles.sparkleIcon}>
-              <Ionicons name="sparkles-outline" size={16} color="#A5B4FC" />
+      {/* Main Content */}
+      <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 18, paddingTop: 18 }}>
+        {/* Icon with badge */}
+        <View style={{ marginTop: 8, marginBottom: 18, alignItems: 'center', justifyContent: 'center' }}>
+          <View style={{ backgroundColor: '#7C3AED', borderRadius: 20, width: 64, height: 64, alignItems: 'center', justifyContent: 'center', shadowColor: '#7C3AED', shadowOpacity: 0.18, shadowRadius: 12, elevation: 6 }}>
+            <Ionicons name="camera-outline" size={36} color="#fff" />
+            <View style={{ position: 'absolute', top: -8, right: -8, backgroundColor: '#fff', borderRadius: 16, padding: 4, shadowColor: '#7C3AED', shadowOpacity: 0.2, shadowRadius: 4, elevation: 2 }}>
+              <Ionicons name="sparkles-outline" size={16} color="#7C3AED" />
             </View>
           </View>
-          <Text style={styles.title}>Face Recognition</Text>
-          <Text style={styles.subtitle}>
-            {capturedImage 
-              ? 'AI facial highlighting will be added here' 
-              : 'Capture a photo to identify faces'
-            }
+        </View>
+        {/* Title and subtitle */}
+        <Text style={{ fontSize: 28, fontWeight: '800', color: '#7C3AED', textAlign: 'center', marginBottom: 2 }}>Face Recognition</Text>
+        <Text style={{ fontSize: 16, color: '#64748B', textAlign: 'center', marginBottom: 18 }}>Capture a photo to identify faces</Text>
+
+        {/* Camera Viewfinder */}
+        <View style={{ width: width * 0.9, aspectRatio: 1, borderRadius: 24, overflow: 'hidden', backgroundColor: '#181A2A', marginBottom: 18, position: 'relative', justifyContent: 'center', alignItems: 'center' }}>
+          {!permission ? (
+            <Text style={{ color: '#fff' }}>Requesting camera permission...</Text>
+          ) : !permission.granted ? (
+            <TouchableOpacity onPress={requestPermission}><Text style={{ color: '#7C3AED', fontWeight: 'bold' }}>Grant Camera Permission</Text></TouchableOpacity>
+          ) : (
+            <CameraView
+              style={{ flex: 1 }}
+              facing="front"
+              ref={cameraRef}
+            />
+          )}
+          {/* Purple corner marks */}
+          <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none' }}>
+            {/* Top Left */}
+            <View style={{ position: 'absolute', top: 0, left: 0, width: 32, height: 32, borderTopWidth: 4, borderLeftWidth: 4, borderColor: '#7C3AED', borderRadius: 12 }} />
+            {/* Top Right */}
+            <View style={{ position: 'absolute', top: 0, right: 0, width: 32, height: 32, borderTopWidth: 4, borderRightWidth: 4, borderColor: '#7C3AED', borderRadius: 12 }} />
+            {/* Bottom Left */}
+            <View style={{ position: 'absolute', bottom: 0, left: 0, width: 32, height: 32, borderBottomWidth: 4, borderLeftWidth: 4, borderColor: '#7C3AED', borderRadius: 12 }} />
+            {/* Bottom Right */}
+            <View style={{ position: 'absolute', bottom: 0, right: 0, width: 32, height: 32, borderBottomWidth: 4, borderRightWidth: 4, borderColor: '#7C3AED', borderRadius: 12 }} />
+          </View>
+          {/* Instruction overlay */}
+          <Text style={{ position: 'absolute', bottom: 10, left: 0, right: 0, textAlign: 'center', color: '#fff', fontWeight: '600', fontSize: 15, textShadowColor: '#181A2A', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 }}>
+            Align face within the frame for best results
           </Text>
         </View>
 
-        {/* Camera Viewfinder or Captured Image */}
-        <View style={styles.cameraContainer}>
-          {capturedImage ? (
-            <View style={styles.imageContainer}>
-              <Image source={{ uri: capturedImage }} style={styles.capturedImage} />
-              
-              {/* AI Overlay Placeholder */}
-              {showOverlay && (
-                <View style={styles.overlayContainer}>
-                  <View style={styles.faceHighlight}>
-                    <View style={styles.highlightBox} />
-                    <Text style={styles.overlayText}>
-                      {isScanning ? 'Analyzing...' : 'Face detected'}
-                    </Text>
-                  </View>
-                </View>
-              )}
-            </View>
-          ) : (
-            <View style={styles.viewfinder}>
-              {/* Corner brackets */}
-              <View style={[styles.corner, styles.topLeft]} />
-              <View style={[styles.corner, styles.topRight]} />
-              <View style={[styles.corner, styles.bottomLeft]} />
-              <View style={[styles.corner, styles.bottomRight]} />
-              
-              {/* Camera placeholder */}
-              <View style={styles.cameraPlaceholder}>
-                <Ionicons 
-                  name="camera-outline" 
-                  size={48} 
-                  color="#64748B" 
-                />
-                <Text style={styles.cameraText}>Camera viewfinder</Text>
-              </View>
-              
-              {/* Bottom instruction */}
-              <View style={styles.instructionContainer}>
-                <Text style={styles.instructionText}>
-                  Align face within the frame for best results
-                </Text>
-              </View>
-            </View>
-          )}
+        {/* Capture Button */}
+        <View style={{ width: '100%', paddingBottom: 12, paddingTop: 8 }}>
+          <TouchableOpacity
+            style={{
+              backgroundColor: '#7C3AED',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingVertical: 18,
+              borderRadius: 16,
+              shadowColor: '#7C3AED',
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.3,
+              shadowRadius: 16,
+              elevation: 8,
+            }}
+            onPress={handleCapture}
+          >
+            <Ionicons name="camera" size={24} color="#FFFFFF" />
+            <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: '700', marginLeft: 8 }}>Capture Photo</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Action Buttons */}
-        <View style={styles.actionButtons}>
-          {capturedImage ? (
-            <>
-              <TouchableOpacity
-                style={styles.secondaryButton}
-                onPress={resetScan}
-                accessibilityLabel="Take another photo"
-              >
-                <Ionicons name="camera-outline" size={20} color="#6366F1" />
-                <Text style={styles.secondaryButtonText}>Retake</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[styles.scanButton, isScanning && styles.scanButtonScanning]}
-                onPress={handleScanFace}
-                disabled={isScanning}
-                accessibilityLabel="Analyze face"
-              >
-                {isScanning ? (
-                  <View style={styles.scanningContainer}>
-                    <View style={styles.scanningSpinner} />
-                    <Text style={styles.scanButtonText}>Analyzing...</Text>
-                  </View>
-                ) : (
-                  <>
-                    <Ionicons name="scan-outline" size={20} color="#FFFFFF" />
-                    <Text style={styles.scanButtonText}>Analyze Face</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </>
-          ) : (
-            <TouchableOpacity
-              style={styles.captureButton}
-              onPress={handleCameraCapture}
-              accessibilityLabel="Capture photo"
-            >
-              <Ionicons name="camera" size={24} color="#FFFFFF" />
-              <Text style={styles.captureButtonText}>Capture Photo</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        {/* Show captured photo */}
+        {photoUri && (
+          <View style={{ marginTop: 16, alignItems: 'center' }}>
+            <Image source={{ uri: photoUri }} style={{ width: 220, height: 220, borderRadius: 16, borderWidth: 2, borderColor: '#7C3AED' }} resizeMode="cover" />
+            <Text style={{ marginTop: 8, color: '#7C3AED', fontWeight: '600' }}>Captured Photo</Text>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
-  },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  logoText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1E293B',
-    marginLeft: 8,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-  },
-  instructionsContainer: {
-    alignItems: 'center',
-    paddingVertical: 32,
-  },
-  iconContainer: {
-    position: 'relative',
-    width: 80,
-    height: 80,
-    borderRadius: 20,
-    backgroundColor: '#6366F1',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-    shadowColor: '#6366F1',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  sparkleIcon: {
-    position: 'absolute',
-    top: -8,
-    right: -8,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#6366F1',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#64748B',
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  cameraContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  imageContainer: {
-    position: 'relative',
-    width: '100%',
-    height: 400,
-    borderRadius: 24,
-    overflow: 'hidden',
-  },
-  capturedImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  overlayContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  faceHighlight: {
-    alignItems: 'center',
-  },
-  highlightBox: {
-    width: 150,
-    height: 150,
-    borderWidth: 3,
-    borderColor: '#10B981',
-    borderRadius: 12,
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-  },
-  overlayText: {
-    marginTop: 16,
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  viewfinder: {
-    width: '100%',
-    height: 400,
-    backgroundColor: '#1E293B',
-    borderRadius: 24,
-    position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
-  corner: {
-    position: 'absolute',
-    width: 24,
-    height: 24,
-    borderColor: '#6366F1',
-    borderWidth: 3,
-  },
-  topLeft: {
-    top: 16,
-    left: 16,
-    borderRightWidth: 0,
-    borderBottomWidth: 0,
-  },
-  topRight: {
-    top: 16,
-    right: 16,
-    borderLeftWidth: 0,
-    borderBottomWidth: 0,
-  },
-  bottomLeft: {
-    bottom: 40,
-    left: 16,
-    borderRightWidth: 0,
-    borderTopWidth: 0,
-  },
-  bottomRight: {
-    bottom: 40,
-    right: 16,
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-  },
-  cameraPlaceholder: {
-    alignItems: 'center',
-  },
-  cameraText: {
-    color: '#64748B',
-    fontSize: 16,
-    marginTop: 12,
-  },
-  instructionContainer: {
-    position: 'absolute',
-    bottom: 16,
-    left: 16,
-    right: 16,
-  },
-  instructionText: {
-    color: '#94A3B8',
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: 12,
-    paddingBottom: 20,
-  },
-  captureButton: {
-    flex: 1,
-    backgroundColor: '#6366F1',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    borderRadius: 16,
-    shadowColor: '#6366F1',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  captureButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  secondaryButton: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: '#6366F1',
-  },
-  secondaryButtonText: {
-    color: '#6366F1',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  scanButton: {
-    flex: 1,
-    backgroundColor: '#6366F1',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    borderRadius: 16,
-    shadowColor: '#6366F1',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  scanButtonScanning: {
-    backgroundColor: '#94A3B8',
-  },
-  scanButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  scanningContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  scanningSpinner: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-    borderTopColor: 'transparent',
-    marginRight: 12,
-  },
-});

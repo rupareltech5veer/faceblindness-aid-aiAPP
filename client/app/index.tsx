@@ -1,3 +1,7 @@
+// Polyfill for structuredClone (for React Native/Expo)
+if (typeof globalThis.structuredClone !== 'function') {
+  globalThis.structuredClone = (obj: any) => JSON.parse(JSON.stringify(obj));
+}
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
