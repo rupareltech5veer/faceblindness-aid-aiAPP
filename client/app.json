@@ -5,6 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "scheme": "faceblindness-aid",
     "splash": {
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
@@ -13,10 +14,25 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.faceblindnessaid.app"
     },
     "android": {
-      "package": "com.faceblindnessaid.app"
+      "package": "com.faceblindnessaid.app",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "faceblindness-aid"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "web": {
       "bundler": "metro"
@@ -25,8 +41,18 @@
       "typedRoutes": false
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-linking",
+        {
+          "scheme": "faceblindness-aid"
+        }
+      ]
     ],
-    "scheme": "faceblindness-aid"
+    "extra": {
+      "router": {
+        "origin": false
+      }
+    }
   }
 }

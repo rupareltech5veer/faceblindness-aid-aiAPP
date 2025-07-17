@@ -64,7 +64,7 @@ export default function SignInScreen() {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: 'exp://127.0.0.1:8081/--/auth/reset-password',
+        redirectTo: 'faceblindness-aid://auth/callback?type=recovery',
       });
 
       if (error) throw error;

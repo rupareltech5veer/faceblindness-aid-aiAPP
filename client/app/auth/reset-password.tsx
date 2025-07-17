@@ -21,10 +21,8 @@ export default function ResetPasswordScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const params = useLocalSearchParams();
 
   useEffect(() => {
-    // Check if user has a valid session for password reset
     checkSession();
   }, []);
 
@@ -32,8 +30,8 @@ export default function ResetPasswordScreen() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       Alert.alert(
-        'Invalid Reset Link',
-        'This password reset link is invalid or has expired.',
+        'Session Required',
+        'Please use the password reset link from your email to access this page.',
         [{ text: 'OK', onPress: () => router.replace('/auth/signin') }]
       );
     }

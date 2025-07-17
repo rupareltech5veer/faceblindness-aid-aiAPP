@@ -70,7 +70,7 @@ export default function SignUpScreen() {
         email: formData.email.trim(),
         password: formData.password,
         options: {
-          emailRedirectTo: 'exp://127.0.0.1:8081/--/auth/verify-email',
+          emailRedirectTo: 'faceblindness-aid://auth/callback',
           data: {
             full_name: formData.fullName.trim(),
           }
