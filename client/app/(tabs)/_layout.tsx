@@ -1,22 +1,24 @@
 import { Tabs } from 'expo-router';
+import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function TabsLayout() {
   return (
-    <LinearGradient
-      colors={["#6366F1", "#8B5CF6"]}
-      start={[0, 0]}
-      end={[1, 1]}
-      style={{
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        bottom: 0,
-        height: 100,
-        zIndex: -1,
-      }}
-    >
+    <View style={{ flex: 1 }}>
+      <LinearGradient
+        colors={["#6366F1", "#8B5CF6"]}
+        start={[0, 0]}
+        end={[1, 1]}
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: 100,
+          zIndex: -1,
+        }}
+      />
       <Tabs
         screenOptions={({ route }) => ({
           tabBarActiveTintColor: '#FFFFFF',
@@ -100,6 +102,6 @@ export default function TabsLayout() {
           }}
         />
       </Tabs>
-    </LinearGradient>
+    </View>
   );
 }

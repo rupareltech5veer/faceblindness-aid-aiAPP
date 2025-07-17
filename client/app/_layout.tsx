@@ -1,9 +1,10 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { View } from 'react-native';
 
 export default function RootLayout() {
   return (
-    <>
+    <View style={{ flex: 1 }}>
       <StatusBar style="auto" />
       <Stack
         screenOptions={{
@@ -33,6 +34,6 @@ export default function RootLayout() {
         <Stack.Screen name="scan" />
         <Stack.Screen name="settings" />
       </Stack>
-    </>
+    </View>
   );
 }
