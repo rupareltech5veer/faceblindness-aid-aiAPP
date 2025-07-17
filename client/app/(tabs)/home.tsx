@@ -17,12 +17,12 @@ import * as ImagePicker from 'expo-image-picker';
 import { supabase, Favorite } from '../../lib/supabase';
 
 const frameStyles = [
+  { id: 'none', name: 'No Frame', color: 'transparent', preview: '📷' },
   { id: 'classic', name: 'Classic', color: '#8B4513', preview: '🖼️' },
   { id: 'modern', name: 'Modern', color: '#2C3E50', preview: '⬛' },
   { id: 'vintage', name: 'Vintage', color: '#D4AF37', preview: '🟨' },
   { id: 'elegant', name: 'Elegant', color: '#4A4A4A', preview: '⬜' },
   { id: 'colorful', name: 'Colorful', color: '#FF6B6B', preview: '🌈' },
-  { id: 'minimal', name: 'Minimal', color: '#FFFFFF', preview: '⚪' },
 ];
 
 export default function HomeScreen() {
@@ -170,7 +170,14 @@ export default function HomeScreen() {
   };
 
   const getFrameStyle = (frameType: string) => {
-    const frame = frameStyles.find(f => f.id === frameType) || frameStyles[0];
+    const frame = frameStyles.find(f => f.id === frameType) || frameStyles[1]; // Default to classic if not found
+    
+    if (frame.id === 'none') {
+      return {
+        borderWidth: 0,
+      };
+    }
+    
     return {
       borderColor: frame.color,
       borderWidth: 4,
@@ -436,6 +443,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 24,
     elevation: 8,
+    backgroundColor: '#FFFFFF',
   },
   favoriteImage: {
     width: '100%',
@@ -501,11 +509,11 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 8,
-    borderWidth: 3,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
     backgroundColor: '#FFFFFF',
+    borderWidth: 3,
   },
   frameEmoji: {
     fontSize: 20,

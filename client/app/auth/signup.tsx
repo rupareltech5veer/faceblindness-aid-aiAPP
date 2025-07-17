@@ -70,6 +70,7 @@ export default function SignUpScreen() {
         email: formData.email.trim(),
         password: formData.password,
         options: {
+          emailRedirectTo: 'exp://127.0.0.1:8081/--/auth/verify-email',
           data: {
             full_name: formData.fullName.trim(),
           }
@@ -81,21 +82,9 @@ export default function SignUpScreen() {
       }
 
       if (data.user) {
-        // Create user profile
-        const { error: profileError } = await supabase
-          .from('user_profiles')
-          .insert({
-            user_id: data.user.id,
-            full_name: formData.fullName.trim(),
-          });
-
-        if (profileError) {
-          console.error('Error creating profile:', profileError);
-        }
-
         Alert.alert(
-          'Account Created!',
-          'Your account has been created successfully. Please sign in to continue.',
+          'Verify Your Email',
+          'Please check your email and click the verification link to activate your account.',
           [{ text: 'Continue', onPress: () => router.replace('/auth/signin') }]
         );
       }

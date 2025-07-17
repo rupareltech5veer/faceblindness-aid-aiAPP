@@ -40,25 +40,43 @@ export default function SignInScreen() {
         throw error;
       }
 
-      if (data.user) {
-        // Navigate to title screen on successful login
-        router.replace('/title');
-      }
+      // Only navigate on successful sign in (no error thrown)
+      router.replace('/title');
       
     } catch (error: any) {
       console.error('Signin error:', error);
-      Alert.alert('Sign In Failed', error.message || 'Failed to sign in. Please check your credentials.');
+      // Only show error alert if sign in actually failed
+      if (error.message) {
+        Alert.alert('Sign In Failed', error.message);
+      } else {
+        Alert.alert('Sign In Failed', 'Failed to sign in. Please check your credentials.');
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleForgotPassword = () => {
-    Alert.alert(
-      'Reset Password',
-      'Password reset functionality will be implemented soon.',
-      [{ text: 'OK' }]
-    );
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      Alert.alert('Email Required', 'Please enter your email address first.');
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: 'exp://127.0.0.1:8081/--/auth/reset-password',
+      });
+
+      if (error) throw error;
+
+      Alert.alert(
+        'Reset Email Sent',
+        'Check your email for a password reset link.',
+        [{ text: 'OK' }]
+      );
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to send reset email.');
+    }
   };
 
   return (

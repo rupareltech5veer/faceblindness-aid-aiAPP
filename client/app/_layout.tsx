@@ -20,6 +20,8 @@ export default function RootLayout() {
         {/* Authentication screens */}
         <Stack.Screen name="auth/signin" />
         <Stack.Screen name="auth/signup" />
+        <Stack.Screen name="auth/verify-email" />
+        <Stack.Screen name="auth/reset-password" />
         
         {/* Main app with tabs */}
         <Stack.Screen name="(tabs)" />
