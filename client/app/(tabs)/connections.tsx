@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
 import { supabase, Connection } from '../../lib/supabase';
 
 export default function ConnectionsScreen() {
@@ -257,46 +258,57 @@ export default function ConnectionsScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.logoContainer}>
-          <Ionicons name="people" size={24} color="#6366F1" />
-          <Text style={styles.logoText}>Connections</Text>
+    <LinearGradient
+      colors={['#F8FAFC', '#E2E8F0']}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.iconContainer}>
+            <Ionicons name="people-outline" size={32} color="#FFFFFF" />
+            <View style={styles.sparkleIcon}>
+              <Ionicons name="sparkles-outline" size={16} color="#A5B4FC" />
+            </View>
+          </View>
+          <Text style={styles.title}>Connections</Text>
+          <Text style={styles.subtitle}>
+            Organize your relationships and build stronger connections
+          </Text>
+          
+          <TouchableOpacity style={styles.addButton} onPress={openAddModal}>
+            <Ionicons name="add-circle-outline" size={28} color="#FFFFFF" />
+            <Text style={styles.addButtonText}>Add Connection</Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.addHeaderButton} onPress={openAddModal}>
-          <Ionicons name="add" size={24} color="#6366F1" />
-        </TouchableOpacity>
-      </View>
 
-      {/* Content */}
-      <View style={styles.content}>
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <Ionicons name="people-outline" size={48} color="#94A3B8" />
-            <Text style={styles.loadingText}>Loading your connections...</Text>
-          </View>
-        ) : connections.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="people-outline" size={80} color="#CBD5E1" />
-            <Text style={styles.emptyTitle}>No connections yet</Text>
-            <Text style={styles.emptySubtitle}>
-              Add your first connection to get started
-            </Text>
-            <TouchableOpacity style={styles.emptyButton} onPress={openAddModal}>
-              <Text style={styles.emptyButtonText}>Add Connection</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <FlatList
-            data={connections}
-            renderItem={renderConnection}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.connectionsList}
-            showsVerticalScrollIndicator={false}
-          />
-        )}
-      </View>
+        {/* Content */}
+        <View style={styles.content}>
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <Ionicons name="people-outline" size={64} color="#6366F1" />
+              <Text style={styles.loadingText}>Loading your connections...</Text>
+            </View>
+          ) : connections.length === 0 ? (
+            <View style={styles.emptyState}>
+              <View style={styles.emptyIconContainer}>
+                <Ionicons name="people-outline" size={64} color="#6366F1" />
+              </View>
+              <Text style={styles.emptyTitle}>No connections yet</Text>
+              <Text style={styles.emptySubtitle}>
+                Add your first connection to get started
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              data={connections}
+              renderItem={renderConnection}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.connectionsList}
+              showsVerticalScrollIndicator={false}
+            />
+          )}
+        </View>
 
       {/* Add/Edit Modal */}
       <Modal
@@ -385,37 +397,89 @@ export default function ConnectionsScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+  },
+  safeArea: {
+    flex: 1,
   },
   header: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 24,
-    paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    paddingTop: 60,
+    paddingBottom: 40,
   },
-  logoContainer: {
+  iconContainer: {
+    position: 'relative',
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    backgroundColor: '#6366F1',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  sparkleIcon: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#6366F1',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 24,
+    paddingHorizontal: 20,
+    marginBottom: 32,
+  },
+  addButton: {
+    backgroundColor: '#6366F1',
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
   },
-  logoText: {
-    fontSize: 20,
+  addButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
     fontWeight: '700',
-    color: '#1E293B',
     marginLeft: 8,
-  },
-  addHeaderButton: {
-    padding: 8,
   },
   content: {
     flex: 1,
@@ -436,102 +500,106 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 32,
   },
+  emptyIconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
+    elevation: 8,
+  },
   emptyTitle: {
     fontSize: 24,
     fontWeight: '700',
     color: '#1E293B',
-    marginTop: 16,
     marginBottom: 8,
+    textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: 16,
     color: '#64748B',
     textAlign: 'center',
-    marginBottom: 32,
-  },
-  emptyButton: {
-    backgroundColor: '#6366F1',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  emptyButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
   },
   connectionsList: {
     padding: 24,
   },
   connectionCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: 20,
+    padding: 24,
     marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
+    elevation: 8,
   },
   connectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   connectionImage: {
-    width: 60,
-    height: 60,
+    width: 64,
+    height: 64,
     borderRadius: 16,
-    marginRight: 16,
+    marginRight: 20,
   },
   placeholderImage: {
-    width: 60,
-    height: 60,
+    width: 64,
+    height: 64,
     borderRadius: 16,
     backgroundColor: '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 20,
   },
   connectionInfo: {
     flex: 1,
   },
   connectionName: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     color: '#1E293B',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   connectionDescription: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#6366F1',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   connectionDate: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#94A3B8',
   },
   connectionActions: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 12,
   },
   actionButton: {
-    padding: 8,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#F8FAFC',
   },
   notesContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginTop: 16,
-    paddingTop: 16,
+    marginTop: 20,
+    paddingTop: 20,
     borderTopWidth: 1,
     borderTopColor: '#F1F5F9',
   },
   connectionNotes: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 16,
     color: '#64748B',
     lineHeight: 20,
-    marginLeft: 8,
+    marginLeft: 12,
   },
   modalOverlay: {
     flex: 1,

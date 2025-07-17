@@ -192,56 +192,61 @@ export default function HomeScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.logoContainer}>
-          <Ionicons name="heart" size={24} color="#6366F1" />
-          <Text style={styles.logoText}>Memora</Text>
-        </View>
-      </View>
-
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Welcome Section */}
-        <View style={styles.welcomeSection}>
-          <Text style={styles.welcomeTitle}>Your Favorites</Text>
-          <Text style={styles.welcomeSubtitle}>
-            Capture and frame your most cherished memories
-          </Text>
-        </View>
-
-        {/* Add Button */}
-        <TouchableOpacity style={styles.addButton} onPress={pickImage}>
-          <Ionicons name="add-circle-outline" size={32} color="#6366F1" />
-          <Text style={styles.addButtonText}>Add New Favorite</Text>
-        </TouchableOpacity>
-
-        {/* Favorites Grid */}
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <Ionicons name="heart-outline" size={48} color="#94A3B8" />
-            <Text style={styles.loadingText}>Loading your favorites...</Text>
-          </View>
-        ) : favorites.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="heart-outline" size={80} color="#CBD5E1" />
-            <Text style={styles.emptyTitle}>No favorites yet</Text>
-            <Text style={styles.emptySubtitle}>
-              Add your first favorite photo to get started
+    <LinearGradient
+      colors={['#F8FAFC', '#E2E8F0']}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="heart" size={32} color="#FFFFFF" />
+              <View style={styles.sparkleIcon}>
+                <Ionicons name="sparkles-outline" size={16} color="#EC4899" />
+              </View>
+            </View>
+            <Text style={styles.title}>Memora</Text>
+            <Text style={styles.subtitle}>
+              Capture and frame your most cherished memories
             </Text>
           </View>
-        ) : (
-          <FlatList
-            data={favorites}
-            renderItem={renderFavorite}
-            keyExtractor={(item) => item.id}
-            numColumns={2}
-            columnWrapperStyle={styles.row}
-            contentContainerStyle={styles.favoritesGrid}
-            scrollEnabled={false}
-          />
-        )}
-      </ScrollView>
+
+          {/* Add Button */}
+          <TouchableOpacity style={styles.addButton} onPress={pickImage}>
+            <Ionicons name="add-circle-outline" size={28} color="#FFFFFF" />
+            <Text style={styles.addButtonText}>Add New Favorite</Text>
+          </TouchableOpacity>
+
+          {/* Favorites Grid */}
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <Ionicons name="heart-outline" size={64} color="#EC4899" />
+              <Text style={styles.loadingText}>Loading your favorites...</Text>
+            </View>
+          ) : favorites.length === 0 ? (
+            <View style={styles.emptyState}>
+              <View style={styles.emptyIconContainer}>
+                <Ionicons name="heart-outline" size={64} color="#EC4899" />
+              </View>
+              <Text style={styles.emptyTitle}>No favorites yet</Text>
+              <Text style={styles.emptySubtitle}>
+                Add your first favorite photo to get started
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              data={favorites}
+              renderItem={renderFavorite}
+              keyExtractor={(item) => item.id}
+              numColumns={2}
+              columnWrapperStyle={styles.row}
+              contentContainerStyle={styles.favoritesGrid}
+              scrollEnabled={false}
+            />
+          )}
+        </ScrollView>
+      </SafeAreaView>
 
       {/* Frame Selection Modal */}
       <Modal
@@ -286,95 +291,94 @@ export default function HomeScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    backgroundColor: 'transparent',
-  },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+  safeArea: {
     flex: 1,
-  },
-  logoText: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#7F5AF0',
-    marginLeft: 10,
-    letterSpacing: 1,
-    textShadowColor: '#D946EF',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
   },
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    backgroundColor: 'transparent',
   },
-  welcomeSection: {
-    paddingVertical: 32,
+  header: {
     alignItems: 'center',
+    paddingTop: 60,
+    paddingBottom: 40,
   },
-  welcomeTitle: {
-    fontSize: 30,
-    fontWeight: '900',
-    color: '#7F5AF0',
-    marginBottom: 8,
-    letterSpacing: 0.5,
-    textShadowColor: '#D946EF',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
-  },
-  welcomeSubtitle: {
-    fontSize: 17,
-    color: '#8B5CF6',
-    textAlign: 'center',
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  addButton: {
-    backgroundColor: 'linear-gradient(90deg, #7F5AF0 0%, #8B5CF6 100%)',
-    borderRadius: 18,
-    padding: 28,
+  iconContainer: {
+    position: 'relative',
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    backgroundColor: '#EC4899',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 32,
-    borderWidth: 2,
-    borderColor: '#7F5AF0',
-    shadowColor: '#7F5AF0',
+    marginBottom: 24,
+    shadowColor: '#EC4899',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 8,
-    flexDirection: 'row',
+  },
+  sparkleIcon: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
-    gap: 10,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#EC4899',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 24,
+    paddingHorizontal: 20,
+  },
+  addButton: {
+    backgroundColor: '#EC4899',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 20,
+    borderRadius: 16,
+    marginBottom: 32,
+    shadowColor: '#EC4899',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
   },
   addButtonText: {
+    color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
-    marginTop: 0,
-    letterSpacing: 0.5,
-    textShadowColor: '#7F5AF0',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
+    fontWeight: '600',
+    marginLeft: 8,
   },
   loadingContainer: {
     alignItems: 'center',
-    paddingVertical: 60,
+    paddingVertical: 80,
   },
   loadingText: {
     fontSize: 16,
@@ -383,19 +387,34 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     alignItems: 'center',
-    paddingVertical: 60,
+    paddingVertical: 80,
+  },
+  emptyIconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
+    elevation: 8,
   },
   emptyTitle: {
     fontSize: 24,
     fontWeight: '700',
     color: '#1E293B',
-    marginTop: 16,
     marginBottom: 8,
+    textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: 16,
     color: '#64748B',
     textAlign: 'center',
+    paddingHorizontal: 20,
   },
   favoritesGrid: {
     paddingBottom: 32,
@@ -405,16 +424,21 @@ const styles = StyleSheet.create({
   },
   favoriteCard: {
     width: '48%',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   imageContainer: {
     position: 'relative',
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 8,
   },
   favoriteImage: {
     width: '100%',
-    height: 150,
+    height: 160,
     resizeMode: 'cover',
   },
   deleteButton: {
@@ -423,12 +447,13 @@ const styles = StyleSheet.create({
     right: 8,
     backgroundColor: 'rgba(255,255,255,0.9)',
     borderRadius: 12,
+    padding: 4,
   },
   favoriteTitle: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
     color: '#1E293B',
-    marginTop: 8,
+    marginTop: 12,
     textAlign: 'center',
   },
   modalOverlay: {

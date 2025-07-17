@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { supabase, UserProfile, AppSettings } from '../../lib/supabase';
 import { StorageService } from '../../lib/storage';
 
@@ -152,138 +153,371 @@ export default function SettingsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.logoContainer}>
-          <Ionicons name="settings" size={24} color="#6366F1" />
-          <Text style={styles.logoText}>Settings</Text>
-        </View>
-      </View>
-
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* User Profile */}
-        <View style={styles.profileSection}>
-          <View style={styles.profileCard}>
-            <View style={styles.profileIcon}>
-              <Ionicons name="person-outline" size={32} color="#FFFFFF" />
+    <LinearGradient
+      colors={['#F8FAFC', '#E2E8F0']}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="settings-outline" size={32} color="#FFFFFF" />
+              <View style={styles.sparkleIcon}>
+                <Ionicons name="sparkles-outline" size={16} color="#64748B" />
+              </View>
             </View>
-            <View style={styles.profileInfo}>
-              <View style={styles.profileNameRow}>
-                <Ionicons name="star" size={16} color="#F59E0B" />
-                <Text style={styles.profileName}>
-                  {userProfile?.full_name || 'User'}
+            <Text style={styles.title}>Settings</Text>
+            <Text style={styles.subtitle}>Customize your app experience</Text>
+          </View>
+
+          {/* User Profile */}
+          <View style={styles.profileSection}>
+            <View style={styles.profileCard}>
+              <View style={styles.profileIcon}>
+                <Ionicons name="person-outline" size={32} color="#FFFFFF" />
+              </View>
+              <View style={styles.profileInfo}>
+                <View style={styles.profileNameRow}>
+                  <Ionicons name="star" size={16} color="#F59E0B" />
+                  <Text style={styles.profileName}>
+                    {userProfile?.full_name || 'User'}
+                  </Text>
+                </View>
+                <Text style={styles.profileEmail}>
+                  {userProfile?.user_id ? 'Memora Member' : 'Guest User'}
                 </Text>
-              </View>
-              <Text style={styles.profileEmail}>
-                {userProfile?.user_id ? 'Memora Member' : 'Guest User'}
-              </Text>
-              <View style={styles.membershipBadge}>
-                <Text style={styles.membershipText}>Premium Member</Text>
+                <View style={styles.membershipBadge}>
+                  <Text style={styles.membershipText}>Premium Member</Text>
+                </View>
               </View>
             </View>
           </View>
-        </View>
 
-        {/* Account Settings */}
-        <View style={styles.settingsSection}>
-          <View style={styles.sectionHeader}>
+          {/* Account Settings */}
+          <View style={styles.settingsSection}>
             <Text style={styles.sectionTitle}>Account</Text>
+            <View style={styles.settingsGroup}>
+              {accountSettings.map((setting) => (
+                <TouchableOpacity
+                  key={setting.id}
+                  style={styles.settingItem}
+                  onPress={() => handleSettingPress(setting.id)}
+                  accessibilityLabel={setting.title}
+                >
+                  <View style={[styles.settingIcon, { backgroundColor: setting.color }]}>
+                    <Ionicons name={setting.icon as any} size={20} color="#FFFFFF" />
+                  </View>
+                  <View style={styles.settingContent}>
+                    <Text style={styles.settingTitle}>{setting.title}</Text>
+                    <Text style={styles.settingDescription}>{setting.description}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
-          <View style={styles.settingsGroup}>
-            {accountSettings.map((setting) => (
-              <TouchableOpacity
-                key={setting.id}
-                style={styles.settingItem}
-                onPress={() => handleSettingPress(setting.id)}
-                accessibilityLabel={setting.title}
-              >
-                <View style={[styles.settingIcon, { backgroundColor: setting.color }]}>
-                  <Ionicons name={setting.icon as any} size={20} color="#FFFFFF" />
-                </View>
-                <View style={styles.settingContent}>
-                  <Text style={styles.settingTitle}>{setting.title}</Text>
-                  <Text style={styles.settingDescription}>{setting.description}</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
 
-        {/* App Settings */}
-        <View style={styles.settingsSection}>
-          <View style={styles.sectionHeader}>
+          {/* App Settings */}
+          <View style={styles.settingsSection}>
             <Text style={styles.sectionTitle}>App Settings</Text>
-          </View>
-          <View style={styles.settingsGroup}>
-            {appSettingsConfig.map((setting) => (
-              <TouchableOpacity
-                key={setting.id}
-                style={styles.settingItem}
-                onPress={() => handleSettingPress(setting.id)}
-                accessibilityLabel={setting.title}
-              >
-                <View style={[styles.settingIcon, { backgroundColor: setting.color }]}>
-                  <Ionicons name={setting.icon as any} size={20} color="#FFFFFF" />
+            <View style={styles.settingsGroup}>
+              {appSettingsConfig.map((setting) => (
+                <TouchableOpacity
+                  key={setting.id}
+                  style={styles.settingItem}
+                  onPress={() => handleSettingPress(setting.id)}
+                  accessibilityLabel={setting.title}
+                >
+                  <View style={[styles.settingIcon, { backgroundColor: setting.color }]}>
+                    <Ionicons name={setting.icon as any} size={20} color="#FFFFFF" />
+                  </View>
+                  <View style={styles.settingContent}>
+                    <Text style={styles.settingTitle}>{setting.title}</Text>
+                    <Text style={styles.settingDescription}>{setting.description}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
+                </TouchableOpacity>
+              ))}
+              
+              {/* Notifications Toggle */}
+              <View style={styles.settingItem}>
+                <View style={[styles.settingIcon, { backgroundColor: '#F59E0B' }]}>
+                  <Ionicons name="notifications-outline" size={20} color="#FFFFFF" />
                 </View>
                 <View style={styles.settingContent}>
-                  <Text style={styles.settingTitle}>{setting.title}</Text>
-                  <Text style={styles.settingDescription}>{setting.description}</Text>
+                  <Text style={styles.settingTitle}>Push Notifications</Text>
+                  <Text style={styles.settingDescription}>Receive app notifications</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
-              </TouchableOpacity>
-            ))}
-            
-            {/* Notifications Toggle */}
-            <View style={styles.settingItem}>
-              <View style={[styles.settingIcon, { backgroundColor: '#F59E0B' }]}>
-                <Ionicons name="notifications-outline" size={20} color="#FFFFFF" />
+                <Switch
+                  value={appSettings?.notifications_enabled ?? true}
+                  onValueChange={(value) => updateAppSetting('notifications_enabled', value)}
+                  trackColor={{ false: '#E2E8F0', true: '#A5B4FC' }}
+                  thumbColor={appSettings?.notifications_enabled ? '#6366F1' : '#F1F5F9'}
+                />
               </View>
-              <View style={styles.settingContent}>
-                <Text style={styles.settingTitle}>Push Notifications</Text>
-                <Text style={styles.settingDescription}>Receive app notifications</Text>
-              </View>
-              <Switch
-                value={appSettings?.notifications_enabled ?? true}
-                onValueChange={(value) => updateAppSetting('notifications_enabled', value)}
-                trackColor={{ false: '#E2E8F0', true: '#A5B4FC' }}
-                thumbColor={appSettings?.notifications_enabled ? '#6366F1' : '#F1F5F9'}
-              />
-            </View>
 
-            {/* Dark Mode Toggle */}
-            <View style={styles.settingItem}>
-              <View style={[styles.settingIcon, { backgroundColor: '#64748B' }]}>
-                <Ionicons name="moon-outline" size={20} color="#FFFFFF" />
+              {/* Dark Mode Toggle */}
+              <View style={styles.settingItem}>
+                <View style={[styles.settingIcon, { backgroundColor: '#64748B' }]}>
+                  <Ionicons name="moon-outline" size={20} color="#FFFFFF" />
+                </View>
+                <View style={styles.settingContent}>
+                  <Text style={styles.settingTitle}>Dark Mode</Text>
+                  <Text style={styles.settingDescription}>Toggle dark theme</Text>
+                </View>
+                <Switch
+                  value={appSettings?.dark_mode ?? false}
+                  onValueChange={(value) => updateAppSetting('dark_mode', value)}
+                  trackColor={{ false: '#E2E8F0', true: '#A5B4FC' }}
+                  thumbColor={appSettings?.dark_mode ? '#6366F1' : '#F1F5F9'}
+                />
               </View>
-              <View style={styles.settingContent}>
-                <Text style={styles.settingTitle}>Dark Mode</Text>
-                <Text style={styles.settingDescription}>Toggle dark theme</Text>
-              </View>
-              <Switch
-                value={appSettings?.dark_mode ?? false}
-                onValueChange={(value) => updateAppSetting('dark_mode', value)}
-                trackColor={{ false: '#E2E8F0', true: '#A5B4FC' }}
-                thumbColor={appSettings?.dark_mode ? '#6366F1' : '#F1F5F9'}
-              />
-            </View>
 
-            {/* Sound Toggle */}
-            <View style={styles.settingItem}>
-              <View style={[styles.settingIcon, { backgroundColor: '#EF4444' }]}>
-                <Ionicons name="volume-high-outline" size={20} color="#FFFFFF" />
+              {/* Sound Toggle */}
+              <View style={styles.settingItem}>
+                <View style={[styles.settingIcon, { backgroundColor: '#EF4444' }]}>
+                  <Ionicons name="volume-high-outline" size={20} color="#FFFFFF" />
+                </View>
+                <View style={styles.settingContent}>
+                  <Text style={styles.settingTitle}>Sound Effects</Text>
+                  <Text style={styles.settingDescription}>App sounds and feedback</Text>
+                </View>
+                <Switch
+                  value={appSettings?.sound_enabled ?? true}
+                  onValueChange={(value) => updateAppSetting('sound_enabled', value)}
+                  trackColor={{ false: '#E2E8F0', true: '#A5B4FC' }}
+                  thumbColor={appSettings?.sound_enabled ? '#6366F1' : '#F1F5F9'}
+                />
               </View>
-              <View style={styles.settingContent}>
-                <Text style={styles.settingTitle}>Sound Effects</Text>
-                <Text style={styles.settingDescription}>App sounds and feedback</Text>
+            </View>
+          </View>
+
+          {/* Sign Out Button */}
+          <View style={styles.signOutSection}>
+            <TouchableOpacity
+              style={styles.signOutButton}
+              onPress={handleSignOut}
+              accessibilityLabel="Sign out of your account"
+            >
+              <View style={styles.signOutIcon}>
+                <Ionicons name="log-out-outline" size={20} color="#EF4444" />
               </View>
-              <Switch
-                value={appSettings?.sound_enabled ?? true}
-                onValueChange={(value) => updateAppSetting('sound_enabled', value)}
-                trackColor={{ false: '#E2E8F0', true: '#A5B4FC' }}
-                thumbColor={appSettings?.sound_enabled ? '#6366F1' : '#F1F5F9'}
-              />
+              <Text style={styles.signOutText}>Sign Out</Text>
+              <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+  },
+  header: {
+    alignItems: 'center',
+    paddingTop: 60,
+    paddingBottom: 40,
+  },
+  iconContainer: {
+    position: 'relative',
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    backgroundColor: '#64748B',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+    shadowColor: '#64748B',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  sparkleIcon: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#6366F1',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#64748B',
+    textAlign: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#64748B',
+    marginTop: 16,
+  },
+  profileSection: {
+    marginBottom: 32,
+  },
+  profileCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+  profileIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    backgroundColor: '#6366F1',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 20,
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  profileNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  profileName: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginLeft: 8,
+  },
+  profileEmail: {
+    fontSize: 16,
+    color: '#64748B',
+    marginBottom: 12,
+  },
+  membershipBadge: {
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  membershipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#92400E',
+  },
+  settingsSection: {
+    marginBottom: 32,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 16,
+  },
+  settingsGroup: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+  settingItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  settingIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 20,
+  },
+  settingContent: {
+    flex: 1,
+  },
+  settingTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 4,
+  },
+  settingDescription: {
+    fontSize: 14,
+    color: '#64748B',
+  },
+  signOutSection: {
+    marginBottom: 32,
+  },
+  signOutButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
+  },
+  signOutIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#FEE2E2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 20,
+  },
+  signOutText: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#EF4444',
+  },
+});
+
             </View>
           </View>
         </View>
