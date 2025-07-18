@@ -34,14 +34,21 @@ Create `client/.env`:
 ```
 EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-EXPO_PUBLIC_BACKEND_URL=http://<your-computer's-ip>:8000
+EXPO_PUBLIC_BACKEND_URL=http://192.168.1.100:8000
 ```
+
+**Important**: Replace `192.168.1.100` with your actual computer's IP address. To find your IP:
+- **Windows**: Run `ipconfig` in Command Prompt, look for "IPv4 Address"
+- **macOS/Linux**: Run `ifconfig` or `ip addr show` in Terminal
+- **Alternative**: Check your router's admin panel or network settings
+
+The backend URL cannot use `localhost` because mobile devices/emulators cannot reach your development machine's localhost.
 
 ### 4. Run the App
 ```bash
 # Terminal 1 - Start FastAPI backend
 cd backend
-uvicorn main:app --reload
+uvicorn main:app --reload --host 0.0.0.0
 
 # Terminal 2 - Start React Native app
 cd client
