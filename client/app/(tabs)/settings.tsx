@@ -91,6 +91,9 @@ export default function SettingsScreen() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Update local state immediately for better UX
+      setAppSettings(prev => prev ? { ...prev, [key]: value } : null);
+
       const { error } = await supabase
         .from('app_settings')
         .upsert({
@@ -99,10 +102,14 @@ export default function SettingsScreen() {
           updated_at: new Date().toISOString(),
         });
 
-      if (error) throw error;
-
-      setAppSettings(prev => prev ? { ...prev, [key]: value } : null);
+      if (error) {
+        // Revert local state on error
+        setAppSettings(prev => prev ? { ...prev, [key]: !value } : null);
+        Alert.alert('Error', 'Failed to update setting. Please try again.');
+      }
     } catch (error) {
+      // Revert local state on error
+      setAppSettings(prev => prev ? { ...prev, [key]: !value } : null);
       Alert.alert('Error', 'Failed to update setting. Please try again.');
     }
   };

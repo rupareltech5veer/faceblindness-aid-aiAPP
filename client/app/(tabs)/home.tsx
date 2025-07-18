@@ -80,16 +80,19 @@ export default function HomeScreen() {
 
   const handleFrameSelect = (frameId: string) => {
     setSelectedFrame(frameId);
+    setShowFrameModal(false);
     setShowPreview(true);
   };
 
   const handleApplyFrame = () => {
     uploadFavorite(selectedFrame);
     setShowPreview(false);
+    setShowFrameModal(false);
   };
 
   const handleCancelFrame = () => {
     setShowPreview(false);
+    setShowFrameModal(true);
     setSelectedFrame('none');
   };
 
@@ -137,7 +140,9 @@ export default function HomeScreen() {
       if (dbError) throw dbError;
 
       setShowFrameModal(false);
+      setShowPreview(false);
       setSelectedImage(null);
+      setSelectedFrame('none');
       fetchFavorites();
       
       Alert.alert('Success!', 'Your favorite has been added.');
@@ -160,13 +165,17 @@ export default function HomeScreen() {
           onPress: async () => {
             try {
               // Extract filename from URL for storage deletion
-              const fileName = imageUrl.split('/').pop();
+              const urlParts = imageUrl.split('/');
+              const fileName = urlParts[urlParts.length - 1];
               
               // Delete from storage
               if (fileName) {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
                 await supabase.storage
                   .from('favorites')
-                  .remove([fileName]);
+                    .remove([`${user.id}/${fileName}`]);
+                }
               }
 
               // Delete from database
@@ -295,11 +304,17 @@ export default function HomeScreen() {
             {selectedImage && (
               <View style={styles.previewContainer}>
                 {showPreview ? (
-                  <View style={[styles.framePreviewContainer, getFrameStyle(selectedFrame)]}>
-                    <Image source={{ uri: selectedImage }} style={styles.previewImage} />
-                  </View>
+                  <>
+                    <Text style={styles.previewTitle}>Preview with {frameStyles.find(f => f.id === selectedFrame)?.name} Frame</Text>
+                    <View style={[styles.framePreviewContainer, getFrameStyle(selectedFrame)]}>
+                      <Image source={{ uri: selectedImage }} style={styles.previewImage} />
+                    </View>
+                  </>
                 ) : (
-                  <Image source={{ uri: selectedImage }} style={styles.previewImage} />
+                  <>
+                    <Text style={styles.previewTitle}>Selected Photo</Text>
+                    <Image source={{ uri: selectedImage }} style={styles.previewImage} />
+                  </>
                 )}
               </View>
             )}
@@ -541,6 +556,13 @@ const styles = StyleSheet.create({
   previewContainer: {
     alignItems: 'center',
     marginBottom: 24,
+  },
+  previewTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 12,
+    textAlign: 'center',
   },
   framePreviewContainer: {
     padding: 8,

@@ -136,7 +136,8 @@ export default function ProfileScreen() {
       if (error) throw error;
 
       setEditing(false);
-      fetchUserProfile();
+      // Update the local state immediately
+      setUserProfile(prev => prev ? { ...prev, full_name: editedName.trim() } : null);
       Alert.alert('Success!', 'Profile updated successfully.');
     } catch (error) {
       Alert.alert('Error', 'Failed to update profile. Please try again.');

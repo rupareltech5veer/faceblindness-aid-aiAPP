@@ -118,7 +118,7 @@ export default function ConnectionsScreen() {
       // Upload new image if selected
       if (formData.image && formData.image.startsWith('file://')) {
         const timestamp = Date.now();
-        const fileName = `connections/${user.id}/${timestamp}.jpg`;
+        const fileName = `${user.id}/${timestamp}.jpg`;
 
         const response = await fetch(formData.image);
         const blob = await response.blob();
@@ -189,11 +189,12 @@ export default function ConnectionsScreen() {
             try {
               // Delete image from storage if exists
               if (connection.image_url) {
-                const fileName = connection.image_url.split('/').pop();
+                const urlParts = connection.image_url.split('/');
+                const fileName = urlParts[urlParts.length - 1];
                 if (fileName) {
                   await supabase.storage
                     .from('connections')
-                    .remove([fileName]);
+                    .remove([`${connection.user_id}/${fileName}`]);
                 }
               }
 
