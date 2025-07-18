@@ -146,7 +146,7 @@ export default function LearnScreen() {
 
   return (
     <LinearGradient
-      colors={['rgba(255, 195, 113, 0.1)', 'rgba(255, 95, 109, 0.15)']}
+      colors={['rgba(255, 195, 113, 0.3)', 'rgba(255, 95, 109, 0.35)']}
       start={[0, 0]}
       end={[1, 1]}
       style={{ flex: 1 }}

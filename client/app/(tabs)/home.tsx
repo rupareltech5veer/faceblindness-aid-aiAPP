@@ -201,7 +201,7 @@ export default function HomeScreen() {
 
   return (
     <LinearGradient
-      colors={['rgba(255, 154, 158, 0.1)', 'rgba(250, 208, 196, 0.15)']}
+      colors={['rgba(255, 154, 158, 0.3)', 'rgba(250, 208, 196, 0.35)']}
       start={[0, 0]}
       end={[1, 1]}
       style={{ flex: 1 }}

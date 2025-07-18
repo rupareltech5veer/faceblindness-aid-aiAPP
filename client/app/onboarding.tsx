@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Dimensions,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -47,9 +48,11 @@ export default function OnboardingScreen() {
           <View style={styles.mainContent}>
             {/* Central Logo */}
             <View style={styles.logoContainer}>
-              <View style={styles.logo}>
-                <Ionicons name="heart" size={64} color="#FFFFFF" />
-              </View>
+              <Image 
+                source={require('../assets/dolphin-logo-nobg.png')}
+                style={styles.logo}
+                resizeMode="contain"
+              />
             </View>
 
             {/* App Name and Slogan */}
@@ -98,7 +101,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    backdropFilter: 'blur(10px)',
   },
   floatingIcon1: {
     top: 100,
@@ -124,19 +126,13 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     marginBottom: 60,
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   logo: {
-    width: 140,
-    height: 140,
-    borderRadius: 28,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 12,
+    width: 220,
+    height: 220,
   },
   appName: {
     fontSize: 56,

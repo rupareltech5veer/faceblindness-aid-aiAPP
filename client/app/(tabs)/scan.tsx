@@ -65,7 +65,7 @@ export default function ScanScreen() {
 
   return (
     <LinearGradient
-      colors={['rgba(168, 224, 99, 0.1)', 'rgba(86, 171, 47, 0.15)']}
+      colors={['rgba(168, 224, 99, 0.3)', 'rgba(86, 171, 47, 0.35)']}
       start={[0, 0]}
       end={[1, 1]}
       style={{ flex: 1 }}
