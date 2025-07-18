@@ -259,7 +259,7 @@ export default function ConnectionsScreen() {
 
   return (
     <LinearGradient
-      colors={['rgba(76, 175, 80, 0.1)', 'rgba(33, 150, 243, 0.15)']}
+      colors={['rgba(76, 175, 80, 0.3)', 'rgba(33, 150, 243, 0.35)']}
       start={[0, 0]}
       end={[1, 1]}
       style={{ flex: 1 }}

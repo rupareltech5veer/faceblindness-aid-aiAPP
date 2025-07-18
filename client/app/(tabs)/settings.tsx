@@ -154,7 +154,7 @@ export default function SettingsScreen() {
 
   return (
     <LinearGradient
-      colors={['rgba(189, 189, 189, 0.08)', 'rgba(97, 97, 97, 0.12)']}
+      colors={['rgba(189, 189, 189, 0.3)', 'rgba(97, 97, 97, 0.35)']}
       start={[0, 0]}
       end={[1, 1]}
       style={{ flex: 1 }}

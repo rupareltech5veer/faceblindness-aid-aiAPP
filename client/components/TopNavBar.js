@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function TopNavBar({ userName = 'User', gradientColors = ["#7C3AED", "#6366F1"] }) {
@@ -11,7 +11,16 @@ export default function TopNavBar({ userName = 'User', gradientColors = ["#7C3AE
       style={styles.gradient}
     >
       <View style={styles.container}>
-        <Text style={styles.text}>Welcome <Text style={styles.user}>{userName}</Text></Text>
+        <View style={styles.logoContainer}>
+          <Image 
+            source={require('../assets/dolphin-logo-nobg.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
+        <Text style={styles.text}>
+          Welcome <Text style={styles.user}>{userName}</Text>
+        </Text>
       </View>
     </LinearGradient>
   );
@@ -26,24 +35,36 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderBottomLeftRadius: 0, // Match bottom navbar pill shape
     borderBottomRightRadius: 0,
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
     elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   container: {
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  logoContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logo: {
+    width: 60,
+    height: 60,
   },
   text: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-    textShadowColor: '#000',
-    textShadowOffset: { width: -1, height: 1 },
-    textShadowRadius: 1,
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '900',
   },
   user: {
-    color: '#FBBF24',
-    fontWeight: '800',
+    color: '#FFFFFF',
+    fontWeight: '900',
   },
 });

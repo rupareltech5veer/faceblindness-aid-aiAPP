@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -46,9 +47,11 @@ export default function TitleScreen() {
           <View style={styles.mainContent}>
             {/* Central Logo */}
             <View style={styles.logoContainer}>
-              <View style={styles.logo}>
-                <Ionicons name="heart" size={56} color="#FFFFFF" />
-              </View>
+              <Image 
+                source={require('../assets/dolphin-logo-nobg.png')}
+                style={styles.logo}
+                resizeMode="contain"
+              />
             </View>
 
             {/* App Name and Slogan */}
@@ -112,19 +115,13 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     marginBottom: 40,
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   logo: {
-    width: 120,
-    height: 120,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    width: 200,
+    height: 200,
   },
   appName: {
     fontSize: 48,
