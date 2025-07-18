@@ -56,9 +56,16 @@ export default function UploadScreen() {
     setIsUploading(true);
 
     try {
+      // Check authentication
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        Alert.alert('Authentication Required', 'Please sign in to upload photos.');
+        return;
+      }
+
       // Create a unique filename
       const timestamp = Date.now();
-      const fileName = `face_${timestamp}.jpg`;
+      const fileName = `faces/${user.id}/face_${timestamp}.jpg`;
 
       // Convert image to blob for upload
       const response = await fetch(selectedImage);
@@ -81,15 +88,14 @@ export default function UploadScreen() {
         .getPublicUrl(fileName);
 
       // Generate AI facial cue using our backend
-      const userId = 'demo-user'; // In a real app, this would come from authentication
-      const aiCue = await generateFacialCue(fileName, userId);
+      const aiCue = await generateFacialCue(fileName, user.id);
       setAiResult(aiCue);
 
       // Save to database
       const { error: dbError } = await supabase
         .from('faces')
         .insert({
-          user_id: userId,
+          user_id: user.id,
           image_url: urlData.publicUrl,
           name: personName.trim(),
           description: aiCue.description,

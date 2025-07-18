@@ -109,14 +109,17 @@ export default function ConnectionsScreen() {
     setUploading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user) {
+        Alert.alert('Authentication Required', 'Please sign in to save connections.');
+        return;
+      }
 
       let imageUrl = formData.image;
 
       // Upload new image if selected
       if (formData.image && formData.image.startsWith('file://')) {
         const timestamp = Date.now();
-        const fileName = `${user.id}/${timestamp}.jpg`;
+        const fileName = `connections/${user.id}/${timestamp}.jpg`;
 
         const response = await fetch(formData.image);
         const blob = await response.blob();

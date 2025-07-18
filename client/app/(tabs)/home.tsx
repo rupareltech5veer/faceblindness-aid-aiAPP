@@ -100,7 +100,10 @@ export default function HomeScreen() {
     setUploading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user) {
+        Alert.alert('Authentication Required', 'Please sign in to save favorites.');
+        return;
+      }
 
       // Upload image to storage
       const timestamp = Date.now();

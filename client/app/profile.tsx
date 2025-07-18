@@ -78,7 +78,7 @@ export default function ProfileScreen() {
 
       // Upload image to storage
       const timestamp = Date.now();
-      const fileName = `${user.id}/avatar_${timestamp}.jpg`;
+      const fileName = `avatars/${user.id}/avatar_${timestamp}.jpg`;
 
       const response = await fetch(imageUri);
       const blob = await response.blob();
