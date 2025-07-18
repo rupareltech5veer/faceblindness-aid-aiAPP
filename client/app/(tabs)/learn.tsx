@@ -104,7 +104,23 @@ export default function LearnScreen() {
         .eq('user_id', user.id);
 
       if (error) throw error;
-      setLearningProgress(data || []);
+      
+      // Initialize progress if none exists
+      if (!data || data.length === 0) {
+        const initialProgress = learningModules.map(module => ({
+          id: `${user.id}-${module.id}`,
+          user_id: user.id,
+          module_id: module.id,
+          progress_percentage: 0,
+          completed_lessons: 0,
+          total_lessons: module.totalLessons,
+          last_accessed: new Date().toISOString(),
+          created_at: new Date().toISOString()
+        }));
+        setLearningProgress(initialProgress);
+      } else {
+        setLearningProgress(data);
+      }
     } catch (error) {
       console.error('Error fetching learning progress:', error);
     } finally {
@@ -226,6 +242,23 @@ export default function LearnScreen() {
     }
 
     const { data } = currentModuleData;
+    
+    // Handle error cases
+    if (data.error) {
+      return (
+        <View style={styles.exerciseContainer}>
+          <Text style={styles.exerciseTitle}>Training Not Available</Text>
+          <Text style={styles.exerciseDescription}>{data.error}</Text>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => setShowModuleModal(false)}
+          >
+            <Text style={styles.closeButtonText}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    
     const exerciseType = data.exercise_type;
 
     switch (exerciseType) {
@@ -259,6 +292,15 @@ export default function LearnScreen() {
               )}
             </View>
             
+            {!data.original_image && !data.modified_image && (
+              <View style={styles.placeholderContainer}>
+                <Ionicons name="image-outline" size={64} color="#94A3B8" />
+                <Text style={styles.placeholderText}>
+                  Face images will appear here once you add connections
+                </Text>
+              </View>
+            )}
+            
             {data.hints && data.show_hints && (
               <View style={styles.hintsContainer}>
                 <Text style={styles.hintsTitle}>Hints:</Text>
@@ -269,7 +311,7 @@ export default function LearnScreen() {
             )}
             
             <View style={styles.optionsContainer}>
-              {data.options.map((option, index) => (
+              {data.options && data.options.map((option, index) => (
                 <TouchableOpacity
                   key={index}
                   style={[
@@ -282,6 +324,11 @@ export default function LearnScreen() {
                   <Text style={styles.optionText}>{option}</Text>
                 </TouchableOpacity>
               ))}
+              {(!data.options || data.options.length === 0) && (
+                <Text style={styles.noOptionsText}>
+                  Add more connections to enable this exercise
+                </Text>
+              )}
             </View>
           </View>
         );
@@ -347,6 +394,15 @@ export default function LearnScreen() {
               />
             )}
             
+            {!data.face_image && (
+              <View style={styles.placeholderContainer}>
+                <Ionicons name="person-outline" size={64} color="#94A3B8" />
+                <Text style={styles.placeholderText}>
+                  Face image will appear here once you add connections
+                </Text>
+              </View>
+            )}
+            
             {data.hints && data.show_hints && (
               <View style={styles.hintsContainer}>
                 <Text style={styles.hintsTitle}>Hints:</Text>
@@ -357,7 +413,7 @@ export default function LearnScreen() {
             )}
             
             <View style={styles.optionsContainer}>
-              {data.options.map((option, index) => (
+              {data.options && data.options.map((option, index) => (
                 <TouchableOpacity
                   key={index}
                   style={[
@@ -385,6 +441,11 @@ export default function LearnScreen() {
                   <Text style={styles.traitButtonText}>{option}</Text>
                 </TouchableOpacity>
               ))}
+              {(!data.options || data.options.length === 0) && (
+                <Text style={styles.noOptionsText}>
+                  Add more connections to enable trait identification
+                </Text>
+              )}
             </View>
           </View>
         );
@@ -1252,5 +1313,33 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     marginLeft: 8,
+  },
+  placeholderContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    marginBottom: 32,
+  },
+  placeholderText: {
+    fontSize: 16,
+    color: '#64748B',
+    textAlign: 'center',
+    marginTop: 16,
+    paddingHorizontal: 20,
+    lineHeight: 22,
+  },
+  noOptionsText: {
+    fontSize: 16,
+    color: '#64748B',
+    textAlign: 'center',
+    fontStyle: 'italic',
+    paddingVertical: 20,
+  },
+  closeButtonText: {
+    fontSize: 16,
+    color: '#6366F1',
+    fontWeight: '600',
   },
 });

@@ -384,14 +384,30 @@ async def caricature_training(request: TrainingRequest):
 async def spacing_training(request: TrainingRequest):
     """Generate spacing awareness training exercise"""
     try:
-        if not supabase:
-            return TrainingResponse(success=False, data={}, next_difficulty=1)
-        
-        faces_result = supabase.table("connections").select("*").eq("user_id", request.user_id).execute()
+        # Get user's faces from faces table
+        if supabase:
+            faces_result = supabase.table("faces").select("*").eq("user_id", request.user_id).execute()
+        else:
+            # Mock data for development
+            faces_result = type('obj', (object,), {
+                'data': [{
+                    'id': 'mock_id',
+                    'name': 'Sample Person',
+                    'image_url': 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg',
+                    'landmark_data': {'points': [[0.5, 0.3], [0.6, 0.4]]},
+                    'trait_descriptions': ['expressive eyes', 'defined jawline'],
+                    'training_progress': {'spacing': {'level': 1, 'accuracy': 0}}
+                }]
+            })()
+            
         faces = faces_result.data
         
         if not faces:
-            raise HTTPException(status_code=404, detail="No faces found for user")
+            return TrainingResponse(
+                success=False, 
+                data={"error": "No faces found. Please add some connections first."}, 
+                next_difficulty=1
+            )
         
         target_face = random.choice(faces)
         
@@ -401,7 +417,11 @@ async def spacing_training(request: TrainingRequest):
         )
         
         if "error" in exercise_data:
-            raise HTTPException(status_code=500, detail=exercise_data["error"])
+            return TrainingResponse(
+                success=False,
+                data=exercise_data,
+                next_difficulty=request.difficulty_level
+            )
         
         next_difficulty = training_ai.difficulty_manager.calculate_next_level(
             request.difficulty_level, 0.8, 0
@@ -415,20 +435,35 @@ async def spacing_training(request: TrainingRequest):
         
     except Exception as e:
         logger.error(f"Error in spacing training: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/learn/trait-tagging")
 async def trait_tagging_training(request: TrainingRequest):
     """Generate trait tagging training exercise"""
     try:
-        if not supabase:
-            return TrainingResponse(success=False, data={}, next_difficulty=1)
-        
-        faces_result = supabase.table("connections").select("*").eq("user_id", request.user_id).execute()
+        # Get user's faces from faces table
+        if supabase:
+            faces_result = supabase.table("faces").select("*").eq("user_id", request.user_id).execute()
+        else:
+            # Mock data for development
+            faces_result = type('obj', (object,), {
+                'data': [{
+                    'id': 'mock_id',
+                    'name': 'Sample Person',
+                    'image_url': 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg',
+                    'landmark_data': {'points': [[0.5, 0.3], [0.6, 0.4]]},
+                    'trait_descriptions': ['expressive eyes', 'defined jawline', 'strong nose'],
+                    'training_progress': {'trait_tagging': {'level': 1, 'accuracy': 0}}
+                }]
+            })()
+            
         faces = faces_result.data
         
         if not faces:
-            raise HTTPException(status_code=404, detail="No faces found for user")
+            return TrainingResponse(
+                success=False, 
+                data={"error": "No faces found. Please add some connections first."}, 
+                next_difficulty=1
+            )
         
         target_face = random.choice(faces)
         
@@ -438,7 +473,11 @@ async def trait_tagging_training(request: TrainingRequest):
         )
         
         if "error" in exercise_data:
-            raise HTTPException(status_code=500, detail=exercise_data["error"])
+            return TrainingResponse(
+                success=False,
+                data=exercise_data,
+                next_difficulty=request.difficulty_level
+            )
         
         next_difficulty = training_ai.difficulty_manager.calculate_next_level(
             request.difficulty_level, 0.8, 0
@@ -452,20 +491,42 @@ async def trait_tagging_training(request: TrainingRequest):
         
     except Exception as e:
         logger.error(f"Error in trait tagging training: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/learn/morph-matching")
 async def morph_matching_training(request: TrainingRequest):
     """Generate morph-based matching training exercise"""
     try:
-        if not supabase:
-            return TrainingResponse(success=False, data={}, next_difficulty=1)
-        
-        faces_result = supabase.table("connections").select("*").eq("user_id", request.user_id).execute()
+        # Get user's faces from faces table
+        if supabase:
+            faces_result = supabase.table("faces").select("*").eq("user_id", request.user_id).execute()
+        else:
+            # Mock data for development
+            faces_result = type('obj', (object,), {
+                'data': [{
+                    'id': 'mock_id_1',
+                    'name': 'Sample Person 1',
+                    'image_url': 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg',
+                    'landmark_data': {'points': [[0.5, 0.3], [0.6, 0.4]]},
+                    'trait_descriptions': ['expressive eyes', 'defined jawline'],
+                    'training_progress': {'morph_matching': {'level': 1, 'accuracy': 0}}
+                }, {
+                    'id': 'mock_id_2',
+                    'name': 'Sample Person 2',
+                    'image_url': 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg',
+                    'landmark_data': {'points': [[0.4, 0.3], [0.5, 0.4]]},
+                    'trait_descriptions': ['gentle smile', 'soft features'],
+                    'training_progress': {'morph_matching': {'level': 1, 'accuracy': 0}}
+                }]
+            })()
+            
         faces = faces_result.data
         
         if len(faces) < 2:
-            raise HTTPException(status_code=400, detail="Need at least 2 faces for morph training")
+            return TrainingResponse(
+                success=False, 
+                data={"error": "Need at least 2 faces for morph training. Please add more connections."}, 
+                next_difficulty=1
+            )
         
         target_face = random.choice(faces)
         
@@ -475,7 +536,11 @@ async def morph_matching_training(request: TrainingRequest):
         )
         
         if "error" in exercise_data:
-            raise HTTPException(status_code=500, detail=exercise_data["error"])
+            return TrainingResponse(
+                success=False,
+                data=exercise_data,
+                next_difficulty=request.difficulty_level
+            )
         
         next_difficulty = training_ai.difficulty_manager.calculate_next_level(
             request.difficulty_level, 0.8, 0
@@ -489,7 +554,6 @@ async def morph_matching_training(request: TrainingRequest):
         
     except Exception as e:
         logger.error(f"Error in morph matching training: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/learn/update-progress")
 async def update_training_progress(

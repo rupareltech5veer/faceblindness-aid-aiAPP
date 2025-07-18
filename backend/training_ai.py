@@ -292,17 +292,20 @@ class TrainingAI:
             image_url = face_data.get("image_url", "")
             landmarks = face_data.get("landmark_data", {}).get("points", [])
             name = face_data.get("name", "Unknown")
-            traits = face_data.get("trait_descriptions", [])
+            traits = face_data.get("trait_descriptions", []) or face_data.get("traits", [])
             
-            # For demo, create mock base64 images
-            original_image_b64 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+            # Use actual image URL if available, otherwise use placeholder
+            if image_url:
+                original_image_b64 = image_url
+                exaggerated_image_b64 = image_url  # In production, apply warping
+            else:
+                # Use Pexels placeholder images
+                original_image_b64 = "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg"
+                exaggerated_image_b64 = "https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg"
             
             # Select distinctive feature to exaggerate
             features = ["eyes", "nose", "jaw"]
             selected_feature = random.choice(features)
-            
-            # Create exaggerated version (mocked for demo)
-            exaggerated_image_b64 = original_image_b64  # In production, apply warping
             
             # Generate options
             correct_answer = name
@@ -315,6 +318,13 @@ class TrainingAI:
                 distractors = random.sample(distractor_names, 
                                           min(params["num_distractors"], len(distractor_names)))
             
+            # Add generic distractors if not enough faces
+            if len(distractors) < params["num_distractors"]:
+                generic_names = ["Alex", "Jordan", "Taylor", "Casey", "Morgan", "Riley"]
+                needed = params["num_distractors"] - len(distractors)
+                available_generic = [name for name in generic_names if name != correct_answer and name not in distractors]
+                distractors.extend(random.sample(available_generic, min(needed, len(available_generic))))
+            
             options = [correct_answer] + distractors
             random.shuffle(options)
             correct_index = options.index(correct_answer)
@@ -323,6 +333,8 @@ class TrainingAI:
             hints = []
             if params["show_hints"] and traits:
                 hints = traits[:2]  # Show first 2 traits as hints
+            elif params["show_hints"]:
+                hints = [f"Look for distinctive {selected_feature}", "Focus on facial proportions"]
             
             return {
                 "exercise_type": "caricature",
@@ -414,14 +426,17 @@ class TrainingAI:
             params = self.difficulty_manager.get_difficulty_params("trait_identification", level)
             
             name = face_data.get("name", "Unknown")
-            traits = face_data.get("trait_descriptions", [])
+            traits = face_data.get("trait_descriptions", []) or face_data.get("traits", [])
             image_url = face_data.get("image_url", "")
             
-            # Mock image for demo
-            face_image_b64 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+            # Use actual image URL if available
+            if image_url:
+                face_image_b64 = image_url
+            else:
+                face_image_b64 = "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg"
             
             if not traits:
-                traits = ["distinctive features", "memorable appearance"]
+                traits = ["expressive eyes", "defined jawline", "distinctive nose", "strong features"]
             
             # Select traits to show
             num_traits = min(params["num_traits_shown"], len(traits))
@@ -435,8 +450,15 @@ class TrainingAI:
                 all_traits = []
                 for face in all_faces:
                     if face.get("id") != face_data.get("id"):
-                        face_traits = face.get("trait_descriptions", [])
+                        face_traits = face.get("trait_descriptions", []) or face.get("traits", [])
                         all_traits.extend(face_traits)
+                
+                # Add generic trait distractors
+                generic_traits = [
+                    "round face", "square jaw", "thin eyebrows", "wide smile",
+                    "small eyes", "large nose", "full lips", "high cheekbones"
+                ]
+                all_traits.extend(generic_traits)
                 
                 # Remove duplicates and select distractors
                 unique_traits = list(set(all_traits) - set(selected_traits))
