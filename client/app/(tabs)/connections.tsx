@@ -19,13 +19,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase, Connection } from '../../lib/supabase';
 
-// Define MediaType locally to avoid undefined issues
-const MediaType = {
-  Images: 'images' as const,
-  Videos: 'videos' as const,
-  All: 'all' as const,
-};
-
 export default function ConnectionsScreen() {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -105,7 +98,7 @@ export default function ConnectionsScreen() {
 
       console.log('Permission granted, launching image picker...');
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaType.Images,
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,

@@ -21,13 +21,6 @@ import { supabase } from '../../lib/supabase';
 import { scanAndIdentify, ScanResult } from '../../lib/api';
 import { Connection } from '../../lib/supabase';
 
-// Define MediaType locally to avoid undefined issues
-const MediaType = {
-  Images: 'images' as const,
-  Videos: 'videos' as const,
-  All: 'all' as const,
-};
-
 const { width, height } = Dimensions.get('window');
 
 export default function ScanScreen() {
@@ -94,7 +87,7 @@ export default function ScanScreen() {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaType.Images,
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
