@@ -44,7 +44,6 @@ export default function ProfileScreen() {
       setUserProfile(profile);
       setEditedName(profile?.full_name || '');
     } catch (error) {
-      console.error('Error fetching user profile:', error);
     } finally {
       setLoading(false);
     }
@@ -110,7 +109,6 @@ export default function ProfileScreen() {
       fetchUserProfile();
       Alert.alert('Success!', 'Profile photo updated successfully.');
     } catch (error) {
-      console.error('Error updating profile image:', error);
       Alert.alert('Error', 'Failed to update profile photo. Please try again.');
     } finally {
       setUploading(false);
@@ -141,7 +139,6 @@ export default function ProfileScreen() {
       fetchUserProfile();
       Alert.alert('Success!', 'Profile updated successfully.');
     } catch (error) {
-      console.error('Error updating profile:', error);
       Alert.alert('Error', 'Failed to update profile. Please try again.');
     }
   };
@@ -205,7 +202,6 @@ export default function ProfileScreen() {
         [{ text: 'OK', onPress: () => router.replace('/auth/signin') }]
       );
     } catch (error) {
-      console.error('Error deleting account:', error);
       Alert.alert('Error', 'Failed to delete account. Please contact support.');
     }
   };

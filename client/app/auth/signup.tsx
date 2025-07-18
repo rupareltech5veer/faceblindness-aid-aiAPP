@@ -90,7 +90,6 @@ export default function SignUpScreen() {
       }
       
     } catch (error: any) {
-      console.error('Signup error:', error);
       Alert.alert('Signup Failed', error.message || 'Failed to create account. Please try again.');
     } finally {
       setIsLoading(false);

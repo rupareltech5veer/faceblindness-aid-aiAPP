@@ -52,7 +52,6 @@ export default function HomeScreen() {
       if (error) throw error;
       setFavorites(data || []);
     } catch (error) {
-      console.error('Error fetching favorites:', error);
     } finally {
       setLoading(false);
     }
@@ -143,7 +142,6 @@ export default function HomeScreen() {
       
       Alert.alert('Success!', 'Your favorite has been added.');
     } catch (error) {
-      console.error('Upload error:', error);
       Alert.alert('Upload failed', 'There was an error uploading your photo. Please try again.');
     } finally {
       setUploading(false);
@@ -180,7 +178,6 @@ export default function HomeScreen() {
               if (error) throw error;
               fetchFavorites();
             } catch (error) {
-              console.error('Error deleting favorite:', error);
               Alert.alert('Error', 'Failed to delete favorite. Please try again.');
             }
           },

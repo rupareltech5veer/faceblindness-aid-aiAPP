@@ -34,7 +34,6 @@ export default function TitleScreen() {
         router.replace('/auth/signin');
       }
     } catch (error) {
-      console.error('Error checking auth status:', error);
       // Default to sign in on error
       router.replace('/auth/signin');
     }

@@ -25,7 +25,6 @@ export default function TopNavBar({ gradientColors = ["#7C3AED", "#6366F1"] }) {
         setUserName(profile.full_name);
       }
     } catch (error) {
-      console.error('Error fetching user name:', error);
     }
   };
 

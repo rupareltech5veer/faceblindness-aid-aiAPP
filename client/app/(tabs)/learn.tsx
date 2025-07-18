@@ -95,7 +95,6 @@ export default function LearnScreen() {
       if (error) throw error;
       setLearningProgress(data || []);
     } catch (error) {
-      console.error('Error fetching learning progress:', error);
     } finally {
       setLoading(false);
     }
@@ -132,7 +131,6 @@ export default function LearnScreen() {
         [{ text: 'OK' }]
       );
     } catch (error) {
-      console.error('Error updating progress:', error);
     }
   };
 

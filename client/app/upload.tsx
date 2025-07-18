@@ -126,7 +126,6 @@ export default function UploadScreen() {
       );
 
     } catch (error) {
-      console.error('Upload error:', error);
       Alert.alert('Upload failed', 'There was an error uploading your photo. Please try again.');
     } finally {
       setIsUploading(false);

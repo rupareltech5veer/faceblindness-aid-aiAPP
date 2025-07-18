@@ -81,7 +81,6 @@ export default function SettingsScreen() {
 
       setAppSettings(settings);
     } catch (error) {
-      console.error('Error fetching user data:', error);
     } finally {
       setLoading(false);
     }
@@ -104,7 +103,6 @@ export default function SettingsScreen() {
 
       setAppSettings(prev => prev ? { ...prev, [key]: value } : null);
     } catch (error) {
-      console.error('Error updating setting:', error);
       Alert.alert('Error', 'Failed to update setting. Please try again.');
     }
   };
@@ -132,7 +130,6 @@ export default function SettingsScreen() {
               await StorageService.clearAll();
               router.replace('/auth/signin');
             } catch (error) {
-              console.error('Error signing out:', error);
               Alert.alert('Error', 'Failed to sign out. Please try again.');
             }
           },

@@ -38,7 +38,6 @@ export default function DirectoryScreen() {
 
       setFaces(data || []);
     } catch (error) {
-      console.error('Error fetching faces:', error);
       Alert.alert('Error', 'Failed to load faces. Please try again.');
     } finally {
       setLoading(false);
@@ -87,7 +86,6 @@ export default function DirectoryScreen() {
               // Refresh the list
               fetchFaces();
             } catch (error) {
-              console.error('Error deleting face:', error);
               Alert.alert('Error', 'Failed to delete face. Please try again.');
             }
           },

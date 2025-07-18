@@ -47,7 +47,6 @@ export default function ScanScreen() {
         setIsScanning(false);
       }
     } catch (error) {
-      console.error('Camera error:', error);
       setIsScanning(false);
     }
   };

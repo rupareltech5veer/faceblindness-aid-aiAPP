@@ -80,7 +80,6 @@ export default function AuthCallbackScreen() {
         throw new Error('No session found');
       }
     } catch (error: any) {
-      console.error('Auth callback error:', error);
       setStatus('error');
       setMessage('Authentication failed. Please try again.');
       

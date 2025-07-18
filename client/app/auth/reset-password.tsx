@@ -74,7 +74,6 @@ export default function ResetPasswordScreen() {
       );
       
     } catch (error: any) {
-      console.error('Password reset error:', error);
       Alert.alert('Reset Failed', error.message || 'Failed to reset password. Please try again.');
     } finally {
       setIsLoading(false);

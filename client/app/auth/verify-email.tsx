@@ -56,7 +56,6 @@ export default function VerifyEmailScreen() {
         }, 3000);
       }
     } catch (error) {
-      console.error('Email verification error:', error);
       setStatus('error');
       setMessage('Email verification failed. Please try again.');
       

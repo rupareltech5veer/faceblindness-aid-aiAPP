@@ -30,7 +30,6 @@ export default function HomeScreen() {
       router.replace('/title');
       
     } catch (error) {
-      console.error('Error checking app state:', error);
       // Default to onboarding on error
       router.replace('/onboarding');
     } finally {

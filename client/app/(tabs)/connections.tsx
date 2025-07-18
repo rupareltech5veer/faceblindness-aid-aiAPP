@@ -48,7 +48,6 @@ export default function ConnectionsScreen() {
       if (error) throw error;
       setConnections(data || []);
     } catch (error) {
-      console.error('Error fetching connections:', error);
     } finally {
       setLoading(false);
     }
@@ -171,7 +170,6 @@ export default function ConnectionsScreen() {
       
       Alert.alert('Success!', `Connection ${editingConnection ? 'updated' : 'added'} successfully.`);
     } catch (error) {
-      console.error('Save error:', error);
       Alert.alert('Save failed', 'There was an error saving the connection. Please try again.');
     } finally {
       setUploading(false);
@@ -208,7 +206,6 @@ export default function ConnectionsScreen() {
               if (error) throw error;
               fetchConnections();
             } catch (error) {
-              console.error('Error deleting connection:', error);
               Alert.alert('Error', 'Failed to delete connection. Please try again.');
             }
           },
