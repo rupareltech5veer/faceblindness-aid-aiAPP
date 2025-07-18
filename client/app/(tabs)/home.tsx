@@ -16,6 +16,13 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase, Favorite } from '../../lib/supabase';
 
+// Define MediaType locally to avoid undefined issues
+const MediaType = {
+  Images: 'Images' as const,
+  Videos: 'Videos' as const,
+  All: 'All' as const,
+};
+
 const frameStyles = [
   { id: 'none', name: 'No Frame', color: 'transparent', preview: '📷' },
   { id: 'classic', name: 'Classic', color: '#8B4513', preview: '🖼️' },
@@ -67,7 +74,7 @@ export default function HomeScreen() {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaType.Images,
+        mediaTypes: MediaType.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,

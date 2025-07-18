@@ -17,6 +17,13 @@ import { supabase } from '../lib/supabase';
 import { generateFacialCue } from '../lib/api';
 import { router } from 'expo-router';
 
+// Define MediaType locally to avoid undefined issues
+const MediaType = {
+  Images: 'Images' as const,
+  Videos: 'Videos' as const,
+  All: 'All' as const,
+};
+
 export default function UploadScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [personName, setPersonName] = useState('');
@@ -35,7 +42,7 @@ export default function UploadScreen() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
+      mediaTypes: MediaType.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,

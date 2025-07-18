@@ -16,6 +16,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { supabase, UserProfile } from '../lib/supabase';
 import * as ImagePicker from 'expo-image-picker';
 
+// Define MediaType locally to avoid undefined issues
+const MediaType = {
+  Images: 'Images' as const,
+  Videos: 'Videos' as const,
+  All: 'All' as const,
+};
+
 export default function ProfileScreen() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [userEmail, setUserEmail] = useState('');
@@ -58,7 +65,7 @@ export default function ProfileScreen() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
+      mediaTypes: MediaType.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
