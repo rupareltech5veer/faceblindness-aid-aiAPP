@@ -38,6 +38,7 @@ export default function ConnectionsScreen() {
     image: null as string | null,
   });
   const [uploading, setUploading] = useState(false);
+  const [imageErrors, setImageErrors] = useState<{[key: string]: boolean}>({});
 
   useEffect(() => {
     fetchConnections();
@@ -57,6 +58,7 @@ export default function ConnectionsScreen() {
       if (error) throw error;
       setConnections(data || []);
     } catch (error) {
+      console.error('Error fetching connections:', error);
     } finally {
       setLoading(false);
     }
@@ -255,7 +257,7 @@ export default function ConnectionsScreen() {
       }
     } catch (error) {
       console.error('Error saving connection:', error);
-      Alert.alert('Save failed', 'There was an error saving the connection. Please try again.');
+      Alert.alert('Save failed', `There was an error saving the connection: ${error?.message || 'Please try again.'}`);
     } finally {
       setUploading(false);
     }
@@ -292,6 +294,7 @@ export default function ConnectionsScreen() {
               if (error) throw error;
               fetchConnections();
             } catch (error) {
+              console.error('Error deleting connection:', error);
               Alert.alert('Error', 'Failed to delete connection. Please try again.');
             }
           },
@@ -300,11 +303,33 @@ export default function ConnectionsScreen() {
     );
   };
 
+  const handleImageError = (itemId: string) => {
+    setImageErrors(prev => ({ ...prev, [itemId]: true }));
+  };
+
+  const handleImageLoad = (itemId: string) => {
+    setImageErrors(prev => ({ ...prev, [itemId]: false }));
+  };
+
   const renderConnection = ({ item }: { item: Connection }) => (
     <View style={styles.connectionCard}>
       <View style={styles.connectionHeader}>
         {item.image_url ? (
-          <Image source={{ uri: item.image_url }} style={styles.connectionImage} />
+          <>
+            {imageErrors[item.id] ? (
+              <View style={[styles.connectionImage, styles.errorPlaceholder]}>
+                <Ionicons name="person-outline" size={24} color="#94A3B8" />
+                <Text style={styles.errorText}>Failed to load</Text>
+              </View>
+            ) : (
+              <Image 
+                source={{ uri: item.image_url }} 
+                style={styles.connectionImage}
+                onError={() => handleImageError(item.id)}
+                onLoad={() => handleImageLoad(item.id)}
+              />
+            )}
+          </>
         ) : (
           <View style={styles.placeholderImage}>
             <Ionicons name="person-outline" size={32} color="#94A3B8" />
@@ -426,7 +451,11 @@ export default function ConnectionsScreen() {
                 activeOpacity={0.7}
               >
                 {formData.image ? (
-                  <Image source={{ uri: formData.image }} style={styles.selectedImage} />
+                  <Image 
+                    source={{ uri: formData.image }} 
+                    style={styles.selectedImage}
+                    onError={() => console.error('Error loading selected image')}
+                  />
                 ) : (
                   <View style={styles.imagePickerPlaceholder}>
                     <Ionicons name="camera-outline" size={32} color="#94A3B8" />
@@ -657,6 +686,19 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginRight: 20,
     resizeMode: 'cover',
+  },
+  errorPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  errorText: {
+    fontSize: 10,
+    color: '#94A3B8',
+    marginTop: 2,
+    textAlign: 'center',
   },
   placeholderImage: {
     width: 80,

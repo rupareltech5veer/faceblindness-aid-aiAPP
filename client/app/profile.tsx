@@ -30,6 +30,7 @@ export default function ProfileScreen() {
   const [editing, setEditing] = useState(false);
   const [editedName, setEditedName] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     fetchUserProfile();
@@ -241,7 +242,7 @@ export default function ProfileScreen() {
       Alert.alert('Success!', 'Profile photo updated successfully.');
     } catch (error) {
       console.error('Profile photo update error:', error);
-      Alert.alert('Error', `Failed to update profile photo: ${error.message || 'Please try again.'}`);
+      Alert.alert('Error', `Failed to update profile photo: ${error?.message || 'Please try again.'}`);
     } finally {
       setUploading(false);
     }
@@ -286,7 +287,7 @@ export default function ProfileScreen() {
       Alert.alert('Success!', 'Profile updated successfully.');
     } catch (error) {
       console.error('Profile update error:', error);
-      Alert.alert('Error', 'Failed to update profile. Please try again.');
+      Alert.alert('Error', `Failed to update profile: ${error?.message || 'Please try again.'}`);
     }
   };
 
@@ -438,7 +439,21 @@ export default function ProfileScreen() {
               disabled={uploading}
             >
               {userProfile?.avatar_url ? (
-                <Image source={{ uri: userProfile.avatar_url }} style={styles.profilePhoto} />
+                <>
+                  {imageError ? (
+                    <View style={[styles.profilePhoto, styles.errorPlaceholder]}>
+                      <Ionicons name="person-outline" size={48} color="#94A3B8" />
+                      <Text style={styles.errorText}>Failed to load</Text>
+                    </View>
+                  ) : (
+                    <Image 
+                      source={{ uri: userProfile.avatar_url }} 
+                      style={styles.profilePhoto}
+                      onError={() => setImageError(true)}
+                      onLoad={() => setImageError(false)}
+                    />
+                  )}
+                </>
               ) : (
                 <View style={styles.placeholderPhoto}>
                   <Ionicons name="person-outline" size={48} color="#94A3B8" />
@@ -570,6 +585,17 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
+  },
+  errorPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+  },
+  errorText: {
+    fontSize: 10,
+    color: '#94A3B8',
+    marginTop: 4,
+    textAlign: 'center',
   },
   placeholderPhoto: {
     width: 120,
