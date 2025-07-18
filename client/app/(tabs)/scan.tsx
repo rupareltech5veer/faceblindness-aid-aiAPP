@@ -149,13 +149,14 @@ export default function ScanScreen() {
           <View
             style={{
               position: 'absolute',
-              bottom: -60,
+              bottom: -80,
               left: 0,
               right: 0,
               backgroundColor: 'rgba(0,0,0,0.8)',
               padding: 8,
               borderRadius: 8,
-              minWidth: 120,
+              minWidth: 140,
+              maxWidth: 200,
             }}
           >
             <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: '600' }}>
@@ -166,18 +167,26 @@ export default function ScanScreen() {
                 {face.role}
               </Text>
             )}
-            <Text style={{ color: '#A3A3A3', fontSize: 12 }}>
-              {Math.round(face.confidence * 100)}% confident
-            </Text>
+            {face.name !== 'Unknown' && (
+              <Text style={{ color: '#A3A3A3', fontSize: 12 }}>
+                {Math.round(face.confidence * 100)}% confident
+              </Text>
+            )}
             {showEmotionOverlay && (
               <Text style={{ color: '#60A5FA', fontSize: 12 }}>
                 😊 {face.emotion}
               </Text>
             )}
-            {showCaricatureOverlay && face.traits.length > 0 && (
-              <Text style={{ color: '#F59E0B', fontSize: 11 }}>
-                {face.traits.slice(0, 2).join(', ')}
+            {face.name === 'Unknown' ? (
+              <Text style={{ color: '#EF4444', fontSize: 11, fontStyle: 'italic' }}>
+                No match found
               </Text>
+            ) : (
+              showCaricatureOverlay && face.traits.length > 0 && (
+                <Text style={{ color: '#F59E0B', fontSize: 11 }}>
+                  {face.traits.slice(0, 2).join(', ')}
+                </Text>
+              )
             )}
           </View>
         </View>
@@ -480,7 +489,7 @@ export default function ScanScreen() {
                     }} />
                     <View style={{ flex: 1 }}>
                       <Text style={{ fontSize: 16, fontWeight: '600', color: '#1E293B' }}>
-                        {face.name}
+                  backgroundColor: face.name === 'Unknown' ? '#EF4444' : face.confidence > 0.7 ? '#10B981' : '#F59E0B',
                       </Text>
                       {face.role && (
                         <Text style={{ fontSize: 14, color: '#64748B' }}>
@@ -492,7 +501,14 @@ export default function ScanScreen() {
                       {Math.round(face.confidence * 100)}%
                     </Text>
                   </View>
-                ))}
+                  {face.name !== 'Unknown' && face.traits.length > 0 && (
+                    <Text style={{ fontSize: 12, color: '#F59E0B', fontStyle: 'italic' }}>
+                      Traits: {face.traits.slice(0, 3).join(', ')}
+                {face.name !== 'Unknown' && (
+                  <Text style={{ fontSize: 14, color: '#64748B' }}>
+                    {Math.round(face.confidence * 100)}%
+                  </Text>
+                )}
               </View>
             )}
           </View>

@@ -12,7 +12,7 @@ export interface ScanResult {
     confidence: number;
     emotion: string;
     traits: string[];
-    caricature_highlights?: Record<string, number>;
+    context?: string;
   }>;
   processing_time: number;
 }
