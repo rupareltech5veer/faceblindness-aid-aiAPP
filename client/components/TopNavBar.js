@@ -44,7 +44,7 @@ export default function TopNavBar({ gradientColors = ["#7C3AED", "#6366F1"] }) {
           />
         </View>
         <Text style={styles.text}>
-          Welcome <Text style={styles.user}>{userName}</Text>
+          Welcome {userName}
         </Text>
       </View>
     </LinearGradient>
@@ -75,7 +75,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   logoContainer: {
-    position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -86,10 +85,6 @@ const styles = StyleSheet.create({
   text: {
     color: '#FFFFFF',
     fontSize: 20,
-    fontWeight: '900',
-  },
-  user: {
-    color: '#FFFFFF',
     fontWeight: '900',
   },
 });
