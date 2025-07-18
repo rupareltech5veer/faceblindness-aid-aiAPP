@@ -20,6 +20,7 @@ from tensorflow import keras
 import random
 import math
 import time
+from training_ai import TrainingAI, AdaptiveDifficultyManager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -47,6 +48,9 @@ anthropic_key = os.getenv("ANTHROPIC_API_KEY")
 
 supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None
 anthropic_client = Anthropic(api_key=anthropic_key) if anthropic_key else None
+
+# Initialize AI training system
+training_ai = TrainingAI()
 
 # Initialize MediaPipe
 mp_face_mesh = mp.solutions.face_mesh
@@ -341,40 +345,35 @@ async def caricature_training(request: TrainingRequest):
     """Generate caricature training exercise"""
     try:
         if not supabase:
-            # Mock response for development
-            return TrainingResponse(
-                success=True,
-                data={
-                    "target_face": "base64_image_data",
-                    "caricature_face": "base64_caricature_data",
-                    "traits": ["distinctive eyes", "strong jawline"],
-                    "highlights": {"eyes": 0.8, "jaw": 0.6}
-                },
-                next_difficulty=request.difficulty_level + 1
-            )
+            return TrainingResponse(success=False, data={}, next_difficulty=1)
         
-        # Get user's faces
-        faces_result = supabase.table("faces").select("*").eq("user_id", request.user_id).execute()
+        # Get user's faces from connections table
+        faces_result = supabase.table("connections").select("*").eq("user_id", request.user_id).execute()
         faces = faces_result.data
         
         if not faces:
             raise HTTPException(status_code=404, detail="No faces found for user")
         
-        # Select a random face for training
+        # Select a face for training
         target_face = random.choice(faces)
         
-        # Create caricature version (simplified)
-        caricature_data = {
-            "target_face": target_face["image_url"],
-            "traits": target_face["traits"],
-            "highlights": target_face["caricature_highlights"],
-            "name": target_face["name"]
-        }
+        # Generate caricature exercise using AI
+        exercise_data = training_ai.generate_caricature_exercise(
+            target_face, request.difficulty_level, faces
+        )
+        
+        if "error" in exercise_data:
+            raise HTTPException(status_code=500, detail=exercise_data["error"])
+        
+        # Calculate next difficulty
+        next_difficulty = training_ai.difficulty_manager.calculate_next_level(
+            request.difficulty_level, 0.8, 0  # Default values, will be updated on completion
+        )
         
         return TrainingResponse(
             success=True,
-            data=caricature_data,
-            next_difficulty=min(request.difficulty_level + 1, 5)
+            data=exercise_data,
+            next_difficulty=next_difficulty
         )
         
     except Exception as e:
@@ -386,40 +385,32 @@ async def spacing_training(request: TrainingRequest):
     """Generate spacing awareness training exercise"""
     try:
         if not supabase:
-            return TrainingResponse(
-                success=True,
-                data={
-                    "target_image": "base64_target",
-                    "options": ["base64_option1", "base64_option2", "base64_option3"],
-                    "correct_index": 1,
-                    "distortion_type": "eye_spacing"
-                },
-                next_difficulty=request.difficulty_level + 1
-            )
+            return TrainingResponse(success=False, data={}, next_difficulty=1)
         
-        faces_result = supabase.table("faces").select("*").eq("user_id", request.user_id).execute()
+        faces_result = supabase.table("connections").select("*").eq("user_id", request.user_id).execute()
         faces = faces_result.data
         
-        if len(faces) < 2:
-            raise HTTPException(status_code=400, detail="Need at least 2 faces for spacing training")
+        if not faces:
+            raise HTTPException(status_code=404, detail="No faces found for user")
         
         target_face = random.choice(faces)
-        distractor_faces = random.sample([f for f in faces if f["id"] != target_face["id"]], 
-                                       min(2, len(faces) - 1))
         
-        # Generate training data
-        training_data = {
-            "target_name": target_face["name"],
-            "target_traits": target_face["traits"],
-            "options": [target_face] + distractor_faces,
-            "correct_index": 0,
-            "difficulty": request.difficulty_level
-        }
+        # Generate spacing exercise using AI
+        exercise_data = training_ai.generate_spacing_exercise(
+            target_face, request.difficulty_level, faces
+        )
+        
+        if "error" in exercise_data:
+            raise HTTPException(status_code=500, detail=exercise_data["error"])
+        
+        next_difficulty = training_ai.difficulty_manager.calculate_next_level(
+            request.difficulty_level, 0.8, 0
+        )
         
         return TrainingResponse(
             success=True,
-            data=training_data,
-            next_difficulty=min(request.difficulty_level + 1, 5)
+            data=exercise_data,
+            next_difficulty=next_difficulty
         )
         
     except Exception as e:
@@ -431,18 +422,9 @@ async def trait_tagging_training(request: TrainingRequest):
     """Generate trait tagging training exercise"""
     try:
         if not supabase:
-            return TrainingResponse(
-                success=True,
-                data={
-                    "face_image": "base64_image",
-                    "suggested_traits": ["distinctive eyes", "strong jaw"],
-                    "name": "Alex",
-                    "context": "Chemistry TA"
-                },
-                next_difficulty=request.difficulty_level + 1
-            )
+            return TrainingResponse(success=False, data={}, next_difficulty=1)
         
-        faces_result = supabase.table("faces").select("*").eq("user_id", request.user_id).execute()
+        faces_result = supabase.table("connections").select("*").eq("user_id", request.user_id).execute()
         faces = faces_result.data
         
         if not faces:
@@ -450,19 +432,22 @@ async def trait_tagging_training(request: TrainingRequest):
         
         target_face = random.choice(faces)
         
-        training_data = {
-            "face_image": target_face["image_url"],
-            "name": target_face["name"],
-            "role": target_face.get("role"),
-            "context": target_face.get("context"),
-            "existing_traits": target_face["traits"],
-            "suggested_traits": target_face["traits"][:3]  # Show first 3 as suggestions
-        }
+        # Generate trait identification exercise using AI
+        exercise_data = training_ai.generate_trait_identification_exercise(
+            target_face, request.difficulty_level, faces
+        )
+        
+        if "error" in exercise_data:
+            raise HTTPException(status_code=500, detail=exercise_data["error"])
+        
+        next_difficulty = training_ai.difficulty_manager.calculate_next_level(
+            request.difficulty_level, 0.8, 0
+        )
         
         return TrainingResponse(
             success=True,
-            data=training_data,
-            next_difficulty=request.difficulty_level
+            data=exercise_data,
+            next_difficulty=next_difficulty
         )
         
     except Exception as e:
@@ -474,42 +459,32 @@ async def morph_matching_training(request: TrainingRequest):
     """Generate morph-based matching training exercise"""
     try:
         if not supabase:
-            return TrainingResponse(
-                success=True,
-                data={
-                    "morphed_image": "base64_morphed",
-                    "options": ["Alex", "Jordan", "Sam"],
-                    "correct_answer": "Alex",
-                    "morph_percentage": 70
-                },
-                next_difficulty=request.difficulty_level + 1
-            )
+            return TrainingResponse(success=False, data={}, next_difficulty=1)
         
-        faces_result = supabase.table("faces").select("*").eq("user_id", request.user_id).execute()
+        faces_result = supabase.table("connections").select("*").eq("user_id", request.user_id).execute()
         faces = faces_result.data
         
         if len(faces) < 2:
             raise HTTPException(status_code=400, detail="Need at least 2 faces for morph training")
         
-        # Select target and distractor
         target_face = random.choice(faces)
-        distractor_face = random.choice([f for f in faces if f["id"] != target_face["id"]])
         
-        # Calculate morph percentage based on difficulty
-        morph_percentage = max(30, 100 - (request.difficulty_level * 15))
+        # Generate morph matching exercise using AI
+        exercise_data = training_ai.generate_morph_matching_exercise(
+            target_face, request.difficulty_level, faces
+        )
         
-        training_data = {
-            "target_name": target_face["name"],
-            "distractor_name": distractor_face["name"],
-            "morph_percentage": morph_percentage,
-            "options": [target_face["name"], distractor_face["name"]],
-            "correct_answer": target_face["name"]
-        }
+        if "error" in exercise_data:
+            raise HTTPException(status_code=500, detail=exercise_data["error"])
+        
+        next_difficulty = training_ai.difficulty_manager.calculate_next_level(
+            request.difficulty_level, 0.8, 0
+        )
         
         return TrainingResponse(
             success=True,
-            data=training_data,
-            next_difficulty=min(request.difficulty_level + 1, 5)
+            data=exercise_data,
+            next_difficulty=next_difficulty
         )
         
     except Exception as e:
@@ -519,36 +494,59 @@ async def morph_matching_training(request: TrainingRequest):
 @app.post("/learn/update-progress")
 async def update_training_progress(
     user_id: str = Form(...),
-    face_id: str = Form(...),
+    connection_id: str = Form(...),
     module_type: str = Form(...),
     accuracy: float = Form(...),
-    difficulty_level: int = Form(...)
+    current_level: int = Form(...),
+    completed_lessons: int = Form(0)
 ):
     """Update training progress for a specific face and module"""
     try:
         if not supabase:
             return {"success": True, "message": "Progress updated (mock)"}
         
-        # Get current progress
-        face_result = supabase.table("faces").select("training_progress").eq("id", face_id).execute()
-        if not face_result.data:
-            raise HTTPException(status_code=404, detail="Face not found")
+        # Get current progress from connections table
+        connection_result = supabase.table("connections").select("*").eq("id", connection_id).execute()
+        if not connection_result.data:
+            raise HTTPException(status_code=404, detail="Connection not found")
         
-        current_progress = face_result.data[0]["training_progress"] or {}
+        connection_data = connection_result.data[0]
+        current_progress = connection_data.get("training_progress", {})
         
-        # Update progress for the specific module
+        # Calculate next level using AI
+        next_level = training_ai.difficulty_manager.calculate_next_level(
+            current_level, accuracy, completed_lessons
+        )
+        
+        # Update progress for the specific module  
         if module_type not in current_progress:
-            current_progress[module_type] = {"level": 1, "accuracy": 0}
+            current_progress[module_type] = {
+                "level": 1, 
+                "accuracy": 0, 
+                "completed_lessons": 0
+            }
         
         current_progress[module_type]["accuracy"] = accuracy
-        current_progress[module_type]["level"] = difficulty_level
+        current_progress[module_type]["level"] = next_level
+        current_progress[module_type]["completed_lessons"] = completed_lessons
+        
+        # If accuracy is high enough, increment completed lessons
+        if accuracy >= 0.8:
+            current_progress[module_type]["completed_lessons"] = min(
+                completed_lessons + 1, 10
+            )
         
         # Update in database
-        supabase.table("faces").update({
+        supabase.table("connections").update({
             "training_progress": current_progress
-        }).eq("id", face_id).execute()
+        }).eq("id", connection_id).execute()
         
-        return {"success": True, "message": "Progress updated successfully"}
+        return {
+            "success": True, 
+            "message": "Progress updated successfully",
+            "new_level": next_level,
+            "completed_lessons": current_progress[module_type]["completed_lessons"]
+        }
         
     except Exception as e:
         logger.error(f"Error updating progress: {e}")

@@ -20,22 +20,21 @@ export interface ScanResult {
 export interface LearningModuleData {
   success: boolean;
   data: {
-    target_face?: string;
-    caricature_face?: string;
-    traits?: string[];
-    highlights?: Record<string, number>;
-    target_image?: string;
-    options?: string[] | Array<{ name: string; image_url?: string }>;
+    exercise_type: string;
+    level: number;
+    question: string;
+    options: string[];
     correct_index?: number;
     distortion_type?: string;
     face_image?: string;
-    suggested_traits?: string[];
-    name?: string;
-    role?: string;
-    context?: string;
-    existing_traits?: string[];
+    correct_indices?: number[];
+    original_image?: string;
+    modified_image?: string;
+    face_image?: string;
     morphed_image?: string;
-    correct_answer?: string;
+    hints?: string[];
+    show_hints?: boolean;
+    is_multiple_choice?: boolean;
     morph_percentage?: number;
     target_name?: string;
     distractor_name?: string;
@@ -93,10 +92,11 @@ const mockLearningData: Record<string, LearningModuleData> = {
       suggested_traits: ["expressive eyes", "defined cheekbones", "gentle smile"],
       existing_traits: ["expressive eyes", "defined cheekbones"]
     },
-    next_difficulty: 1
+  formData.append('connection_id', connectionId);
   },
   'morph-matching': {
-    success: true,
+  formData.append('current_level', currentLevel.toString());
+  formData.append('completed_lessons', completedLessons.toString());
     data: {
       target_name: "Morgan",
       distractor_name: "Riley",
@@ -231,10 +231,11 @@ export async function getLearningModuleData(
 
 export async function updateLearningProgress(
   userId: string,
-  faceId: string,
+  connectionId: string,
   moduleType: string,
   accuracy: number,
-  difficultyLevel: number
+  currentLevel: number,
+  completedLessons: number = 0
 ): Promise<{ success: boolean; message: string }> {
   try {
     console.log('Updating learning progress:', { userId, faceId, moduleType, accuracy, difficultyLevel });

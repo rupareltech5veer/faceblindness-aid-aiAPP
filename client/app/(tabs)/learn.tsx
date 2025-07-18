@@ -155,7 +155,19 @@ export default function LearnScreen() {
   const handleSubmitAnswer = async () => {
     if (!currentModuleData || userAnswer === null) return;
 
-    const isCorrect = userAnswer === currentModuleData.data.correct_index;
+    const { data } = currentModuleData;
+    let isCorrect = false;
+    
+    if (data.is_multiple_choice && data.correct_indices) {
+      // Multiple choice - check if selected answers match correct indices
+      const selectedAnswers = Array.isArray(userAnswer) ? userAnswer : [userAnswer];
+      isCorrect = selectedAnswers.length === data.correct_indices.length &&
+                  selectedAnswers.every(answer => data.correct_indices.includes(answer));
+    } else if (data.correct_index !== undefined) {
+      // Single choice
+      isCorrect = userAnswer === data.correct_index;
+    }
+    
     const accuracy = isCorrect ? 1.0 : 0.0;
 
     setShowResults(true);
@@ -164,14 +176,22 @@ export default function LearnScreen() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // For demo purposes, we'll use a mock face_id
-      // In a real implementation, this would come from the module data
+      // Get a connection ID from the user's connections
+      const { data: connections } = await supabase
+        .from('connections')
+        .select('id')
+        .eq('user_id', user.id)
+        .limit(1);
+      
+      if (!connections || connections.length === 0) return;
+      
       await updateLearningProgress(
         user.id,
-        'mock-face-id',
+        connections[0].id,
         currentModule,
         accuracy,
-        currentModuleData.next_difficulty
+        data.level,
+        0 // completed_lessons will be incremented in backend if accuracy >= 0.8
       );
 
       // Update local progress
@@ -206,31 +226,65 @@ export default function LearnScreen() {
     }
 
     const { data } = currentModuleData;
+    const exerciseType = data.exercise_type;
 
-    switch (currentModule) {
+    switch (exerciseType) {
       case 'caricature':
         return (
           <View style={styles.exerciseContainer}>
             <Text style={styles.exerciseTitle}>Caricature Training</Text>
-            <Text style={styles.exerciseDescription}>
-              Study the highlighted features of this person
-            </Text>
+            <Text style={styles.exerciseDescription}>{data.question}</Text>
             
-            {data.target_face && (
-              <Image 
-                source={{ uri: data.target_face }} 
-                style={styles.exerciseImage}
-                resizeMode="contain"
-              />
-            )}
+            <View style={styles.imageComparisonContainer}>
+              {data.original_image && (
+                <View style={styles.imageContainer}>
+                  <Text style={styles.imageLabel}>Original</Text>
+                  <Image 
+                    source={{ uri: data.original_image }} 
+                    style={styles.comparisonImage}
+                    resizeMode="contain"
+                  />
+                </View>
+              )}
+              
+              {data.modified_image && (
+                <View style={styles.imageContainer}>
+                  <Text style={styles.imageLabel}>Exaggerated</Text>
+                  <Image 
+                    source={{ uri: data.modified_image }} 
+                    style={styles.comparisonImage}
+                    resizeMode="contain"
+                  />
+                </View>
+              )}
+            </View>
             
-            {data.traits && (
-              <View style={styles.traitsContainer}>
-                <Text style={styles.traitsTitle}>Key Features:</Text>
-                {data.traits.map((trait, index) => (
-                  <Text key={index} style={styles.traitItem}>• {trait}</Text>
+            {data.hints && data.show_hints && (
+              <View style={styles.hintsContainer}>
+                <Text style={styles.hintsTitle}>Hints:</Text>
+                {data.hints.map((hint, index) => (
+                  <Text key={index} style={styles.hintItem}>• {hint}</Text>
                 ))}
               </View>
+            )}
+            
+            <View style={styles.optionsContainer}>
+              {data.options.map((option, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.optionButton,
+                    userAnswer === index && styles.selectedOption
+                  ]}
+                  onPress={() => handleAnswerSelect(index)}
+                  disabled={showResults}
+                >
+                  <Text style={styles.optionText}>{option}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        );
             )}
           </View>
         );
@@ -239,12 +293,32 @@ export default function LearnScreen() {
         return (
           <View style={styles.exerciseContainer}>
             <Text style={styles.exerciseTitle}>Spacing Recognition</Text>
-            <Text style={styles.exerciseDescription}>
-              Which face matches the target? Look carefully at facial proportions.
-            </Text>
+            <Text style={styles.exerciseDescription}>{data.question}</Text>
             
-            {data.options && Array.isArray(data.options) && (
-              <View style={styles.optionsContainer}>
+            <View style={styles.imageOptionsContainer}>
+              {data.options && data.options.map((imageOption, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.imageOptionButton,
+                    userAnswer === index && styles.selectedImageOption
+                  ]}
+                  onPress={() => handleAnswerSelect(index)}
+                  disabled={showResults}
+                >
+                  <Image 
+                    source={{ uri: imageOption }} 
+                    style={styles.optionImage}
+                    resizeMode="contain"
+                  />
+                  <Text style={styles.imageOptionLabel}>
+                    {data.option_labels ? data.option_labels[index] : `Option ${index + 1}`}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        );
                 {data.options.map((option, index) => (
                   <TouchableOpacity
                     key={index}
@@ -263,59 +337,96 @@ export default function LearnScreen() {
           </View>
         );
 
-      case 'trait-tagging':
+      case 'trait_identification':
         return (
           <View style={styles.exerciseContainer}>
             <Text style={styles.exerciseTitle}>Trait Identification</Text>
-            <Text style={styles.exerciseDescription}>
-              What distinctive features do you notice in this face?
-            </Text>
+            <Text style={styles.exerciseDescription}>{data.question}</Text>
             
-            {data.suggested_traits && (
-              <View style={styles.traitsContainer}>
-                <Text style={styles.traitsTitle}>AI Suggested Traits:</Text>
-                {data.suggested_traits.map((trait, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={[
-                      styles.traitButton,
-                      userAnswer === index && styles.selectedTrait
-                    ]}
-                    onPress={() => handleAnswerSelect(index)}
-                    disabled={showResults}
-                  >
-                    <Text style={styles.traitButtonText}>{trait}</Text>
-                  </TouchableOpacity>
+            {data.face_image && (
+              <Image 
+                source={{ uri: data.face_image }} 
+                style={styles.exerciseImage}
+                resizeMode="contain"
+              />
+            )}
+            
+            {data.hints && data.show_hints && (
+              <View style={styles.hintsContainer}>
+                <Text style={styles.hintsTitle}>Hints:</Text>
+                {data.hints.map((hint, index) => (
+                  <Text key={index} style={styles.hintItem}>• {hint}</Text>
                 ))}
               </View>
+            )}
+            
+            <View style={styles.optionsContainer}>
+              {data.options.map((option, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.traitButton,
+                    (data.is_multiple_choice ? 
+                      (userAnswer && Array.isArray(userAnswer) && userAnswer.includes(index)) :
+                      userAnswer === index
+                    ) && styles.selectedTrait
+                  ]}
+                  onPress={() => {
+                    if (data.is_multiple_choice) {
+                      // Handle multiple selection
+                      const currentAnswers = Array.isArray(userAnswer) ? userAnswer : [];
+                      if (currentAnswers.includes(index)) {
+                        setUserAnswer(currentAnswers.filter(i => i !== index));
+                      } else {
+                        setUserAnswer([...currentAnswers, index]);
+                      }
+                    } else {
+                      handleAnswerSelect(index);
+                    }
+                  }}
+                  disabled={showResults}
+                >
+                  <Text style={styles.traitButtonText}>{option}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        );
             )}
           </View>
         );
 
-      case 'morph-matching':
+      case 'morph_matching':
         return (
           <View style={styles.exerciseContainer}>
             <Text style={styles.exerciseTitle}>Morph Matching</Text>
-            <Text style={styles.exerciseDescription}>
-              This face is {data.morph_percentage}% morphed. Who is the primary person?
-            </Text>
+            <Text style={styles.exerciseDescription}>{data.question}</Text>
             
-            {data.options && (
-              <View style={styles.optionsContainer}>
-                {data.options.map((option, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={[
-                      styles.optionButton,
-                      userAnswer === index && styles.selectedOption
-                    ]}
-                    onPress={() => handleAnswerSelect(index)}
-                    disabled={showResults}
-                  >
-                    <Text style={styles.optionText}>{option}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+            {data.morphed_image && (
+              <Image 
+                source={{ uri: data.morphed_image }} 
+                style={styles.exerciseImage}
+                resizeMode="contain"
+              />
+            )}
+            
+            <View style={styles.optionsContainer}>
+              {data.options.map((option, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.optionButton,
+                    userAnswer === index && styles.selectedOption
+                  ]}
+                  onPress={() => handleAnswerSelect(index)}
+                  disabled={showResults}
+                >
+                  <Text style={styles.optionText}>{option}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        );
             )}
           </View>
         );
@@ -463,9 +574,9 @@ export default function LearnScreen() {
                     { backgroundColor: achievement.earned ? achievement.color : '#F1F5F9' }
                   ]}>
                     <Ionicons 
-                      name={achievement.icon as any} 
+                      name={isCorrect ? "checkmark-circle" : "close-circle"} 
                       size={20} 
-                      color={achievement.earned ? '#FFFFFF' : '#94A3B8'} 
+                      color={isCorrect ? "#10B981" : "#EF4444"} 
                     />
                   </View>
                   <View style={styles.achievementContent}>
@@ -477,9 +588,9 @@ export default function LearnScreen() {
                     </Text>
                     <Text style={[
                       styles.achievementDescription,
-                      !achievement.earned && styles.achievementDescriptionLocked
+                      { color: isCorrect ? "#10B981" : "#EF4444" }
                     ]}>
-                      {achievement.description}
+                      {isCorrect ? "Correct!" : "Try Again"}
                     </Text>
                   </View>
                   {achievement.earned && (
@@ -927,6 +1038,79 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 16,
     elevation: 8,
+  },
+  imageComparisonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 32,
+    width: '100%',
+  },
+  imageContainer: {
+    alignItems: 'center',
+  },
+  imageLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 8,
+  },
+  comparisonImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  imageOptionsContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+  },
+  imageOptionButton: {
+    alignItems: 'center',
+    marginBottom: 16,
+    padding: 8,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
+  },
+  selectedImageOption: {
+    borderColor: '#FF5F6D',
+    backgroundColor: '#FFF1F2',
+  },
+  optionImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  imageOptionLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#1E293B',
+  },
+  hintsContainer: {
+    width: '100%',
+    marginBottom: 32,
+    backgroundColor: '#FEF3C7',
+    padding: 16,
+    borderRadius: 12,
+  },
+  hintsTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#92400E',
+    marginBottom: 8,
+  },
+  hintItem: {
+    fontSize: 14,
+    color: '#A16207',
+    marginBottom: 4,
   },
   traitsContainer: {
     width: '100%',
