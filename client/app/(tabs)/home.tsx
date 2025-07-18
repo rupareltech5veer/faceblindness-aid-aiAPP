@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
+import { launchImageLibraryAsync, requestMediaLibraryPermissionsAsync, MediaType } from 'expo-image-picker';
 import { supabase, Favorite } from '../../lib/supabase';
 
 const frameStyles = [
@@ -59,15 +59,15 @@ export default function HomeScreen() {
 
   const pickImage = async () => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const { status } = await requestMediaLibraryPermissionsAsync();
       
       if (status !== 'granted') {
         Alert.alert('Permission needed', 'Please grant camera roll permissions to upload photos.');
         return;
       }
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: [ImagePicker.MediaType.Images],
+      const result = await launchImageLibraryAsync({
+        mediaTypes: MediaType.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,

@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as ImagePicker from 'expo-image-picker';
+import { launchImageLibraryAsync, requestMediaLibraryPermissionsAsync, MediaType } from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
 import { generateFacialCue } from '../lib/api';
@@ -27,15 +27,15 @@ export default function UploadScreen() {
   } | null>(null);
 
   const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const { status } = await requestMediaLibraryPermissionsAsync();
     
     if (status !== 'granted') {
       Alert.alert('Permission needed', 'Please grant camera roll permissions to upload photos.');
       return;
     }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: [ImagePicker.MediaType.Images],
+    const result = await launchImageLibraryAsync({
+      mediaTypes: MediaType.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,

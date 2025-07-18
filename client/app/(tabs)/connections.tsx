@@ -15,7 +15,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
+import { launchImageLibraryAsync, requestMediaLibraryPermissionsAsync, MediaType } from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase, Connection } from '../../lib/supabase';
 
@@ -85,7 +85,7 @@ export default function ConnectionsScreen() {
     console.log('pickImage function called - checking permissions...');
     
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const { status } = await requestMediaLibraryPermissionsAsync();
       console.log('Permission status:', status);
       
       if (status !== 'granted') {
@@ -95,8 +95,8 @@ export default function ConnectionsScreen() {
       }
 
       console.log('Permission granted, launching image picker...');
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaType.Images,
+      const result = await launchImageLibraryAsync({
+        mediaTypes: MediaType.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
