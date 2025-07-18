@@ -202,6 +202,7 @@ export default function UploadScreen() {
       </ScrollView>
     </SafeAreaView>
   );
+}
 
 const styles = StyleSheet.create({
   container: {
