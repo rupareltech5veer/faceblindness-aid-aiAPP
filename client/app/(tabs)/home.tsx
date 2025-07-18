@@ -299,7 +299,7 @@ export default function HomeScreen() {
               scrollEnabled={false}
             />
           )}
-        </View>
+        </ScrollView>
       </SafeAreaView>
 
       {/* Frame Selection Modal */}
