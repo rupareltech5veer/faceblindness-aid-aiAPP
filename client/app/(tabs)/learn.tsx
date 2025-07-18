@@ -560,7 +560,7 @@ export default function LearnScreen() {
                     <Ionicons 
                       name={achievement.icon as any} 
                       size={20} 
-                      color={achievement.earned ? '#FFFFFF' : '#94A3B8'} 
+                      color={achievement.earned ? "#FFFFFF" : "#94A3B8"} 
                     />
                   </View>
                   <View style={styles.achievementContent}>
@@ -646,6 +646,7 @@ export default function LearnScreen() {
                       style={styles.nextButton}
                       onPress={handleNextExercise}
                     >
+                      <Ionicons name="checkmark-outline" size={20} color="#FFFFFF" />
                       <Text style={styles.nextButtonText}>Continue Training</Text>
                     </TouchableOpacity>
                   </View>
@@ -1031,6 +1032,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 32,
+    width: '100%',
   },
   imageContainer: {
     alignItems: 'center',
@@ -1041,7 +1043,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#1E293B',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   comparisonImage: {
     width: 120,
@@ -1053,40 +1055,22 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  hintsContainer: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 32,
-    width: '100%',
-  },
-  hintsTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1E293B',
-    marginBottom: 12,
-  },
-  hintItem: {
-    fontSize: 16,
-    color: '#64748B',
-    marginBottom: 8,
-    lineHeight: 22,
-  },
   imageOptionsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginBottom: 32,
+    width: '100%',
   },
   imageOptionButton: {
-    width: '48%',
+    alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
     borderWidth: 2,
     borderColor: '#E2E8F0',
-    alignItems: 'center',
+    padding: 16,
+    marginBottom: 16,
+    width: '48%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -1110,6 +1094,25 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#1E293B',
     textAlign: 'center',
+  },
+  hintsContainer: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 32,
+    width: '100%',
+  },
+  hintsTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 12,
+  },
+  hintItem: {
+    fontSize: 16,
+    color: '#64748B',
+    marginBottom: 8,
+    lineHeight: 22,
   },
   traitsContainer: {
     width: '100%',
