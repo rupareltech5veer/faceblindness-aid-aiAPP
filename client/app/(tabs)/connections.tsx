@@ -371,11 +371,7 @@ export default function ConnectionsScreen() {
         </View>
 
         {/* Content */}
-        <ScrollView 
-          style={styles.content}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 95 }}
-        >
+        <View style={styles.content}>
           {loading ? (
             <View style={styles.loadingContainer}>
               <Ionicons name="people-outline" size={64} color="#6366F1" />
@@ -401,7 +397,6 @@ export default function ConnectionsScreen() {
             />
           )}
         </View>
-        </ScrollView>
 
       {/* Add/Edit Modal */}
       <Modal
