@@ -42,9 +42,9 @@ export default function ScanScreen() {
   const handleCapture = async () => {
     setIsScanning(true);
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== 'granted') {
+      const { status: mediaLibraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+      if (mediaLibraryStatus !== 'granted' || cameraStatus !== 'granted') {
         Alert.alert('Permission needed', 'Please grant camera permissions to capture photos.');
         setIsScanning(false);
         return;
