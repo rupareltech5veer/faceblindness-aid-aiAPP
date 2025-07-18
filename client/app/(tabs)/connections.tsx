@@ -83,7 +83,37 @@ export default function ConnectionsScreen() {
 
   const pickImage = async () => {
     console.log('pickImage function called - checking permissions...');
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      console.log('Permission status:', status);
+      
+      if (status !== 'granted') {
+        console.log('Permission denied for media library');
+        Alert.alert('Permission needed', 'Please grant camera roll permissions to upload photos.');
+        return;
+      }
+
+      console.log('Permission granted, launching image picker...');
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      console.log('Image picker result:', result);
+      if (!result.canceled && result.assets && result.assets[0]) {
+        console.log('Image selected:', result.assets[0].uri);
+        setFormData(prev => ({ ...prev, image: result.assets[0].uri }));
+      } else {
+        console.log('Image picker was canceled or no image selected');
+      }
+    } catch (error) {
+      console.error('Error in pickImage:', error);
+      Alert.alert('Error', 'Failed to open image picker. Please try again.');
+    }
+  };
     
     if (status !== 'granted') {
       console.log('Permission denied for media library');

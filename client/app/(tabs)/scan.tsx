@@ -35,8 +35,16 @@ export default function ScanScreen() {
   const handleCapture = async () => {
     setIsScanning(true);
     try {
+      // Request camera permission first
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please grant camera permissions to capture photos.');
+        setIsScanning(false);
+        return;
+      }
+
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: [ImagePicker.MediaType.Images],
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
@@ -45,7 +53,10 @@ export default function ScanScreen() {
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
         setPhotoUri(asset.uri);
-        setImageOriginalDimensions({ width: asset.width, height: asset.height });
+        setImageOriginalDimensions({ 
+          width: asset.width || 800, 
+          height: asset.height || 600 
+        });
         
         // Read image as base64
         const base64 = await FileSystem.readAsStringAsync(asset.uri, {
@@ -56,38 +67,45 @@ export default function ScanScreen() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           Alert.alert('Error', 'Please sign in to use face scanning.');
+          setIsScanning(false);
           return;
         }
         
-        // Call AI backend
-        const scanResult = await scanAndIdentify(
-          `data:image/jpeg;base64,${base64}`,
-          user.id,
-          showCaricatureOverlay,
-          showEmotionOverlay
-        );
-        
-        if (scanResult && scanResult.faces && Array.isArray(scanResult.faces)) {
-          setIdentifiedFaces(scanResult.faces);
+        try {
+          // Call AI backend
+          const scanResult = await scanAndIdentify(
+            `data:image/jpeg;base64,${base64}`,
+            user.id,
+            showCaricatureOverlay,
+            showEmotionOverlay
+          );
           
-          if (scanResult.faces.length === 0) {
-            Alert.alert('No Faces Found', 'No faces were detected in the image. Try taking another photo.');
-          } else {
-            // Show identification results
-            const identifiedPeople = scanResult.faces.filter(face => face.name !== 'Unknown');
-            if (identifiedPeople.length > 0) {
-              const names = identifiedPeople.map(face => face.name).join(', ');
-              Alert.alert('Face Recognition', `Identified: ${names}`);
+          if (scanResult && scanResult.faces && Array.isArray(scanResult.faces)) {
+            setIdentifiedFaces(scanResult.faces);
+            
+            if (scanResult.faces.length === 0) {
+              Alert.alert('No Faces Found', 'No faces were detected in the image. Try taking another photo.');
+            } else {
+              // Show identification results
+              const identifiedPeople = scanResult.faces.filter(face => face.name !== 'Unknown');
+              if (identifiedPeople.length > 0) {
+                const names = identifiedPeople.map(face => face.name).join(', ');
+                Alert.alert('Face Recognition', `Identified: ${names}`);
+              }
             }
+          } else {
+            setIdentifiedFaces([]);
+            Alert.alert('Scan Error', 'Unable to process scan results. Please try again.');
           }
-        } else {
+        } catch (scanError) {
+          console.error('Scan error:', scanError);
           setIdentifiedFaces([]);
-          Alert.alert('Scan Error', 'Unable to process scan results. Please try again.');
+          Alert.alert('Scan Error', 'Face recognition service is currently unavailable. Please try again later.');
         }
       }
     } catch (error) {
       console.error('Error capturing and scanning:', error);
-      Alert.alert('Scan Error', 'Failed to scan the image. Please try again.');
+      Alert.alert('Camera Error', 'Failed to capture image. Please check camera permissions and try again.');
     } finally {
       setIsScanning(false);
     }

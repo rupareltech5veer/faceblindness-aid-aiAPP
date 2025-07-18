@@ -294,6 +294,10 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F8FAFC',
+  },
+  containerDark: {
+    backgroundColor: '#0F172A',
   },
   safeArea: {
     flex: 1,
@@ -322,6 +326,10 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 8,
   },
+  iconContainerDark: {
+    backgroundColor: '#475569',
+    shadowColor: '#000',
+  },
   sparkleIcon: {
     position: 'absolute',
     top: -8,
@@ -338,6 +346,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
+  sparkleIconDark: {
+    backgroundColor: '#1E293B',
+  },
   title: {
     fontSize: 32,
     fontWeight: '800',
@@ -345,10 +356,16 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     textAlign: 'center',
   },
+  titleDark: {
+    color: '#A5B4FC',
+  },
   subtitle: {
     fontSize: 16,
     color: '#64748B',
     textAlign: 'center',
+  },
+  subtitleDark: {
+    color: '#94A3B8',
   },
   loadingContainer: {
     flex: 1,
@@ -369,6 +386,9 @@ const styles = StyleSheet.create({
     color: '#1E293B',
     marginBottom: 16,
   },
+  sectionTitleDark: {
+    color: '#F1F5F9',
+  },
   settingsGroup: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
@@ -378,6 +398,11 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     elevation: 8,
   },
+  settingsGroupDark: {
+    backgroundColor: '#1E293B',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+  },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -385,6 +410,9 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
+  },
+  settingItemDark: {
+    borderBottomColor: '#334155',
   },
   settingIcon: {
     width: 48,
@@ -403,9 +431,15 @@ const styles = StyleSheet.create({
     color: '#1E293B',
     marginBottom: 4,
   },
+  settingTitleDark: {
+    color: '#F1F5F9',
+  },
   settingDescription: {
     fontSize: 14,
     color: '#64748B',
+  },
+  settingDescriptionDark: {
+    color: '#94A3B8',
   },
   signOutSection: {
     marginBottom: 32,
@@ -424,6 +458,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#FEE2E2',
   },
+  signOutButtonDark: {
+    backgroundColor: '#1E293B',
+    borderColor: '#7F1D1D',
+    shadowOpacity: 0.3,
+  },
   signOutIcon: {
     width: 48,
     height: 48,
@@ -433,10 +472,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 20,
   },
+  signOutIconDark: {
+    backgroundColor: '#7F1D1D',
+  },
   signOutText: {
     flex: 1,
     fontSize: 18,
     fontWeight: '600',
     color: '#EF4444',
+  },
+  signOutTextDark: {
+    color: '#F87171',
   },
 });

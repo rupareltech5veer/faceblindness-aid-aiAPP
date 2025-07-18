@@ -58,7 +58,30 @@ export default function HomeScreen() {
   };
 
   const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please grant camera roll permissions to upload photos.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setSelectedImage(result.assets[0].uri);
+        setShowFrameModal(true);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to open image picker. Please try again.');
+    }
+  };
     
     if (status !== 'granted') {
       Alert.alert('Permission needed', 'Please grant camera roll permissions to upload photos.');
