@@ -135,6 +135,7 @@ export default function AuthCallbackScreen() {
       </SafeAreaView>
     </LinearGradient>
   );
+}
 
 const styles = StyleSheet.create({
   container: {
