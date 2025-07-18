@@ -18,9 +18,9 @@ import * as ImagePicker from 'expo-image-picker';
 
 // Define MediaType locally to avoid undefined issues
 const MediaType = {
-  Images: 'images' as const,
-  Videos: 'videos' as const,
-  All: 'all' as const,
+  images: 'images' as const,
+  videos: 'videos' as const,
+  all: 'all' as const,
 };
 
 export default function ProfileScreen() {
@@ -57,6 +57,7 @@ export default function ProfileScreen() {
   };
 
   const pickImage = async () => {
+    try {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
     if (status !== 'granted') {
@@ -65,7 +66,7 @@ export default function ProfileScreen() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: [MediaType.Images],
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
@@ -73,6 +74,10 @@ export default function ProfileScreen() {
 
     if (!result.canceled && result.assets[0]) {
       await updateProfileImage(result.assets[0].uri);
+    }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to open image picker. Please try again.');
     }
   };
 
@@ -132,12 +137,14 @@ export default function ProfileScreen() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('user_profiles')
         .upsert({
           user_id: user.id,
           full_name: editedName.trim(),
           updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) throw error;
@@ -148,7 +155,7 @@ export default function ProfileScreen() {
         full_name: editedName.trim(),
         updated_at: new Date().toISOString(),
       } : {
-        id: '',
+        id: data?.[0]?.id || '',
         user_id: user.id,
         full_name: editedName.trim(),
         avatar_url: null,
@@ -167,6 +174,7 @@ export default function ProfileScreen() {
       
       Alert.alert('Success!', 'Profile updated successfully.');
     } catch (error) {
+      console.error('Profile update error:', error);
       Alert.alert('Error', 'Failed to update profile. Please try again.');
     }
   };
