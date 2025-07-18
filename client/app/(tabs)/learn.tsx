@@ -719,6 +719,7 @@ export default function LearnScreen() {
       </SafeAreaView>
     </LinearGradient>
   );
+}
 
 const styles = StyleSheet.create({
   container: {
