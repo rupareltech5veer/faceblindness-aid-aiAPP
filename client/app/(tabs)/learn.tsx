@@ -371,7 +371,12 @@ export default function LearnScreen() {
               <View style={styles.progressBar}>
                 <View style={[
                   styles.progressFill, 
-                  { width: `${Math.round(learningProgress.reduce((acc, p) => acc + p.progress_percentage, 0) / Math.max(learningProgress.length, 1))}%` }
+              <View style={styles.modalTitleContainer}>
+                <View style={styles.modalIconContainer}>
+                  <Ionicons name="school-outline" size={24} color="#FF5F6D" />
+                </View>
+                <Text style={styles.modalTitle}>AI Training Exercise</Text>
+              </View>
                 ]} />
               </View>
               <Text style={styles.progressText}>
@@ -441,9 +446,9 @@ export default function LearnScreen() {
           <View style={styles.achievementsSection}>
             <View style={styles.achievementsHeader}>
               <Ionicons name="star-outline" size={20} color="#F59E0B" />
-              <Text style={styles.achievementsTitle}>Achievements</Text>
+            <View style={styles.modalBody}>
             </View>
-            
+            </View>
             <View style={styles.achievementsList}>
               {achievements.map((achievement) => (
                 <View
@@ -501,6 +506,7 @@ export default function LearnScreen() {
                   onPress={() => setShowModuleModal(false)}
                   style={styles.closeButton}
                 >
+                  <Ionicons name="checkmark-outline" size={20} color="#FFFFFF" />
                   <Ionicons name="close" size={24} color="#64748B" />
                 </TouchableOpacity>
               </View>
@@ -519,6 +525,7 @@ export default function LearnScreen() {
                     onPress={handleSubmitAnswer}
                     disabled={userAnswer === null}
                   >
+                    <Ionicons name="arrow-forward-outline" size={20} color="#FFFFFF" />
                     <Text style={styles.submitButtonText}>Submit Answer</Text>
                   </TouchableOpacity>
                 ) : (
@@ -813,142 +820,215 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     alignItems: 'center',
+    paddingTop: 100,
   },
   modalContent: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    width: '90%',
-    maxHeight: '80%',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    width: '100%',
+    height: '85%',
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 20,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 24,
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    paddingBottom: 24,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: '#F8FAFC',
+    backgroundColor: '#FAFBFC',
+  },
+  modalTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  modalIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#FFF1F2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 22,
+    fontWeight: '800',
     color: '#1E293B',
   },
   closeButton: {
-    padding: 4,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#F8FAFC',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalBody: {
     flex: 1,
-    padding: 24,
+    paddingHorizontal: 24,
+    paddingVertical: 32,
   },
   modalFooter: {
-    padding: 24,
+    paddingHorizontal: 24,
+    paddingVertical: 32,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: '#F8FAFC',
+    backgroundColor: '#FAFBFC',
   },
   loadingContainer: {
     alignItems: 'center',
-    paddingVertical: 40,
+    justifyContent: 'center',
+    flex: 1,
   },
   loadingText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#64748B',
-    marginTop: 16,
+    marginTop: 20,
+    fontWeight: '500',
   },
   exerciseContainer: {
     alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
   },
   exerciseTitle: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: '800',
     color: '#1E293B',
-    marginBottom: 12,
+    marginBottom: 16,
     textAlign: 'center',
   },
   exerciseDescription: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#64748B',
     textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 24,
+    marginBottom: 32,
+    lineHeight: 26,
+    paddingHorizontal: 20,
   },
   exerciseImage: {
-    width: 200,
-    height: 200,
-    borderRadius: 16,
-    marginBottom: 24,
+    width: 240,
+    height: 240,
+    borderRadius: 20,
+    marginBottom: 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
   },
   traitsContainer: {
     width: '100%',
-    marginBottom: 24,
+    marginBottom: 32,
   },
   traitsTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '700',
     color: '#1E293B',
-    marginBottom: 12,
+    marginBottom: 16,
+    textAlign: 'center',
   },
   traitItem: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#64748B',
-    marginBottom: 8,
-    lineHeight: 24,
-  },
-  traitButton: {
+    marginBottom: 12,
+    lineHeight: 26,
+    textAlign: 'center',
     backgroundColor: '#F8FAFC',
     paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     borderRadius: 12,
-    marginBottom: 8,
+    marginHorizontal: 4,
+  },
+  traitButton: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    marginBottom: 12,
     borderWidth: 2,
     borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   selectedTrait: {
-    backgroundColor: '#EEF2FF',
-    borderColor: '#6366F1',
+    backgroundColor: '#FFF1F2',
+    borderColor: '#FF5F6D',
+    shadowColor: '#FF5F6D',
+    shadowOpacity: 0.2,
   },
   traitButtonText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#1E293B',
     textAlign: 'center',
+    fontWeight: '500',
   },
   optionsContainer: {
     width: '100%',
   },
   optionButton: {
-    backgroundColor: '#F8FAFC',
-    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 20,
     paddingHorizontal: 20,
-    borderRadius: 12,
-    marginBottom: 12,
+    borderRadius: 16,
+    marginBottom: 16,
     borderWidth: 2,
     borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   selectedOption: {
-    backgroundColor: '#EEF2FF',
-    borderColor: '#6366F1',
+    backgroundColor: '#FFF1F2',
+    borderColor: '#FF5F6D',
+    shadowColor: '#FF5F6D',
+    shadowOpacity: 0.2,
   },
   optionText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#1E293B',
     textAlign: 'center',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   submitButton: {
-    backgroundColor: '#6366F1',
-    paddingVertical: 16,
-    borderRadius: 12,
+    backgroundColor: '#FF5F6D',
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 18,
+    borderRadius: 16,
+    shadowColor: '#FF5F6D',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
   },
   submitButtonDisabled: {
     backgroundColor: '#94A3B8',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   submitButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
+    marginLeft: 8,
   },
   resultsContainer: {
     alignItems: 'center',
@@ -956,22 +1036,35 @@ const styles = StyleSheet.create({
   resultHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 24,
+    backgroundColor: '#F8FAFC',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 16,
   },
   resultText: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginLeft: 8,
+    fontSize: 20,
+    fontWeight: '700',
+    marginLeft: 12,
   },
   nextButton: {
     backgroundColor: '#10B981',
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 18,
+    paddingHorizontal: 40,
+    borderRadius: 16,
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
   },
   nextButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
+    marginLeft: 8,
   },
 });
