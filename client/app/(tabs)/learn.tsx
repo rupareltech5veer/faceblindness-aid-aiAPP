@@ -285,9 +285,6 @@ export default function LearnScreen() {
             </View>
           </View>
         );
-            )}
-          </View>
-        );
 
       case 'spacing':
         return (
@@ -317,23 +314,22 @@ export default function LearnScreen() {
                 </TouchableOpacity>
               ))}
             </View>
-          </View>
-        );
-                {data.options.map((option, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={[
-                      styles.optionButton,
-                      userAnswer === index && styles.selectedOption
-                    ]}
-                    onPress={() => handleAnswerSelect(index)}
-                    disabled={showResults}
-                  >
-                    <Text style={styles.optionText}>Option {index + 1}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
+            
+            <View style={styles.optionsContainer}>
+              {data.options.map((option, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.optionButton,
+                    userAnswer === index && styles.selectedOption
+                  ]}
+                  onPress={() => handleAnswerSelect(index)}
+                  disabled={showResults}
+                >
+                  <Text style={styles.optionText}>Option {index + 1}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
         );
 
@@ -392,9 +388,6 @@ export default function LearnScreen() {
             </View>
           </View>
         );
-            )}
-          </View>
-        );
 
       case 'morph_matching':
         return (
@@ -425,9 +418,6 @@ export default function LearnScreen() {
                 </TouchableOpacity>
               ))}
             </View>
-          </View>
-        );
-            )}
           </View>
         );
 
@@ -482,12 +472,7 @@ export default function LearnScreen() {
               <View style={styles.progressBar}>
                 <View style={[
                   styles.progressFill, 
-              <View style={styles.modalTitleContainer}>
-                <View style={styles.modalIconContainer}>
-                  <Ionicons name="school-outline" size={24} color="#FF5F6D" />
-                </View>
-                <Text style={styles.modalTitle}>AI Training Exercise</Text>
-              </View>
+                  { width: `${Math.round(learningProgress.reduce((acc, p) => acc + p.progress_percentage, 0) / Math.max(learningProgress.length, 1))}%` }
                 ]} />
               </View>
               <Text style={styles.progressText}>
@@ -557,8 +542,7 @@ export default function LearnScreen() {
           <View style={styles.achievementsSection}>
             <View style={styles.achievementsHeader}>
               <Ionicons name="star-outline" size={20} color="#F59E0B" />
-            <View style={styles.modalBody}>
-            </View>
+              <Text style={styles.achievementsTitle}>Achievements</Text>
             </View>
             <View style={styles.achievementsList}>
               {achievements.map((achievement) => (
@@ -574,9 +558,9 @@ export default function LearnScreen() {
                     { backgroundColor: achievement.earned ? achievement.color : '#F1F5F9' }
                   ]}>
                     <Ionicons 
-                      name={isCorrect ? "checkmark-circle" : "close-circle"} 
+                      name={achievement.icon as any} 
                       size={20} 
-                      color={isCorrect ? "#10B981" : "#EF4444"} 
+                      color={achievement.earned ? "#FFFFFF" : "#94A3B8"} 
                     />
                   </View>
                   <View style={styles.achievementContent}>
@@ -588,9 +572,9 @@ export default function LearnScreen() {
                     </Text>
                     <Text style={[
                       styles.achievementDescription,
-                      { color: isCorrect ? "#10B981" : "#EF4444" }
+                      !achievement.earned && styles.achievementDescriptionLocked
                     ]}>
-                      {isCorrect ? "Correct!" : "Try Again"}
+                      {achievement.description}
                     </Text>
                   </View>
                   {achievement.earned && (
@@ -612,12 +596,16 @@ export default function LearnScreen() {
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>AI Training Exercise</Text>
+                <View style={styles.modalTitleContainer}>
+                  <View style={styles.modalIconContainer}>
+                    <Ionicons name="school-outline" size={24} color="#FF5F6D" />
+                  </View>
+                  <Text style={styles.modalTitle}>AI Training Exercise</Text>
+                </View>
                 <TouchableOpacity
                   onPress={() => setShowModuleModal(false)}
                   style={styles.closeButton}
                 >
-                  <Ionicons name="checkmark-outline" size={20} color="#FFFFFF" />
                   <Ionicons name="close" size={24} color="#64748B" />
                 </TouchableOpacity>
               </View>
