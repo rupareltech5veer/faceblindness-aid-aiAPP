@@ -8,7 +8,35 @@ export default function TopNavBar({ gradientColors = ["#7C3AED", "#6366F1"] }) {
 
   useEffect(() => {
     fetchUserName();
+    
+    // Listen for profile updates
+    const profileSubscription = supabase
+      .channel('profile_changes')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'user_profiles'
+      }, (payload) => {
+        // Check if this update is for the current user
+        checkIfCurrentUserUpdate(payload.new);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(profileSubscription);
+    };
   }, []);
+
+  const checkIfCurrentUserUpdate = async (updatedProfile) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && updatedProfile.user_id === user.id) {
+        setUserName(updatedProfile.full_name || 'User');
+      }
+    } catch (error) {
+      // Handle error silently
+    }
+  };
 
   const fetchUserName = async () => {
     try {
@@ -23,8 +51,21 @@ export default function TopNavBar({ gradientColors = ["#7C3AED", "#6366F1"] }) {
 
       if (profile?.full_name) {
         setUserName(profile.full_name);
+      } else {
+        // If no profile exists, create one with user's email as name
+        const defaultName = user.email?.split('@')[0] || 'User';
+        setUserName(defaultName);
+        
+        // Create profile in background
+        await supabase
+          .from('user_profiles')
+          .upsert({
+            user_id: user.id,
+            full_name: defaultName,
+          });
       }
     } catch (error) {
+      // Handle error silently
     }
   };
 

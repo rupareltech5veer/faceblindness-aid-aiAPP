@@ -106,7 +106,9 @@ export default function SettingsScreen() {
         .from('app_settings')
         .upsert({
           user_id: user.id,
-          [key]: value,
+          notifications_enabled: key === 'notifications_enabled' ? value : (appSettings?.notifications_enabled ?? true),
+          dark_mode: key === 'dark_mode' ? value : (appSettings?.dark_mode ?? false),
+          sound_enabled: key === 'sound_enabled' ? value : (appSettings?.sound_enabled ?? true),
           updated_at: new Date().toISOString(),
         });
 
@@ -115,9 +117,9 @@ export default function SettingsScreen() {
         setAppSettings(prev => prev ? { ...prev, [key]: !value } : {
           id: '',
           user_id: user.id,
-          notifications_enabled: true,
+          notifications_enabled: key === 'notifications_enabled' ? !value : true,
           dark_mode: key === 'dark_mode' ? !value : false,
-          sound_enabled: true,
+          sound_enabled: key === 'sound_enabled' ? !value : true,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });
@@ -128,9 +130,9 @@ export default function SettingsScreen() {
       setAppSettings(prev => prev ? { ...prev, [key]: !value } : {
         id: '',
         user_id: user.id,
-        notifications_enabled: true,
+        notifications_enabled: key === 'notifications_enabled' ? !value : true,
         dark_mode: key === 'dark_mode' ? !value : false,
-        sound_enabled: true,
+        sound_enabled: key === 'sound_enabled' ? !value : true,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       });

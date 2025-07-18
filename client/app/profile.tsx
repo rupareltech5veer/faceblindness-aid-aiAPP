@@ -127,11 +127,11 @@ export default function ProfileScreen() {
 
       const { error } = await supabase
         .from('user_profiles')
-        .update({
+        .upsert({
+          user_id: user.id,
           full_name: editedName.trim(),
           updated_at: new Date().toISOString(),
-        })
-        .eq('user_id', user.id);
+        });
 
       if (error) throw error;
 
