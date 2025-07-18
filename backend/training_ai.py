@@ -425,10 +425,8 @@ class TrainingAI:
         """Generate caricature training exercise"""
         try:
             params = self.difficulty_manager.get_difficulty_params("caricature", level)
-            
-            # Use generated faces if no real faces available
-            if not all_faces:
-                all_faces = self.face_generator.get_sample_faces()
+            if not all_faces: # Ensure all_faces is populated if empty
+                all_faces = self.face_generator.get_sample_faces() 
                 face_data = random.choice(all_faces)
             elif not face_data:
                 face_data = random.choice(all_faces)
@@ -506,10 +504,8 @@ class TrainingAI:
         """Generate spacing awareness exercise"""
         try:
             params = self.difficulty_manager.get_difficulty_params("spacing", level)
-            
-            # Use generated faces if no real faces available
-            if not all_faces:
-                all_faces = self.face_generator.get_sample_faces()
+            if not all_faces: # Ensure all_faces is populated if empty
+                all_faces = self.face_generator.get_sample_faces() 
                 face_data = random.choice(all_faces)
             elif not face_data:
                 face_data = random.choice(all_faces)
@@ -579,10 +575,8 @@ class TrainingAI:
         """Generate trait identification exercise"""
         try:
             params = self.difficulty_manager.get_difficulty_params("trait_identification", level)
-            
-            # Use generated faces if no real faces available
-            if not all_faces:
-                all_faces = self.face_generator.get_sample_faces()
+            if not all_faces: # Ensure all_faces is populated if empty
+                all_faces = self.face_generator.get_sample_faces() 
                 face_data = random.choice(all_faces)
             elif not face_data:
                 face_data = random.choice(all_faces)
@@ -663,10 +657,8 @@ class TrainingAI:
         """Generate morph matching exercise"""
         try:
             params = self.difficulty_manager.get_difficulty_params("morph_matching", level)
-            
-            # Use generated faces if no real faces available
-            if not all_faces:
-                all_faces = self.face_generator.get_sample_faces()
+            if not all_faces: # Ensure all_faces is populated if empty
+                all_faces = self.face_generator.get_sample_faces() 
                 if len(all_faces) < 2:
                     return {"error": "Need at least 2 faces for morph matching"}
                 face_data = random.choice(all_faces)
