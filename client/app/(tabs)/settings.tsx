@@ -92,7 +92,15 @@ export default function SettingsScreen() {
       if (!user) return;
 
       // Update local state immediately for better UX
-      setAppSettings(prev => prev ? { ...prev, [key]: value } : null);
+      setAppSettings(prev => prev ? { ...prev, [key]: value } : {
+        id: '',
+        user_id: user.id,
+        notifications_enabled: true,
+        dark_mode: key === 'dark_mode' ? value : false,
+        sound_enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
 
       const { error } = await supabase
         .from('app_settings')
@@ -104,12 +112,28 @@ export default function SettingsScreen() {
 
       if (error) {
         // Revert local state on error
-        setAppSettings(prev => prev ? { ...prev, [key]: !value } : null);
+        setAppSettings(prev => prev ? { ...prev, [key]: !value } : {
+          id: '',
+          user_id: user.id,
+          notifications_enabled: true,
+          dark_mode: key === 'dark_mode' ? !value : false,
+          sound_enabled: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
         Alert.alert('Error', 'Failed to update setting. Please try again.');
       }
     } catch (error) {
       // Revert local state on error
-      setAppSettings(prev => prev ? { ...prev, [key]: !value } : null);
+      setAppSettings(prev => prev ? { ...prev, [key]: !value } : {
+        id: '',
+        user_id: user.id,
+        notifications_enabled: true,
+        dark_mode: key === 'dark_mode' ? !value : false,
+        sound_enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
       Alert.alert('Error', 'Failed to update setting. Please try again.');
     }
   };
