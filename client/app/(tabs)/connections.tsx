@@ -113,55 +113,58 @@ export default function ConnectionsScreen() {
         return;
       }
 
-      let imageUrl = formData.image;
-
-      // Upload new image if selected
-      if (formData.image && formData.image.startsWith('file://')) {
-        const timestamp = Date.now();
-        const fileName = `${user.id}/${timestamp}.jpg`;
-
-        const response = await fetch(formData.image);
-        const blob = await response.blob();
-
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('connections')
-          .upload(fileName, blob, {
-            contentType: 'image/jpeg',
-          });
-
-        if (uploadError) throw uploadError;
-
-        const { data: urlData } = supabase.storage
-          .from('connections')
-          .getPublicUrl(fileName);
-
-        imageUrl = urlData.publicUrl;
-      }
-
-      const connectionData = {
-        user_id: user.id,
-        name: formData.name.trim(),
-        description: formData.description.trim() || null,
-        notes: formData.notes.trim() || null,
-        image_url: imageUrl,
-        updated_at: new Date().toISOString(),
-      };
-
       if (editingConnection) {
-        // Update existing connection
+        // Update existing connection (simplified - without face re-analysis)
         const { error } = await supabase
           .from('connections')
-          .update(connectionData)
+          .update({
+            name: formData.name.trim(),
+            description: formData.description.trim() || null,
+            notes: formData.notes.trim() || null,
+            updated_at: new Date().toISOString(),
+          })
           .eq('id', editingConnection.id);
 
         if (error) throw error;
       } else {
-        // Create new connection
-        const { error } = await supabase
-          .from('connections')
-          .insert(connectionData);
+        // Create new connection with face analysis
+        if (!formData.image || !formData.image.startsWith('file://')) {
+          Alert.alert('Missing Image', 'Please select an image for face recognition.');
+          return;
+        }
 
-        if (error) throw error;
+        // Prepare form data for backend
+        const formDataToSend = new FormData();
+        formDataToSend.append('user_id', user.id);
+        formDataToSend.append('name', formData.name.trim());
+        formDataToSend.append('description', formData.description.trim());
+        formDataToSend.append('notes', formData.notes.trim());
+        
+        // Add image file
+        const response = await fetch(formData.image);
+        const blob = await response.blob();
+        formDataToSend.append('file', blob, 'connection.jpg');
+
+        // Send to backend for face analysis
+        const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+        const apiResponse = await fetch(`${backendUrl}/connections/add`, {
+          method: 'POST',
+          body: formDataToSend,
+        });
+
+        if (!apiResponse.ok) {
+          throw new Error('Failed to process face recognition');
+        }
+
+        const result = await apiResponse.json();
+        
+        if (result.traits && result.traits.length > 0) {
+          Alert.alert(
+            'Face Analysis Complete!', 
+            `Detected traits: ${result.traits.join(', ')}`,
+            [{ text: 'OK' }]
+          );
+        }
       }
 
       setShowAddModal(false);

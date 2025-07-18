@@ -19,6 +19,7 @@ import tensorflow as tf
 from tensorflow import keras
 import random
 import math
+import time
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -563,90 +564,74 @@ async def scan_and_identify(request: ScanRequest):
         # Decode image
         image = decode_base64_image(request.image_data)
         
-        # Detect faces
-        rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        face_locations = face_recognition.face_locations(rgb_image)
-        face_encodings = face_recognition.face_encodings(rgb_image, face_locations)
+        # Extract face embedding from the image
+        face_embedding = face_ai.extract_face_embedding(image)
         
         if not supabase:
             # Mock response for development
-            mock_faces = []
-            for i, (top, right, bottom, left) in enumerate(face_locations):
-                mock_faces.append({
-                    "bbox": [left, top, right, bottom],
-                    "name": f"Person {i+1}",
-                    "role": "Unknown",
-                    "context": "Unknown",
+            if face_embedding is not None:
+                mock_faces = [{
+                    "bbox": [100, 100, 300, 300],
+                    "name": "Mock Person",
+                    "description": "Test Connection",
                     "confidence": 0.85,
                     "emotion": "neutral",
-                    "traits": ["distinctive features"],
-                    "caricature_data": None
-                })
+                    "traits": ["distinctive eyes", "strong jawline"],
+                    "notes": "This is a mock identification"
+                }]
+            else:
+                mock_faces = []
             
             return ScanResponse(
                 faces=mock_faces,
                 processing_time=time.time() - start_time
             )
         
-        # Get user's known faces
-        faces_result = supabase.table("faces").select("*").eq("user_id", request.user_id).execute()
-        known_faces = faces_result.data
+        if face_embedding is None:
+            return ScanResponse(faces=[], processing_time=time.time() - start_time)
         
-        # Extract known embeddings
-        known_embeddings = []
-        known_face_data = []
-        for face_data in known_faces:
-            if face_data["embedding"]:
-                known_embeddings.append(face_data["embedding"])
-                known_face_data.append(face_data)
+        # Get user's stored connections
+        connections_result = supabase.table("connections").select("*").eq("user_id", request.user_id).execute()
+        stored_connections = connections_result.data or []
+        
+        # Prepare stored embeddings for comparison
+        stored_embeddings = []
+        for connection in stored_connections:
+            if connection.get("face_embedding"):
+                embedding_array = np.array(connection["face_embedding"])
+                stored_embeddings.append((
+                    connection["id"],
+                    embedding_array,
+                    {
+                        "name": connection["name"],
+                        "description": connection.get("description", ""),
+                        "notes": connection.get("notes", ""),
+                        "traits": connection.get("trait_descriptions", []),
+                        "facial_traits": connection.get("facial_traits", {})
+                    }
+                ))
+        
+        # Find best match
+        match_result = face_ai.find_best_match(face_embedding, stored_embeddings)
         
         identified_faces = []
-        
-        for i, (face_encoding, face_location) in enumerate(zip(face_encodings, face_locations)):
-            top, right, bottom, left = face_location
+        if match_result:
+            connection_id, confidence, connection_data = match_result
             
-            # Find best match
-            best_match = None
-            best_confidence = 0
+            # Get emotion (simplified)
+            emotion = detect_emotion(image) if request.show_emotion else "neutral"
             
-            if known_embeddings:
-                # Calculate similarities
-                similarities = cosine_similarity([face_encoding], known_embeddings)[0]
-                best_idx = np.argmax(similarities)
-                best_confidence = similarities[best_idx]
-                
-                # Threshold for positive identification
-                if best_confidence > 0.6:  # Adjust threshold as needed
-                    best_match = known_face_data[best_idx]
-            
-            # Extract face for emotion detection
-            face_image = image[top:bottom, left:right]
-            emotion = detect_emotion(face_image) if request.show_emotion else "neutral"
-            
-            # Prepare face data
+            # Create face data with bounding box (simplified - using full image)
+            height, width = image.shape[:2]
             face_data = {
-                "bbox": [left, top, right, bottom],
-                "confidence": float(best_confidence),
-                "emotion": emotion
+                "bbox": [int(width*0.2), int(height*0.2), int(width*0.8), int(height*0.8)],  # Approximate face location
+                "name": connection_data["name"],
+                "description": connection_data["description"],
+                "confidence": float(confidence),
+                "emotion": emotion,
+                "traits": connection_data["traits"],
+                "notes": connection_data["notes"]
             }
-            
-            if best_match:
-                face_data.update({
-                    "name": best_match["name"],
-                    "role": best_match.get("role", ""),
-                    "context": best_match.get("context", ""),
-                    "traits": best_match["traits"],
-                    "caricature_highlights": best_match["caricature_highlights"] if request.show_caricature else None
-                })
-            else:
-                face_data.update({
-                    "name": "Unknown",
-                    "role": "",
-                    "context": "",
-                    "traits": [],
-                    "caricature_highlights": None
-                })
-            
             identified_faces.append(face_data)
         
         processing_time = time.time() - start_time
@@ -660,32 +645,32 @@ async def scan_and_identify(request: ScanRequest):
         logger.error(f"Error in scan and identify: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/faces/{user_id}")
-async def get_user_faces(user_id: str):
-    """Get all faces for a user"""
+@app.get("/connections/{user_id}")
+async def get_user_connections(user_id: str):
+    """Get all connections for a user"""
     try:
         if not supabase:
-            return {"faces": [], "count": 0}
+            return {"connections": [], "count": 0}
         
-        result = supabase.table("faces").select("*").eq("user_id", user_id).execute()
-        return {"faces": result.data, "count": len(result.data)}
+        result = supabase.table("connections").select("*").eq("user_id", user_id).execute()
+        return {"connections": result.data, "count": len(result.data)}
         
     except Exception as e:
-        logger.error(f"Error getting user faces: {e}")
+        logger.error(f"Error getting user connections: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.delete("/faces/{face_id}")
-async def delete_face(face_id: str):
-    """Delete a face from the database"""
+@app.delete("/connections/{connection_id}")
+async def delete_connection(connection_id: str):
+    """Delete a connection from the database"""
     try:
         if not supabase:
-            return {"success": True, "message": "Face deleted (mock)"}
+            return {"success": True, "message": "Connection deleted (mock)"}
         
-        supabase.table("faces").delete().eq("id", face_id).execute()
-        return {"success": True, "message": "Face deleted successfully"}
+        supabase.table("connections").delete().eq("id", connection_id).execute()
+        return {"success": True, "message": "Connection deleted successfully"}
         
     except Exception as e:
-        logger.error(f"Error deleting face: {e}")
+        logger.error(f"Error deleting connection: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/health")
@@ -696,9 +681,9 @@ async def health_check():
         "services": {
             "supabase": "connected" if supabase else "not configured",
             "anthropic": "connected" if anthropic_client else "not configured",
-            "opencv": "available",
+            "facenet": "available",
             "mediapipe": "available",
-            "face_recognition": "available"
+            "pytorch": "available"
         }
     }
 

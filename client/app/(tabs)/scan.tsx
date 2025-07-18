@@ -72,6 +72,13 @@ export default function ScanScreen() {
           
           if (scanResult.faces.length === 0) {
             Alert.alert('No Faces Found', 'No faces were detected in the image. Try taking another photo.');
+          } else {
+            // Show identification results
+            const identifiedPeople = scanResult.faces.filter(face => face.name !== 'Unknown');
+            if (identifiedPeople.length > 0) {
+              const names = identifiedPeople.map(face => face.name).join(', ');
+              Alert.alert('Face Recognition', `Identified: ${names}`);
+            }
           }
         } else {
           setIdentifiedFaces([]);
