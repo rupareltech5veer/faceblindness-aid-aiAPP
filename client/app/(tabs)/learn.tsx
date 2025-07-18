@@ -505,6 +505,7 @@ export default function LearnScreen() {
           style={styles.content} 
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 95 }}
+          nestedScrollEnabled={true}
         >
           {/* Header */}
           <View style={styles.header}>

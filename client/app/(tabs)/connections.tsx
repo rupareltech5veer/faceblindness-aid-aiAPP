@@ -103,7 +103,7 @@ export default function ConnectionsScreen() {
 
       console.log('Permission granted, launching image picker...');
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: MediaType.Images,
+        mediaTypes: [MediaType.Images],
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
@@ -396,11 +396,11 @@ export default function ConnectionsScreen() {
               data={connections}
               renderItem={renderConnection}
               keyExtractor={(item) => item.id}
-              contentContainerStyle={styles.connectionsList}
               showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.connectionsList}
             />
           )}
-        </ScrollView>
+        </View>
 
       {/* Add/Edit Modal */}
       <Modal

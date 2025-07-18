@@ -42,7 +42,7 @@ export default function UploadScreen() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: MediaType.Images,
+      mediaTypes: [MediaType.Images],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,

@@ -74,7 +74,7 @@ export default function HomeScreen() {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: MediaType.Images,
+        mediaTypes: [MediaType.Images],
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
@@ -299,7 +299,7 @@ export default function HomeScreen() {
               scrollEnabled={false}
             />
           )}
-        </ScrollView>
+        </View>
       </SafeAreaView>
 
       {/* Frame Selection Modal */}
