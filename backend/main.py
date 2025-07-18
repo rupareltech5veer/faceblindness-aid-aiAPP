@@ -501,38 +501,12 @@ async def morph_matching_training(request: TrainingRequest):
     """Generate morph-based matching training exercise"""
     try:
         # Get user's faces from faces table
+        faces = []
         if supabase:
             faces_result = supabase.table("faces").select("*").eq("user_id", request.user_id).execute()
-        else:
-            # Mock data for development
-            faces_result = type('obj', (object,), {
-                'data': [{
-                    'id': 'mock_id_1',
-                    'name': 'Sample Person 1',
-                    'image_url': 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg',
-                    'landmark_data': {'points': [[0.5, 0.3], [0.6, 0.4]]},
-                    'trait_descriptions': ['expressive eyes', 'defined jawline'],
-                    'training_progress': {'morph_matching': {'level': 1, 'accuracy': 0}}
-                }, {
-                    'id': 'mock_id_2',
-                    'name': 'Sample Person 2',
-                    'image_url': 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg',
-                    'landmark_data': {'points': [[0.4, 0.3], [0.5, 0.4]]},
-                    'trait_descriptions': ['gentle smile', 'soft features'],
-                    'training_progress': {'morph_matching': {'level': 1, 'accuracy': 0}}
-                }]
-            })()
-            
-        faces = faces_result.data
+            faces = faces_result.data or []
         
-        if len(faces) < 2:
-            return TrainingResponse(
-                success=False, 
-                data={"error": "Need at least 2 faces for morph training. Please add more connections."}, 
-                next_difficulty=1
-            )
-        
-        target_face = random.choice(faces)
+        target_face = random.choice(faces) if faces else None
         
         # Generate morph matching exercise using AI
         exercise_data = training_ai.generate_morph_matching_exercise(
@@ -558,6 +532,11 @@ async def morph_matching_training(request: TrainingRequest):
         
     except Exception as e:
         logger.error(f"Error in morph matching training: {e}")
+        return TrainingResponse(
+            success=False,
+            data={"error": f"Training generation failed: {str(e)}"},
+            next_difficulty=request.difficulty_level
+        )
 
 @app.post("/learn/update-progress")
 async def update_training_progress(

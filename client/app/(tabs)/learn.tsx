@@ -441,11 +441,6 @@ export default function LearnScreen() {
                   <Text style={styles.traitButtonText}>{option}</Text>
                 </TouchableOpacity>
               ))}
-              {(!data.options || data.options.length === 0) && (
-                <Text style={styles.noOptionsText}>
-                  Add more connections to enable trait identification
-                </Text>
-              )}
             </View>
           </View>
         );
