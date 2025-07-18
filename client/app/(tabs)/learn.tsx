@@ -560,7 +560,7 @@ export default function LearnScreen() {
                     <Ionicons 
                       name={achievement.icon as any} 
                       size={20} 
-                      color={achievement.earned ? "#FFFFFF" : "#94A3B8"} 
+                      color={achievement.earned ? '#FFFFFF' : '#94A3B8'} 
                     />
                   </View>
                   <View style={styles.achievementContent}>
@@ -1029,12 +1029,13 @@ const styles = StyleSheet.create({
   },
   imageComparisonContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     marginBottom: 32,
-    width: '100%',
   },
   imageContainer: {
     alignItems: 'center',
+    flex: 1,
+    marginHorizontal: 8,
   },
   imageLabel: {
     fontSize: 16,
@@ -1052,24 +1053,51 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  imageOptionsContainer: {
+  hintsContainer: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 32,
     width: '100%',
+  },
+  hintsTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 12,
+  },
+  hintItem: {
+    fontSize: 16,
+    color: '#64748B',
+    marginBottom: 8,
+    lineHeight: 22,
+  },
+  imageOptionsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
+    marginBottom: 32,
   },
   imageOptionButton: {
-    alignItems: 'center',
+    width: '48%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
     marginBottom: 16,
-    padding: 8,
-    borderRadius: 12,
     borderWidth: 2,
     borderColor: '#E2E8F0',
-    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   selectedImageOption: {
-    borderColor: '#FF5F6D',
     backgroundColor: '#FFF1F2',
+    borderColor: '#FF5F6D',
+    shadowColor: '#FF5F6D',
+    shadowOpacity: 0.2,
   },
   optionImage: {
     width: 80,
@@ -1081,24 +1109,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: '#1E293B',
-  },
-  hintsContainer: {
-    width: '100%',
-    marginBottom: 32,
-    backgroundColor: '#FEF3C7',
-    padding: 16,
-    borderRadius: 12,
-  },
-  hintsTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#92400E',
-    marginBottom: 8,
-  },
-  hintItem: {
-    fontSize: 14,
-    color: '#A16207',
-    marginBottom: 4,
+    textAlign: 'center',
   },
   traitsContainer: {
     width: '100%',
