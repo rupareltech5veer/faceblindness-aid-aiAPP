@@ -541,58 +541,68 @@ async def morph_matching_training(request: TrainingRequest):
 @app.post("/learn/update-progress")
 async def update_training_progress(
     user_id: str = Form(...),
-    connection_id: str = Form(...),
+    module_id: str = Form(...), # Changed from connection_id to module_id
     module_type: str = Form(...),
     accuracy: float = Form(...),
     current_level: int = Form(...),
-    completed_lessons: int = Form(0)
+    completed_lessons: int = Form(0), # This is the count *before* this exercise
+    total_lessons: int = Form(...), # Added total_lessons
 ):
     """Update training progress for a specific face and module"""
     try:
         if not supabase:
             return {"success": True, "message": "Progress updated (mock)"}
         
-        # Get current progress from connections table
-        connection_result = supabase.table("connections").select("*").eq("id", connection_id).execute()
-        if not connection_result.data:
-            raise HTTPException(status_code=404, detail="Connection not found")
+        # Fetch existing learning progress for the user and module
+        progress_result = supabase.table("learning_progress").select("*") \
+            .eq("user_id", user_id) \
+            .eq("module_id", module_id) \
+            .single() \
+            .execute()
         
-        connection_data = connection_result.data[0]
-        current_progress = connection_data.get("training_progress", {})
+        existing_progress = progress_result.data
         
-        # Calculate next level using AI
+        new_completed_lessons = completed_lessons # Start with lessons completed before this exercise
+        
+        # If accuracy is high enough, increment completed lessons for this module
+        if accuracy >= 0.8: # Assuming 0.8 is the threshold for "passing" a lesson
+            new_completed_lessons = min(completed_lessons + 1, total_lessons)
+        
+        # Calculate new progress percentage
+        new_progress_percentage = int((new_completed_lessons / total_lessons) * 100)
+        
+        # Calculate next difficulty level based on the new completed lessons count
+        # The difficulty manager uses completed_lessons to determine level progression
         next_level = training_ai.difficulty_manager.calculate_next_level(
-            current_level, accuracy, completed_lessons
+            current_level, accuracy, new_completed_lessons
         )
         
-        # Update progress for the specific module  
-        if module_type not in current_progress:
-            current_progress[module_type] = {
-                "level": 1, 
-                "accuracy": 0, 
-                "completed_lessons": 0
-            }
+        # Prepare data for upsert
+        upsert_data = {
+            "user_id": user_id,
+            "module_id": module_id,
+            "progress_percentage": new_progress_percentage,
+            "completed_lessons": new_completed_lessons,
+            "total_lessons": total_lessons,
+            "last_accessed": "now()", # Supabase function for current timestamp
+        }
         
-        current_progress[module_type]["accuracy"] = accuracy
-        current_progress[module_type]["level"] = next_level
-        current_progress[module_type]["completed_lessons"] = completed_lessons
+        if existing_progress:
+            # If record exists, update it
+            upsert_data["id"] = existing_progress["id"] # Ensure we update the existing record
         
-        # If accuracy is high enough, increment completed lessons
-        if accuracy >= 0.8:
-            current_progress[module_type]["completed_lessons"] = min(
-                completed_lessons + 1, 10
-            )
+        # Perform upsert operation
+        upsert_response = supabase.table("learning_progress").upsert(upsert_data, on_conflict="user_id,module_id").execute()
         
-        # Update in database
-        supabase.table("connections").update({
-            "training_progress": current_progress
-        }).eq("id", connection_id).execute()
+        if upsert_response.data is None:
+            raise Exception("Supabase upsert operation returned no data.")
         
         return {
             "success": True, 
             "message": "Progress updated successfully",
             "new_level": next_level,
-            "completed_lessons": current_progress[module_type]["completed_lessons"]
+            "completed_lessons": new_completed_lessons,
+            "progress_percentage": new_progress_percentage
         }
         
     except Exception as e:

@@ -192,22 +192,22 @@ export default function LearnScreen() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Get a connection ID from the user's connections
-      const { data: connections } = await supabase
-        .from('connections')
-        .select('id')
-        .eq('user_id', user.id)
-        .limit(1);
-      
-      if (!connections || connections.length === 0) return;
-      
+      const progress = getModuleProgress(currentModule);
+      const moduleConfig = learningModules.find(m => m.id === currentModule);
+
+      if (!moduleConfig) {
+        console.error('Module configuration not found for:', currentModule);
+        return;
+      }
+
       await updateLearningProgress(
         user.id,
-        connections[0].id,
+        currentModule, // Pass module_id instead of connection_id
         currentModule,
         accuracy,
         data.level,
-        0 // completed_lessons will be incremented in backend if accuracy >= 0.8
+        progress.completed_lessons, // Pass current completed lessons
+        moduleConfig.totalLessons // Pass total lessons for the module
       );
 
       // Update local progress

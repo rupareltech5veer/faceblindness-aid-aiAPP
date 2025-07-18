@@ -251,11 +251,12 @@ export async function getLearningModuleData(
 
 export async function updateLearningProgress(
   userId: string,
-  connectionId: string,
+  moduleId: string, // Changed from connectionId to moduleId
   moduleType: string,
   accuracy: number,
   currentLevel: number,
-  completedLessons: number = 0
+  completedLessons: number,
+  totalLessons: number // Added totalLessons
 ): Promise<{ success: boolean; message: string }> {
   try {
     console.log('Updating learning progress:', { userId, connectionId, moduleType, accuracy, currentLevel });
@@ -447,7 +448,8 @@ export async function generateFacialCue(
       },
       body: JSON.stringify({
         image_name: imageName,
-        user_id: userId
+        module_id: moduleId, // Changed from connection_id to module_id
+        total_lessons: totalLessons, // Added total_lessons
       })
     });
 
