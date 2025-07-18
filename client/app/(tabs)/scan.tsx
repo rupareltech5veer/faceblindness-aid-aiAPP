@@ -636,3 +636,4 @@ export default function ScanScreen() {
       </ScrollView>
     </LinearGradient>
   );
+}
