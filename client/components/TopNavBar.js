@@ -9,16 +9,17 @@ export default function TopNavBar({ gradientColors = ["#7C3AED", "#6366F1"] }) {
   useEffect(() => {
     fetchUserName();
     
-    // Listen for profile updates
+    // Listen for profile updates in real-time
     const profileSubscription = supabase
       .channel('profile_changes')
       .on('postgres_changes', {
-        event: 'UPDATE',
+        event: '*',
         schema: 'public',
-        table: 'user_profiles'
+        table: 'user_profiles',
       }, (payload) => {
-        // Check if this update is for the current user
-        checkIfCurrentUserUpdate(payload.new);
+        console.log('Profile change detected:', payload);
+        // Refetch user name when any profile change occurs
+        fetchUserName();
       })
       .subscribe();
 
@@ -27,16 +28,6 @@ export default function TopNavBar({ gradientColors = ["#7C3AED", "#6366F1"] }) {
     };
   }, []);
 
-  const checkIfCurrentUserUpdate = async (updatedProfile) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user && updatedProfile.user_id === user.id) {
-        setUserName(updatedProfile.full_name || 'User');
-      }
-    } catch (error) {
-      // Handle error silently
-    }
-  };
 
   const fetchUserName = async () => {
     try {
@@ -65,7 +56,8 @@ export default function TopNavBar({ gradientColors = ["#7C3AED", "#6366F1"] }) {
           });
       }
     } catch (error) {
-      // Handle error silently
+      console.error('Error fetching user name:', error);
+      setUserName('User');
     }
   };
 
