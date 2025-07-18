@@ -66,7 +66,7 @@ export default function HomeScreen() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
+      mediaTypes: [ImagePicker.MediaType.Images],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
