@@ -38,19 +38,93 @@ export default function ProfileScreen() {
   const fetchUserProfile = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        console.log('No user found');
+        return;
+      }
 
       setUserEmail(user.email || '');
 
-      const { data: profile } = await supabase
+      console.log('Fetching profile for user:', user.id);
+      const { data: profile, error } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('user_id', user.id)
         .single();
 
-      setUserProfile(profile);
-      setEditedName(profile?.full_name || '');
+      if (error) {
+        console.error('Error fetching profile:', error);
+        if (error.code === 'PGRST116') {
+          // No profile found, create one
+          console.log('No profile found, creating one...');
+          const defaultName = user.user_metadata?.full_name || 
+                             user.email?.split('@')[0] || 
+                             'User';
+          
+          const { data: newProfile, error: createError } = await supabase
+            .from('user_profiles')
+            .insert({
+              user_id: user.id,
+              full_name: defaultName,
+            })
+            .select()
+            .single();
+          
+          if (createError) {
+            console.error('Error creating profile:', createError);
+            // Set default values
+            setUserProfile({
+              id: '',
+              user_id: user.id,
+              full_name: defaultName,
+              avatar_url: null,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            });
+            setEditedName(defaultName);
+          } else {
+            console.log('Profile created successfully:', newProfile);
+            setUserProfile(newProfile);
+            setEditedName(newProfile.full_name || defaultName);
+          }
+        } else {
+          // Other error, set default values
+          const defaultName = user.user_metadata?.full_name || 
+                             user.email?.split('@')[0] || 
+                             'User';
+          setUserProfile({
+            id: '',
+            user_id: user.id,
+            full_name: defaultName,
+            avatar_url: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+          setEditedName(defaultName);
+        }
+      } else {
+        console.log('Profile fetched successfully:', profile);
+        setUserProfile(profile);
+        setEditedName(profile?.full_name || 'User');
+      }
     } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+      // Set fallback values
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const defaultName = user.user_metadata?.full_name || 
+                           user.email?.split('@')[0] || 
+                           'User';
+        setUserProfile({
+          id: '',
+          user_id: user.id,
+          full_name: defaultName,
+          avatar_url: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+        setEditedName(defaultName);
+      }
     } finally {
       setLoading(false);
     }
@@ -137,31 +211,77 @@ export default function ProfileScreen() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { data, error } = await supabase
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({
+          full_name: editedName.trim(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id);
+
+      if (error) {
+        // If update failed (no existing record), try insert
+        const { error: insertError } = await supabase
+          .from('user_profiles')
+          .insert({
+            user_id: user.id,
+            full_name: editedName.trim(),
+          });
+        
+        if (insertError) throw insertError;
+      }
+
+      // Fetch the updated profile to ensure we have the latest data
+      const { data: updatedProfile, error: fetchError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching updated profile:', fetchError);
+      } else {
+        setUserProfile(updatedProfile);
+      }
+      
+      setEditing(false);
+      
+      // Dispatch custom event to update TopNavBar
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('profileUpdated', {
+          detail: { fullName: editedName.trim() }
+        }));
+      }
+      
+      Alert.alert('Success!', 'Profile updated successfully.');
+    } catch (error) {
+      console.error('Profile update error:', error);
+      Alert.alert('Error', 'Failed to update profile. Please try again.');
+    }
+  };
+
+  const saveProfile_old = async () => {
+    if (!editedName.trim()) {
+      Alert.alert('Missing Information', 'Please enter your full name.');
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
         .from('user_profiles')
         .upsert({
           user_id: user.id,
           full_name: editedName.trim(),
           updated_at: new Date().toISOString(),
-        }, {
-          onConflict: 'user_id'
         });
 
       if (error) throw error;
 
-      // Update local state immediately
-      setUserProfile(prev => prev ? {
-        ...prev,
-        full_name: editedName.trim(),
-        updated_at: new Date().toISOString(),
-      } : {
-        id: data?.[0]?.id || '',
-        user_id: user.id,
-        full_name: editedName.trim(),
-        avatar_url: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      });
+      // Fetch the updated profile to ensure we have the latest data
+      await fetchUserProfile();
       
       setEditing(false);
       
