@@ -40,6 +40,7 @@ export default function HomeScreen() {
   const [uploading, setUploading] = useState(false);
   const [selectedFrame, setSelectedFrame] = useState<string>('none');
   const [showPreview, setShowPreview] = useState(false);
+  const [imageError, setImageError] = useState<{[key: string]: boolean}>({});
 
   useEffect(() => {
     fetchFavorites();
@@ -59,6 +60,7 @@ export default function HomeScreen() {
       if (error) throw error;
       setFavorites(data || []);
     } catch (error) {
+      console.error('Error fetching favorites:', error);
     } finally {
       setLoading(false);
     }
@@ -159,6 +161,7 @@ export default function HomeScreen() {
       
       Alert.alert('Success!', 'Your favorite has been added.');
     } catch (error) {
+      console.error('Error uploading favorite:', error);
       Alert.alert('Upload failed', 'There was an error uploading your photo. Please try again.');
     } finally {
       setUploading(false);
@@ -184,8 +187,8 @@ export default function HomeScreen() {
               if (fileName) {
                 const { data: { user } } = await supabase.auth.getUser();
                 if (user) {
-                await supabase.storage
-                  .from('favorites')
+                  await supabase.storage
+                    .from('favorites')
                     .remove([`${user.id}/${fileName}`]);
                 }
               }
@@ -199,6 +202,7 @@ export default function HomeScreen() {
               if (error) throw error;
               fetchFavorites();
             } catch (error) {
+              console.error('Error deleting favorite:', error);
               Alert.alert('Error', 'Failed to delete favorite. Please try again.');
             }
           },
@@ -224,10 +228,31 @@ export default function HomeScreen() {
     };
   };
 
+  const handleImageError = (itemId: string) => {
+    setImageError(prev => ({ ...prev, [itemId]: true }));
+  };
+
+  const handleImageLoad = (itemId: string) => {
+    setImageError(prev => ({ ...prev, [itemId]: false }));
+  };
+
   const renderFavorite = ({ item }: { item: Favorite }) => (
     <View style={styles.favoriteCard}>
       <View style={[styles.imageContainer, getFrameStyle(item.frame_style)]}>
-        <Image source={{ uri: item.image_url }} style={styles.favoriteImage} />
+        {imageError[item.id] ? (
+          <View style={[styles.favoriteImage, styles.errorPlaceholder]}>
+            <Ionicons name="image-outline" size={32} color="#94A3B8" />
+            <Text style={styles.errorText}>Failed to load image</Text>
+          </View>
+        ) : (
+          <Image 
+            source={{ uri: item.image_url }} 
+            style={styles.favoriteImage}
+            onError={() => handleImageError(item.id)}
+            onLoad={() => handleImageLoad(item.id)}
+            onLoadStart={() => handleImageLoad(item.id)}
+          />
+        )}
         <TouchableOpacity
           style={styles.deleteButton}
           onPress={() => deleteFavorite(item.id, item.image_url)}
@@ -325,7 +350,11 @@ export default function HomeScreen() {
                 ) : (
                   <>
                     <Text style={styles.previewTitle}>Selected Photo</Text>
-                    <Image source={{ uri: selectedImage }} style={styles.previewImage} />
+                    <Image 
+                      source={{ uri: selectedImage }} 
+                      style={styles.previewImage}
+                      onError={() => console.error('Error loading preview image')}
+                    />
                   </>
                 )}
               </View>
@@ -530,6 +559,17 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 160,
     resizeMode: 'cover',
+  },
+  errorPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+  },
+  errorText: {
+    fontSize: 12,
+    color: '#94A3B8',
+    marginTop: 8,
+    textAlign: 'center',
   },
   deleteButton: {
     position: 'absolute',
