@@ -135,8 +135,20 @@ export default function ProfileScreen() {
 
       if (error) throw error;
 
-      // Refetch the profile data to ensure consistency
-      await fetchUserProfile();
+      // Update local state immediately
+      setUserProfile(prev => prev ? {
+        ...prev,
+        full_name: editedName.trim(),
+        updated_at: new Date().toISOString(),
+      } : {
+        id: '',
+        user_id: user.id,
+        full_name: editedName.trim(),
+        avatar_url: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+      
       setEditing(false);
       Alert.alert('Success!', 'Profile updated successfully.');
     } catch (error) {

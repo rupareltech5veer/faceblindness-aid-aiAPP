@@ -9,22 +9,30 @@ export default function TopNavBar({ gradientColors = ["#7C3AED", "#6366F1"] }) {
   useEffect(() => {
     fetchUserName();
     
-    // Listen for profile updates in real-time
-    const profileSubscription = supabase
-      .channel('profile_changes')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'user_profiles',
-      }, (payload) => {
-        console.log('Profile change detected:', payload);
-        // Refetch user name when any profile change occurs
-        fetchUserName();
-      })
+    // Set up real-time subscription for profile changes
+    const channel = supabase
+      .channel('user_profiles_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_profiles',
+        },
+        async (payload) => {
+          console.log('Profile updated:', payload);
+          // Get current user to check if this update is for them
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user && payload.new && payload.new.user_id === user.id) {
+            console.log('Updating name for current user:', payload.new.full_name);
+            setUserName(payload.new.full_name || 'User');
+          }
+        }
+      )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(profileSubscription);
+      supabase.removeChannel(channel);
     };
   }, []);
 
