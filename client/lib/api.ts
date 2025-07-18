@@ -64,6 +64,10 @@ const mockLearningData: Record<string, LearningModuleData> = {
   caricature: {
     success: true,
     data: {
+      exercise_type: "caricature",
+      level: 1,
+      question: "Identify the caricature features",
+      options: [],
       target_face: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg",
       traits: ["distinctive eyebrows", "strong jawline", "warm smile"],
       highlights: { eyes: 0.8, jaw: 0.6, smile: 0.7 },
@@ -74,6 +78,9 @@ const mockLearningData: Record<string, LearningModuleData> = {
   spacing: {
     success: true,
     data: {
+      exercise_type: "spacing",
+      level: 1,
+      question: "Which face matches the original?",
       target_name: "Jordan",
       options: ["Jordan", "Sam", "Casey"],
       correct_index: 0,
@@ -85,6 +92,10 @@ const mockLearningData: Record<string, LearningModuleData> = {
   'trait-tagging': {
     success: true,
     data: {
+      exercise_type: "trait-tagging",
+      level: 1,
+      question: "Tag the facial traits",
+      options: [],
       face_image: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg",
       name: "Taylor",
       role: "Colleague",
@@ -92,12 +103,14 @@ const mockLearningData: Record<string, LearningModuleData> = {
       suggested_traits: ["expressive eyes", "defined cheekbones", "gentle smile"],
       existing_traits: ["expressive eyes", "defined cheekbones"]
     },
-  formData.append('connection_id', connectionId);
+    next_difficulty: 2
   },
   'morph-matching': {
-  formData.append('current_level', currentLevel.toString());
-  formData.append('completed_lessons', completedLessons.toString());
+    success: true,
     data: {
+      exercise_type: "morph-matching",
+      level: 1,
+      question: "Which face is the target?",
       target_name: "Morgan",
       distractor_name: "Riley",
       morph_percentage: 70,
@@ -190,7 +203,9 @@ export async function getLearningModuleData(
     return {
       success: true,
       data: {
-        name: "Demo Exercise",
+        exercise_type: moduleType,
+        level: difficultyLevel,
+        question: "Demo Exercise",
         options: ["Option 1", "Option 2", "Option 3"],
         correct_index: 0
       },
@@ -223,7 +238,12 @@ export async function getLearningModuleData(
     // Return mock data as fallback
     return mockLearningData[moduleType] || {
       success: false,
-      data: {},
+      data: {
+        exercise_type: moduleType,
+        level: difficultyLevel,
+        question: "",
+        options: []
+      },
       next_difficulty: difficultyLevel
     };
   }
@@ -238,7 +258,7 @@ export async function updateLearningProgress(
   completedLessons: number = 0
 ): Promise<{ success: boolean; message: string }> {
   try {
-    console.log('Updating learning progress:', { userId, faceId, moduleType, accuracy, difficultyLevel });
+    console.log('Updating learning progress:', { userId, connectionId, moduleType, accuracy, currentLevel });
     
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -272,18 +292,17 @@ export async function updateLearningProgress(
     
     // Uncomment below for actual backend integration:
     /*
+    const formData = new FormData();
+    formData.append('user_id', userId);
+    formData.append('connection_id', connectionId);
+    formData.append('module_type', moduleType);
+    formData.append('accuracy', accuracy.toString());
+    formData.append('current_level', currentLevel.toString());
+    formData.append('completed_lessons', completedLessons.toString());
+
     const response = await fetch(`${BACKEND_URL}/learn/update-progress`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        user_id: userId,
-        face_id: faceId,
-        module_type: moduleType,
-        accuracy: accuracy,
-        difficulty_level: difficultyLevel
-      })
+      body: formData
     });
 
     if (!response.ok) {
@@ -364,33 +383,81 @@ export async function getUserFaces(userId: string): Promise<{ faces: any[]; coun
     
     // For demo purposes, return mock data
     // In production, this would fetch from the backend
-  formData.append('connection_id', connectionId);
     return {
-  formData.append('module_type', moduleType);
-        image_name: imageName,
-  formData.append('accuracy', accuracy.toString());
-        user_id: userId
-  formData.append('current_level', currentLevel.toString());
-      })
-  formData.append('completed_lessons', completedLessons.toString());
+      faces: [
+        {
+          id: "mock_face_1",
+          name: "Demo Person",
+          role: "Friend",
+          context: "College",
+          traits: ["friendly smile", "bright eyes"],
+          image_url: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg"
+        }
+      ],
+      count: 1
+    };
+    
+    // Uncomment below for actual backend integration:
+    /*
+    const response = await fetch(`${BACKEND_URL}/faces/user/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
     });
 
-
-  const response = await fetch(`${backendUrl}/learn/update-progress`, {
     if (!response.ok) {
-    method: 'POST',
       throw new Error(`HTTP error! status: ${response.status}`);
-    body: formData,
     }
-  });
-
 
     const result = await response.json();
-  if (!response.ok) {
     return result;
-    throw new Error('Failed to update learning progress');
     */
+  } catch (error) {
+    console.error('Error getting user faces:', error);
+    return {
+      faces: [],
+      count: 0
+    };
   }
+}
+
+export async function generateFacialCue(
+  imageName: string,
+  userId: string
+): Promise<{ description: string; mnemonic: string }> {
+  try {
+    console.log('Generating facial cue for:', imageName);
+    
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // For demo purposes, return mock data
+    return {
+      description: "This person has distinctive facial features that make them memorable.",
+      mnemonic: "Focus on their unique characteristics to help remember them."
+    };
+    
+    // Uncomment below for actual backend integration:
+    /*
+    const response = await fetch(`${BACKEND_URL}/generate-cue`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        image_name: imageName,
+        user_id: userId
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return result;
+    */
   } catch (error) {
     console.error('Error generating facial cue:', error);
     // Return fallback data
