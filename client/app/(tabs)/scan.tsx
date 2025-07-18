@@ -67,10 +67,15 @@ export default function ScanScreen() {
           showEmotionOverlay
         );
         
-        setIdentifiedFaces(scanResult.faces);
-        
-        if (scanResult.faces.length === 0) {
-          Alert.alert('No Faces Found', 'No faces were detected in the image. Try taking another photo.');
+        if (scanResult && scanResult.faces && Array.isArray(scanResult.faces)) {
+          setIdentifiedFaces(scanResult.faces);
+          
+          if (scanResult.faces.length === 0) {
+            Alert.alert('No Faces Found', 'No faces were detected in the image. Try taking another photo.');
+          }
+        } else {
+          setIdentifiedFaces([]);
+          Alert.alert('Scan Error', 'Unable to process scan results. Please try again.');
         }
       }
     } catch (error) {
