@@ -364,83 +364,33 @@ export async function getUserFaces(userId: string): Promise<{ faces: any[]; coun
     
     // For demo purposes, return mock data
     // In production, this would fetch from the backend
+  formData.append('connection_id', connectionId);
     return {
-      faces: [],
-      count: 0
-    };
-    
-    // Uncomment below for actual backend integration:
-    /*
-    const response = await fetch(`${BACKEND_URL}/faces/${userId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const result = await response.json();
-    return result;
-    */
-  } catch (error) {
-    console.error('Error getting user faces:', error);
-    return {
-      faces: [],
-      count: 0
-    };
-  }
-}
-
-// Generate facial cue using backend AI
-export async function generateFacialCue(imageName: string, userId: string): Promise<{ description: string; mnemonic: string }> {
-  try {
-    console.log('Generating facial cue for:', imageName, userId);
-    
-    // For demo purposes, return mock data
-    const mockDescriptions = [
-      "This person has distinctive almond-shaped eyes and a warm, genuine smile.",
-      "Notable features include strong eyebrows and a defined jawline.",
-      "This individual has expressive eyes and gentle facial features.",
-      "Key characteristics are high cheekbones and a friendly demeanor."
-    ];
-    
-    const mockMnemonics = [
-      "Think: Bright eyes + warm smile = approachable friend",
-      "Remember: Strong features like a confident leader",
-      "Focus on: Gentle expression shows kindness",
-      "Key feature: High cheekbones - think elegant"
-    ];
-    
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    return {
-      description: mockDescriptions[Math.floor(Math.random() * mockDescriptions.length)],
-      mnemonic: mockMnemonics[Math.floor(Math.random() * mockMnemonics.length)]
-    };
-    
-    // Uncomment below for actual backend integration:
-    /*
-    const response = await fetch(`${BACKEND_URL}/generate-cue`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+  formData.append('module_type', moduleType);
         image_name: imageName,
+  formData.append('accuracy', accuracy.toString());
         user_id: userId
+  formData.append('current_level', currentLevel.toString());
       })
+  formData.append('completed_lessons', completedLessons.toString());
     });
 
+
+  const response = await fetch(`${backendUrl}/learn/update-progress`, {
     if (!response.ok) {
+    method: 'POST',
       throw new Error(`HTTP error! status: ${response.status}`);
+    body: formData,
     }
+  });
+
 
     const result = await response.json();
+  if (!response.ok) {
     return result;
+    throw new Error('Failed to update learning progress');
     */
+  }
   } catch (error) {
     console.error('Error generating facial cue:', error);
     // Return fallback data
