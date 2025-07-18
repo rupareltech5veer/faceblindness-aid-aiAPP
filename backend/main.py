@@ -344,13 +344,16 @@ async def add_face(
 async def caricature_training(request: TrainingRequest):
     """Generate caricature training exercise"""
     try:
-        # Get user's faces from faces table
+        # Get user's faces from connections table (updated to use connections)
         faces = []
         if supabase:
-            faces_result = supabase.table("faces").select("*").eq("user_id", request.user_id).execute()
-            faces = faces_result.data or []        
+            connections_result = supabase.table("connections").select("*").eq("user_id", request.user_id).execute()
+            faces = connections_result.data or []
+        
+        # Always use sample faces for consistent training experience
         if not faces:
             faces = training_ai.face_generator.get_sample_faces()
+            
         target_face = random.choice(faces)
         exercise_data = training_ai.generate_caricature_exercise(
             target_face, request.difficulty_level, faces
@@ -386,18 +389,16 @@ async def caricature_training(request: TrainingRequest):
 async def spacing_training(request: TrainingRequest):
     """Generate spacing awareness training exercise"""
     try:
+        # Get user's faces from connections table
         faces = []
         if supabase:
-            faces_result = supabase.table("faces").select("*").eq("user_id", request.user_id).execute()
-            faces = faces_result.data or []
+            connections_result = supabase.table("connections").select("*").eq("user_id", request.user_id).execute()
+            faces = connections_result.data or []
         
+        # Always use sample faces for consistent training experience
         if not faces:
-            return TrainingResponse(
-                success=False, 
-                data={"error": "No faces found. Please add some connections first."}, 
-                next_difficulty=1
-            )
-        faces = training_ai.face_generator.get_sample_faces() if not faces else faces
+            faces = training_ai.face_generator.get_sample_faces()
+            
         target_face = random.choice(faces)
         
         # Generate spacing exercise using AI
@@ -429,18 +430,16 @@ async def spacing_training(request: TrainingRequest):
 async def trait_tagging_training(request: TrainingRequest):
     """Generate trait tagging training exercise"""
     try:
+        # Get user's faces from connections table
         faces = []
         if supabase:
-            faces_result = supabase.table("faces").select("*").eq("user_id", request.user_id).execute()
-            faces = faces_result.data or []
+            connections_result = supabase.table("connections").select("*").eq("user_id", request.user_id).execute()
+            faces = connections_result.data or []
         
+        # Always use sample faces for consistent training experience
         if not faces:
-            return TrainingResponse(
-                success=False, 
-                data={"error": "No faces found. Please add some connections first."}, 
-                next_difficulty=1
-            )
-        faces = training_ai.face_generator.get_sample_faces() if not faces else faces
+            faces = training_ai.face_generator.get_sample_faces()
+            
         target_face = random.choice(faces)
         
         # Generate trait identification exercise using AI
@@ -472,12 +471,17 @@ async def trait_tagging_training(request: TrainingRequest):
 async def morph_matching_training(request: TrainingRequest):
     """Generate morph-based matching training exercise"""
     try:
+        # Get user's faces from connections table
         faces = []
         if supabase:
-            faces_result = supabase.table("faces").select("*").eq("user_id", request.user_id).execute()
-            faces = faces_result.data or []
+            connections_result = supabase.table("connections").select("*").eq("user_id", request.user_id).execute()
+            faces = connections_result.data or []
         
-        target_face = random.choice(faces) if faces else None
+        # Always use sample faces for consistent training experience
+        if not faces:
+            faces = training_ai.face_generator.get_sample_faces()
+            
+        target_face = random.choice(faces)
         
         # Generate morph matching exercise using AI
         exercise_data = training_ai.generate_morph_matching_exercise(
@@ -490,7 +494,7 @@ async def morph_matching_training(request: TrainingRequest):
                 data=exercise_data,
                 next_difficulty=request.difficulty_level
             )
-        faces = training_ai.face_generator.get_sample_faces() if not faces else faces
+        
         next_difficulty = training_ai.difficulty_manager.calculate_next_level(
             request.difficulty_level, 0.8, 0
         )

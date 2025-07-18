@@ -296,7 +296,7 @@ export default function LearnScreen() {
               <View style={styles.placeholderContainer}>
                 <Ionicons name="image-outline" size={64} color="#94A3B8" />
                 <Text style={styles.placeholderText}>
-                  Face images will appear here once you add connections
+                  Loading training images...
                 </Text>
               </View>
             )}
@@ -326,7 +326,7 @@ export default function LearnScreen() {
               ))}
               {(!data.options || data.options.length === 0) && (
                 <Text style={styles.noOptionsText}>
-                  Add more connections to enable this exercise
+                  Loading exercise options...
                 </Text>
               )}
             </View>
@@ -398,7 +398,7 @@ export default function LearnScreen() {
               <View style={styles.placeholderContainer}>
                 <Ionicons name="person-outline" size={64} color="#94A3B8" />
                 <Text style={styles.placeholderText}>
-                  Face image will appear here once you add connections
+                  Loading training image...
                 </Text>
               </View>
             )}
