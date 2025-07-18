@@ -343,6 +343,7 @@ export default function ProfileScreen() {
       </SafeAreaView>
     </LinearGradient>
   );
+}
 
 const styles = StyleSheet.create({
   container: {
