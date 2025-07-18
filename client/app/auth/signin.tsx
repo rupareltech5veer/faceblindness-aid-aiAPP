@@ -45,12 +45,21 @@ export default function SignInScreen() {
       
     } catch (error: any) {
       console.error('Signin error:', error);
-      // Only show error alert if sign in actually failed
-      if (error.message) {
-        Alert.alert('Sign In Failed', error.message);
-      } else {
-        Alert.alert('Sign In Failed', 'Failed to sign in. Please check your credentials.');
+      
+      // Handle specific error types with user-friendly messages
+      let errorMessage = 'Failed to sign in. Please try again.';
+      
+      if (error.message?.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+      } else if (error.message?.includes('Email not confirmed')) {
+        errorMessage = 'Please check your email and click the verification link before signing in.';
+      } else if (error.message?.includes('Too many requests')) {
+        errorMessage = 'Too many sign-in attempts. Please wait a moment and try again.';
+      } else if (error.message) {
+        errorMessage = error.message;
       }
+      
+      Alert.alert('Sign In Failed', errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -64,7 +73,7 @@ export default function SignInScreen() {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: 'faceblindness-aid://auth/callback?type=recovery',
+        redirectTo: 'exp://192.168.1.100:8081/--/auth/reset-password',
       });
 
       if (error) throw error;
@@ -76,6 +85,51 @@ export default function SignInScreen() {
       );
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to send reset email.');
+    }
+  };
+
+  const handleSignIn = async () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Missing Information', 'Please enter both email and password.');
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Only navigate on successful sign in (no error thrown)
+      router.replace('/title');
+      
+    } catch (error: any) {
+      console.error('Signin error:', error);
+      
+      // Handle specific error types with user-friendly messages
+      let errorMessage = 'Failed to sign in. Please try again.';
+      
+      if (error.message?.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+      } else if (error.message?.includes('Email not confirmed')) {
+        errorMessage = 'Please check your email and click the verification link before signing in.';
+      } else if (error.message?.includes('Too many requests')) {
+        errorMessage = 'Too many sign-in attempts. Please wait a moment and try again.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      } else {
+        errorMessage = 'Failed to sign in. Please check your credentials.';
+      }
+      
+      Alert.alert('Sign In Failed', errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 

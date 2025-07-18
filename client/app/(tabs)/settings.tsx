@@ -179,36 +179,28 @@ export default function SettingsScreen() {
             <Text style={styles.subtitle}>Customize your app experience</Text>
           </View>
 
-          {/* User Profile */}
-          <View style={styles.profileSection}>
-            <View style={styles.profileCard}>
-              <View style={styles.profileIcon}>
-                <Ionicons name="person-outline" size={32} color="#FFFFFF" />
-              </View>
-              <View style={styles.profileInfo}>
-                <View style={styles.profileNameRow}>
-                  <Ionicons name="star" size={16} color="#F59E0B" />
-                  <Text style={styles.profileName}>
-                    {userProfile?.full_name || 'User'}
-                  </Text>
-                </View>
-                <Text style={styles.profileEmail}>
-                  {userProfile?.user_id ? 'Memora Member' : 'Guest User'}
-                </Text>
-                <View style={styles.membershipBadge}>
-                  <Text style={styles.membershipText}>Premium Member</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-
           {/* Account Settings */}
           <View style={styles.settingsSection}>
             <Text style={styles.sectionTitle}>Account</Text>
             <View style={styles.settingsGroup}>
-              {accountSettings.map((setting, index) => (
+              <TouchableOpacity
+                style={styles.settingItem}
+                onPress={() => router.push('/profile')}
+                accessibilityLabel="Profile Settings"
+              >
+                <View style={[styles.settingIcon, { backgroundColor: '#6366F1' }]}>
+                  <Ionicons name="person-outline" size={20} color="#FFFFFF" />
+                </View>
+                <View style={styles.settingContent}>
+                  <Text style={styles.settingTitle}>Profile Settings</Text>
+                  <Text style={styles.settingDescription}>Edit your profile information</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
+              </TouchableOpacity>
+              
+              {accountSettings.slice(1).map((setting, index) => (
                 <TouchableOpacity
-                  key={`account-${setting.id}-${index}`}
+                  key={`account-${setting.id}-${index + 1}`}
                   style={styles.settingItem}
                   onPress={() => handleSettingPress(setting.id)}
                   accessibilityLabel={setting.title}
@@ -230,41 +222,6 @@ export default function SettingsScreen() {
           <View style={styles.settingsSection}>
             <Text style={styles.sectionTitle}>App Settings</Text>
             <View style={styles.settingsGroup}>
-              {appSettingsConfig.map((setting, index) => (
-                <TouchableOpacity
-                  key={`app-${setting.id}-${index}`}
-                  style={styles.settingItem}
-                  onPress={() => handleSettingPress(setting.id)}
-                  accessibilityLabel={setting.title}
-                >
-                  <View style={[styles.settingIcon, { backgroundColor: setting.color }]}>
-                    <Ionicons name={setting.icon as any} size={20} color="#FFFFFF" />
-                  </View>
-                  <View style={styles.settingContent}>
-                    <Text style={styles.settingTitle}>{setting.title}</Text>
-                    <Text style={styles.settingDescription}>{setting.description}</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
-                </TouchableOpacity>
-              ))}
-              
-              {/* Notifications Toggle */}
-              <View style={styles.settingItem}>
-                <View style={[styles.settingIcon, { backgroundColor: '#F59E0B' }]}>
-                  <Ionicons name="notifications-outline" size={20} color="#FFFFFF" />
-                </View>
-                <View style={styles.settingContent}>
-                  <Text style={styles.settingTitle}>Push Notifications</Text>
-                  <Text style={styles.settingDescription}>Receive app notifications</Text>
-                </View>
-                <Switch
-                  value={appSettings?.notifications_enabled ?? true}
-                  onValueChange={(value) => updateAppSetting('notifications_enabled', value)}
-                  trackColor={{ false: '#E2E8F0', true: '#A5B4FC' }}
-                  thumbColor={appSettings?.notifications_enabled ? '#6366F1' : '#F1F5F9'}
-                />
-              </View>
-
               {/* Dark Mode Toggle */}
               <View style={styles.settingItem}>
                 <View style={[styles.settingIcon, { backgroundColor: '#64748B' }]}>
@@ -279,23 +236,6 @@ export default function SettingsScreen() {
                   onValueChange={(value) => updateAppSetting('dark_mode', value)}
                   trackColor={{ false: '#E2E8F0', true: '#A5B4FC' }}
                   thumbColor={appSettings?.dark_mode ? '#6366F1' : '#F1F5F9'}
-                />
-              </View>
-
-              {/* Sound Toggle */}
-              <View style={styles.settingItem}>
-                <View style={[styles.settingIcon, { backgroundColor: '#EF4444' }]}>
-                  <Ionicons name="volume-high-outline" size={20} color="#FFFFFF" />
-                </View>
-                <View style={styles.settingContent}>
-                  <Text style={styles.settingTitle}>Sound Effects</Text>
-                  <Text style={styles.settingDescription}>App sounds and feedback</Text>
-                </View>
-                <Switch
-                  value={appSettings?.sound_enabled ?? true}
-                  onValueChange={(value) => updateAppSetting('sound_enabled', value)}
-                  trackColor={{ false: '#E2E8F0', true: '#A5B4FC' }}
-                  thumbColor={appSettings?.sound_enabled ? '#6366F1' : '#F1F5F9'}
                 />
               </View>
             </View>
@@ -389,61 +329,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#64748B',
     marginTop: 16,
-  },
-  profileSection: {
-    marginBottom: 32,
-  },
-  profileCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 24,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 24,
-    elevation: 8,
-  },
-  profileIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
-    backgroundColor: '#6366F1',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 20,
-  },
-  profileInfo: {
-    flex: 1,
-  },
-  profileNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  profileName: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1E293B',
-    marginLeft: 8,
-  },
-  profileEmail: {
-    fontSize: 16,
-    color: '#64748B',
-    marginBottom: 12,
-  },
-  membershipBadge: {
-    backgroundColor: '#FEF3C7',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
-  },
-  membershipText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#92400E',
   },
   settingsSection: {
     marginBottom: 32,

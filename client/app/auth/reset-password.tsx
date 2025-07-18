@@ -70,7 +70,7 @@ export default function ResetPasswordScreen() {
       Alert.alert(
         'Password Updated!',
         'Your password has been successfully updated. Please sign in with your new password.',
-        [{ text: 'Continue', onPress: () => router.replace('/auth/signin') }]
+        [{ text: 'Continue', onPress: () => router.replace('/(tabs)/home') }]
       );
       
     } catch (error: any) {

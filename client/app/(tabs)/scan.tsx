@@ -92,7 +92,7 @@ export default function ScanScreen() {
             justifyContent: 'center',
             alignItems: 'center',
             marginBottom: 24,
-            shadowColor: '#6366F1',
+            shadowColor: '#56AB2F',
             shadowOffset: { width: 0, height: 8 },
             shadowOpacity: 0.3,
             shadowRadius: 16,
@@ -115,13 +115,13 @@ export default function ScanScreen() {
               shadowRadius: 4,
               elevation: 2,
             }}>
-              <Ionicons name="sparkles-outline" size={16} color="#A5B4FC" />
+              <Ionicons name="sparkles-outline" size={16} color="#A8E063" />
             </View>
           </View>
           <Text style={{
             fontSize: 32,
             fontWeight: '800',
-            color: '#6366F1',
+            color: '#56AB2F',
             marginBottom: 8,
             textAlign: 'center',
           }}>Face Recognition</Text>
@@ -218,12 +218,12 @@ export default function ScanScreen() {
           {/* Scan Button */}
           <TouchableOpacity
             style={{
-              backgroundColor: '#6366F1',
+              backgroundColor: '#56AB2F',
               paddingVertical: 20,
               borderRadius: 16,
               alignItems: 'center',
               justifyContent: 'center',
-              shadowColor: '#6366F1',
+              shadowColor: '#56AB2F',
               shadowOffset: { width: 0, height: 8 },
               shadowOpacity: 0.3,
               shadowRadius: 16,

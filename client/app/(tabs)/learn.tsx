@@ -323,11 +323,11 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 20,
-    backgroundColor: '#8B5CF6',
+   backgroundColor: '#FF5F6D',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
-    shadowColor: '#8B5CF6',
+   shadowColor: '#FF5F6D',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#8B5CF6',
+    color: '#FF5F6D',
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
   progressPercentage: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#8B5CF6',
+    color: '#FF5F6D',
   },
   progressBar: {
     height: 8,
@@ -401,7 +401,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#FF5F6D',
     borderRadius: 4,
   },
   progressText: {
@@ -409,13 +409,13 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   quickPracticeButton: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#FF5F6D',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 18,
     borderRadius: 16,
-    shadowColor: '#8B5CF6',
+    shadowColor: '#FF5F6D',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 16,

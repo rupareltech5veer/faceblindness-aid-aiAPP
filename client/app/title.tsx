@@ -14,11 +14,30 @@ export default function TitleScreen() {
   useEffect(() => {
     // Auto-dismiss after 3 seconds
     const timer = setTimeout(() => {
-      router.replace('/(tabs)/home');
+      // Check authentication status
+      checkAuthAndNavigate();
     }, 3000);
 
     return () => clearTimeout(timer);
   }, []);
+
+  const checkAuthAndNavigate = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        // User is authenticated - go to main app
+        router.replace('/(tabs)/home');
+      } else {
+        // User not authenticated - go to sign in
+        router.replace('/auth/signin');
+      }
+    } catch (error) {
+      console.error('Error checking auth status:', error);
+      // Default to sign in on error
+      router.replace('/auth/signin');
+    }
+  };
 
   return (
     <LinearGradient

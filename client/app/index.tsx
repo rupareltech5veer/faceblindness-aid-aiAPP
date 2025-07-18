@@ -26,16 +26,7 @@ export default function HomeScreen() {
         return;
       }
 
-      // Check authentication status
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        // Not authenticated - go to login
-        router.replace('/auth/signin');
-        return;
-      }
-
-      // Authenticated user - show title screen
+      // Not first launch - show title screen then navigate to login
       router.replace('/title');
       
     } catch (error) {

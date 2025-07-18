@@ -1,8 +1,34 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { supabase } from '../lib/supabase';
 
-export default function TopNavBar({ userName = 'User', gradientColors = ["#7C3AED", "#6366F1"] }) {
+export default function TopNavBar({ gradientColors = ["#7C3AED", "#6366F1"] }) {
+  const [userName, setUserName] = useState('User');
+
+  useEffect(() => {
+    fetchUserName();
+  }, []);
+
+  const fetchUserName = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('full_name')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profile?.full_name) {
+        setUserName(profile.full_name);
+      }
+    } catch (error) {
+      console.error('Error fetching user name:', error);
+    }
+  };
+
   return (
     <LinearGradient
       colors={gradientColors}

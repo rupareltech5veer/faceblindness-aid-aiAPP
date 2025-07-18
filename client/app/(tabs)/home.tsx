@@ -31,6 +31,8 @@ export default function HomeScreen() {
   const [showFrameModal, setShowFrameModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [selectedFrame, setSelectedFrame] = useState<string>('none');
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     fetchFavorites();
@@ -75,6 +77,21 @@ export default function HomeScreen() {
       setSelectedImage(result.assets[0].uri);
       setShowFrameModal(true);
     }
+  };
+
+  const handleFrameSelect = (frameId: string) => {
+    setSelectedFrame(frameId);
+    setShowPreview(true);
+  };
+
+  const handleApplyFrame = () => {
+    uploadFavorite(selectedFrame);
+    setShowPreview(false);
+  };
+
+  const handleCancelFrame = () => {
+    setShowPreview(false);
+    setSelectedFrame('none');
   };
 
   const uploadFavorite = async (frameStyle: string) => {
@@ -175,12 +192,14 @@ export default function HomeScreen() {
     if (frame.id === 'none') {
       return {
         borderWidth: 0,
+        backgroundColor: 'transparent',
       };
     }
     
     return {
       borderColor: frame.color,
       borderWidth: 4,
+      backgroundColor: 'transparent',
     };
   };
 
@@ -275,33 +294,62 @@ export default function HomeScreen() {
             
             {selectedImage && (
               <View style={styles.previewContainer}>
-                <Image source={{ uri: selectedImage }} style={styles.previewImage} />
+                {showPreview ? (
+                  <View style={[styles.framePreviewContainer, getFrameStyle(selectedFrame)]}>
+                    <Image source={{ uri: selectedImage }} style={styles.previewImage} />
+                  </View>
+                ) : (
+                  <Image source={{ uri: selectedImage }} style={styles.previewImage} />
+                )}
               </View>
             )}
 
-            <ScrollView style={styles.frameOptions} showsVerticalScrollIndicator={false}>
-              {frameStyles.map((frame) => (
+            {!showPreview ? (
+              <ScrollView style={styles.frameOptions} showsVerticalScrollIndicator={false}>
+                {frameStyles.map((frame) => (
+                  <TouchableOpacity
+                    key={frame.id}
+                    style={styles.frameOption}
+                    onPress={() => handleFrameSelect(frame.id)}
+                    disabled={uploading}
+                  >
+                    <View style={[styles.framePreview, { borderColor: frame.color, borderWidth: frame.id === 'none' ? 0 : 3 }]}>
+                      <Text style={styles.frameEmoji}>{frame.preview}</Text>
+                    </View>
+                    <Text style={styles.frameName}>{frame.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            ) : (
+              <View style={styles.previewActions}>
                 <TouchableOpacity
-                  key={frame.id}
-                  style={styles.frameOption}
-                  onPress={() => uploadFavorite(frame.id)}
+                  style={styles.previewCancelButton}
+                  onPress={handleCancelFrame}
                   disabled={uploading}
                 >
-                  <View style={[styles.framePreview, { borderColor: frame.color }]}>
-                    <Text style={styles.frameEmoji}>{frame.preview}</Text>
-                  </View>
-                  <Text style={styles.frameName}>{frame.name}</Text>
+                  <Text style={styles.previewCancelText}>Cancel</Text>
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
+                <TouchableOpacity
+                  style={styles.previewApplyButton}
+                  onPress={handleApplyFrame}
+                  disabled={uploading}
+                >
+                  <Text style={styles.previewApplyText}>
+                    {uploading ? 'Applying...' : 'Apply Frame'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => setShowFrameModal(false)}
-              disabled={uploading}
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
+            {!showPreview && (
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setShowFrameModal(false)}
+                disabled={uploading}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </Modal>
@@ -494,10 +542,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
+  framePreviewContainer: {
+    padding: 8,
+    borderRadius: 12,
+  },
   previewImage: {
     width: 120,
     height: 120,
     borderRadius: 12,
+  },
+  previewActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 24,
+  },
+  previewCancelButton: {
+    flex: 1,
+    backgroundColor: '#F1F5F9',
+    paddingVertical: 16,
+    borderRadius: 12,
+  },
+  previewCancelText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#64748B',
+    textAlign: 'center',
+  },
+  previewApplyButton: {
+    flex: 1,
+    backgroundColor: '#EC4899',
+    paddingVertical: 16,
+    borderRadius: 12,
+  },
+  previewApplyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textAlign: 'center',
   },
   frameOptions: {
     maxHeight: 300,
@@ -519,7 +600,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 16,
     backgroundColor: '#FFFFFF',
-    borderWidth: 3,
   },
   frameEmoji: {
     fontSize: 20,
