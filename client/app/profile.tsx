@@ -203,7 +203,7 @@ export default function ProfileScreen() {
       const blob = await response.blob();
 
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('connections')
+        .from('face-uploads')
         .upload(fileName, blob, {
           contentType: 'image/jpeg',
           upsert: true
@@ -213,7 +213,7 @@ export default function ProfileScreen() {
 
       // Get public URL
       const { data: urlData } = supabase.storage
-        .from('connections')
+        .from('face-uploads')
         .getPublicUrl(fileName);
 
       // Update profile using the same approach as saveProfile
