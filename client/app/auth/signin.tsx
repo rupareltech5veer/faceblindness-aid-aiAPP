@@ -49,12 +49,19 @@ export default function SignInScreen() {
       // Handle specific error types with user-friendly messages
       let errorMessage = 'Failed to sign in. Please try again.';
       
-      if (error.message?.includes('Invalid login credentials')) {
+      if (error.message?.includes('Invalid login credentials') || error.message?.includes('invalid_credentials')) {
         errorMessage = 'Invalid email or password. Please check your credentials and try again.';
       } else if (error.message?.includes('Email not confirmed')) {
         errorMessage = 'Please check your email and click the verification link before signing in.';
       } else if (error.message?.includes('Too many requests')) {
         errorMessage = 'Too many sign-in attempts. Please wait a moment and try again.';
+      } else if (error.name === 'AuthApiError' && error.message) {
+        // Handle other AuthApiError cases
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+        } else {
+          errorMessage = 'Authentication failed. Please try again.';
+        }
       } else if (error.message) {
         errorMessage = error.message;
       }
