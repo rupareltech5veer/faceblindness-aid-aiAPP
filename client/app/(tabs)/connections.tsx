@@ -401,6 +401,7 @@ export default function ConnectionsScreen() {
             />
           )}
         </View>
+        </ScrollView>
 
       {/* Add/Edit Modal */}
       <Modal
