@@ -11,6 +11,8 @@ import {
   Modal,
   TextInput,
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -80,13 +82,16 @@ export default function ConnectionsScreen() {
   };
 
   const pickImage = async () => {
+    console.log('pickImage function called - checking permissions...');
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
     if (status !== 'granted') {
+      console.log('Permission denied for media library');
       Alert.alert('Permission needed', 'Please grant camera roll permissions to upload photos.');
       return;
     }
 
+    console.log('Permission granted, launching image picker...');
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: [ImagePicker.MediaType.Images],
       allowsEditing: true,
@@ -94,8 +99,12 @@ export default function ConnectionsScreen() {
       quality: 0.8,
     });
 
+    console.log('Image picker result:', result);
     if (!result.canceled && result.assets[0]) {
+      console.log('Image selected:', result.assets[0].uri);
       setFormData(prev => ({ ...prev, image: result.assets[0].uri }));
+    } else {
+      console.log('Image picker was canceled or no image selected');
     }
   };
 
@@ -386,15 +395,26 @@ export default function ConnectionsScreen() {
         animationType="slide"
         onRequestClose={() => setShowAddModal(false)}
       >
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
           <View style={styles.modalContent}>
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView 
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={styles.scrollViewContent}
+            >
               <Text style={styles.modalTitle}>
                 {editingConnection ? 'Edit Connection' : 'Add New Connection'}
               </Text>
 
               {/* Image Picker */}
-              <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
+              <TouchableOpacity 
+                style={styles.imagePicker} 
+                onPress={pickImage}
+                activeOpacity={0.7}
+              >
                 {formData.image ? (
                   <Image source={{ uri: formData.image }} style={styles.selectedImage} />
                 ) : (
@@ -414,6 +434,7 @@ export default function ConnectionsScreen() {
                   onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
                   placeholder="Enter person's name"
                   placeholderTextColor="#94A3B8"
+                  returnKeyType="next"
                 />
               </View>
 
@@ -426,20 +447,27 @@ export default function ConnectionsScreen() {
                   onChangeText={(text) => setFormData(prev => ({ ...prev, description: text }))}
                   placeholder="Brief description (e.g., colleague, friend)"
                   placeholderTextColor="#94A3B8"
+                  returnKeyType="next"
                 />
               </View>
 
               {/* Notes Input */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Notes</Text>
+                <Text style={styles.inputHint}>
+                  Personal details, memorable stories, or unique characteristics that help you remember this person
+                </Text>
                 <TextInput
                   style={[styles.textInput, styles.textArea]}
                   value={formData.notes}
                   onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))}
-                  placeholder="Personal notes, memorable details, etc."
+                  placeholder="e.g., 'Loves hiking, has a distinctive laugh, met at Sarah's birthday party'"
                   placeholderTextColor="#94A3B8"
                   multiline
                   numberOfLines={4}
+                  returnKeyType="done"
+                  blurOnSubmit={true}
+                  textAlignVertical="top"
                 />
               </View>
 
@@ -464,7 +492,7 @@ export default function ConnectionsScreen() {
               </View>
             </ScrollView>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
       </SafeAreaView>
     </LinearGradient>
@@ -686,6 +714,9 @@ const styles = StyleSheet.create({
     padding: 24,
     maxHeight: '90%',
   },
+  scrollViewContent: {
+    paddingBottom: 20,
+  },
   modalTitle: {
     fontSize: 24,
     fontWeight: '700',
@@ -726,6 +757,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#374151',
     marginBottom: 8,
+  },
+  inputHint: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 8,
+    fontStyle: 'italic',
+    lineHeight: 18,
   },
   textInput: {
     borderWidth: 1,
