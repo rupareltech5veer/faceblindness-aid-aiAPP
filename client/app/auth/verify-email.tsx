@@ -111,6 +111,7 @@ export default function VerifyEmailScreen() {
       </SafeAreaView>
     </LinearGradient>
   );
+}
 
 const styles = StyleSheet.create({
   container: {
