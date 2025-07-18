@@ -252,6 +252,7 @@ export default function SignUpScreen() {
       </SafeAreaView>
     </LinearGradient>
   );
+}
 
 const styles = StyleSheet.create({
   container: {
