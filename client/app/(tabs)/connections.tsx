@@ -631,7 +631,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   connectionsList: {
-    padding: 24,
+    paddingHorizontal: 24,
+    paddingBottom: 32,
   },
   connectionCard: {
     backgroundColor: '#FFFFFF',

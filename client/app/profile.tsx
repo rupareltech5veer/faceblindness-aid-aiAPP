@@ -150,6 +150,14 @@ export default function ProfileScreen() {
       });
       
       setEditing(false);
+      
+      // Dispatch custom event to update TopNavBar
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('profileUpdated', {
+          detail: { fullName: editedName.trim() }
+        }));
+      }
+      
       Alert.alert('Success!', 'Profile updated successfully.');
     } catch (error) {
       Alert.alert('Error', 'Failed to update profile. Please try again.');

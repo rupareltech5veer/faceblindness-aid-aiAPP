@@ -705,7 +705,7 @@ async def scan_and_identify(request: ScanRequest):
                 stored_face_data.append({
                     "id": connection["id"],
                     "name": connection["name"],
-                    "role": connection.get("description", ""),
+                    "role": connection.get("description", "") or "Connection",
                     "context": connection.get("notes", ""),
                     "traits": connection.get("trait_descriptions", [])
                 })
@@ -757,8 +757,8 @@ async def scan_and_identify(request: ScanRequest):
                 
                 face_data = {
                     "bbox": bbox,
-                    "name": "Unknown",
-                    "role": "Person not identified",
+                    "name": "Unknown Person",
+                    "role": "Not identified",
                     "confidence": float(best_confidence) if best_confidence > 0 else 0.0,
                     "emotion": emotion,
                     "traits": [],

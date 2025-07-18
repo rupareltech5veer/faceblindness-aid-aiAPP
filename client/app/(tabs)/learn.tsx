@@ -155,11 +155,15 @@ export default function LearnScreen() {
 
       const moduleData = await getLearningModuleData(moduleId, user.id, difficultyLevel);
       setCurrentModuleData(moduleData);
+      
+      // Add a small delay to ensure UI updates properly
+      setTimeout(() => {
+        setModuleLoading(false);
+      }, 500);
     } catch (error) {
       console.error('Error loading module:', error);
       Alert.alert('Error', 'Failed to load training module. Please try again.');
       setShowModuleModal(false);
-    } finally {
       setModuleLoading(false);
     }
   };

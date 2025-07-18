@@ -26,6 +26,13 @@ export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [identifiedFaces, setIdentifiedFaces] = useState<ScanResult['faces']>([]);
+  const [scanHistory, setScanHistory] = useState<Array<{
+    id: string;
+    timestamp: Date;
+    photoUri: string;
+    faces: ScanResult['faces'];
+  }>>([]);
+  const [showScanHistory, setShowScanHistory] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [showEmotionOverlay, setShowEmotionOverlay] = useState(true);
   const [showCaricatureOverlay, setShowCaricatureOverlay] = useState(true);
@@ -44,7 +51,7 @@ export default function ScanScreen() {
       }
 
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: [ImagePicker.MediaType.Images],
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
@@ -82,6 +89,15 @@ export default function ScanScreen() {
           
           if (scanResult && scanResult.faces && Array.isArray(scanResult.faces)) {
             setIdentifiedFaces(scanResult.faces);
+            
+            // Add to scan history
+            const newScan = {
+              id: Date.now().toString(),
+              timestamp: new Date(),
+              photoUri: asset.uri,
+              faces: scanResult.faces
+            };
+            setScanHistory(prev => [newScan, ...prev]);
             
             if (scanResult.faces.length === 0) {
               Alert.alert('No Faces Found', 'No faces were detected in the image. Try taking another photo.');
@@ -526,6 +542,85 @@ export default function ScanScreen() {
                       Traits: {face.traits.slice(0, 3).join(', ')}
                     </Text>
                   )
+                ))}
+              </View>
+            )}
+
+            {/* Scan History Toggle */}
+            {scanHistory.length > 0 && (
+              <TouchableOpacity
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 16,
+                  padding: 16,
+                  marginBottom: 20,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 12,
+                  elevation: 4,
+                }}
+                onPress={() => setShowScanHistory(!showScanHistory)}
+              >
+                <Text style={{ fontSize: 16, fontWeight: '600', color: '#1E293B' }}>
+                  {showScanHistory ? 'Hide' : 'Show'} Scan History ({scanHistory.length})
+                </Text>
+                <Ionicons 
+                  name={showScanHistory ? "chevron-up" : "chevron-down"} 
+                  size={20} 
+                  color="#64748B" 
+                />
+              </TouchableOpacity>
+            )}
+
+            {/* Scan History */}
+            {showScanHistory && scanHistory.length > 0 && (
+              <View style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: 16,
+                padding: 20,
+                marginBottom: 20,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.1,
+                shadowRadius: 12,
+                elevation: 4,
+              }}>
+                <Text style={{ fontSize: 18, fontWeight: '700', color: '#1E293B', marginBottom: 16 }}>
+                  Previous Scans
+                </Text>
+                {scanHistory.map((scan, scanIndex) => (
+                  <View key={scan.id} style={{
+                    marginBottom: 16,
+                    paddingBottom: 16,
+                    borderBottomWidth: scanIndex < scanHistory.length - 1 ? 1 : 0,
+                    borderBottomColor: '#F1F5F9'
+                  }}>
+                    <Text style={{ fontSize: 14, color: '#64748B', marginBottom: 8 }}>
+                      {scan.timestamp.toLocaleString()}
+                    </Text>
+                    {scan.faces.map((face, faceIndex) => (
+                      <View key={faceIndex} style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        marginBottom: 4
+                      }}>
+                        <View style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: 3,
+                          backgroundColor: face.confidence > 0.7 ? '#10B981' : '#F59E0B',
+                          marginRight: 8,
+                        }} />
+                        <Text style={{ fontSize: 14, color: '#1E293B', flex: 1 }}>
+                          {face.name} ({Math.round(face.confidence * 100)}%)
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
                 ))}
               </View>
             )}
