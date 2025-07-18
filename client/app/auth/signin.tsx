@@ -44,8 +44,6 @@ export default function SignInScreen() {
       router.replace('/title');
       
     } catch (error: any) {
-      console.error('Signin error:', error);
-      
       // Handle specific error types with user-friendly messages
       let errorMessage = 'Failed to sign in. Please try again.';
       
