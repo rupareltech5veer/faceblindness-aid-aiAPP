@@ -40,7 +40,34 @@ export default function SignInScreen() {
         throw error;
       }
 
-      // Only navigate on successful sign in (no error thrown)
+      // Check if user profile exists, create if not
+      if (data.user) {
+        const { data: existingProfile } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('user_id', data.user.id)
+          .single();
+
+        if (!existingProfile) {
+          // Create profile with user metadata or email-based name
+          const defaultName = data.user.user_metadata?.full_name || 
+                             data.user.email?.split('@')[0] || 
+                             'User';
+          
+          const { error: profileError } = await supabase
+            .from('user_profiles')
+            .insert({
+              user_id: data.user.id,
+              full_name: defaultName,
+            });
+
+          if (profileError) {
+            console.error('Error creating profile:', profileError);
+          }
+        }
+      }
+
+      // Navigate on successful sign in
       router.replace('/title');
       
     } catch (error: any) {

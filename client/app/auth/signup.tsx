@@ -81,11 +81,31 @@ export default function SignUpScreen() {
         throw error;
       }
 
-      if (data.user) {
+      if (data.user && !data.session) {
+        // User needs email verification
         Alert.alert(
           'Verify Your Email',
           'Please check your email and click the verification link to activate your account.',
           [{ text: 'Continue', onPress: () => router.replace('/auth/signin') }]
+        );
+      } else if (data.user && data.session) {
+        // User is immediately signed in (email confirmation disabled)
+        // Create profile immediately
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .insert({
+            user_id: data.user.id,
+            full_name: formData.fullName.trim(),
+          });
+
+        if (profileError) {
+          console.error('Error creating profile:', profileError);
+        }
+
+        Alert.alert(
+          'Account Created!',
+          'Your account has been created successfully.',
+          [{ text: 'Continue', onPress: () => router.replace('/(tabs)/home') }]
         );
       }
       

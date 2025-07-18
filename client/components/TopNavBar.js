@@ -56,26 +56,36 @@ export default function TopNavBar({ gradientColors = ["#7C3AED", "#6366F1"] }) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: profile } = await supabase
+      const { data: profile, error } = await supabase
         .from('user_profiles')
         .select('full_name')
         .eq('user_id', user.id)
         .single();
 
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching profile:', error);
+      }
+
       if (profile?.full_name) {
         setUserName(profile.full_name);
       } else {
-        // If no profile exists, create one with user's email as name
-        const defaultName = user.email?.split('@')[0] || 'User';
+        // If no profile exists, create one with user metadata or email as name
+        const defaultName = user.user_metadata?.full_name || 
+                           user.email?.split('@')[0] || 
+                           'User';
         setUserName(defaultName);
         
         // Create profile in background
-        await supabase
+        const { error: insertError } = await supabase
           .from('user_profiles')
           .upsert({
             user_id: user.id,
             full_name: defaultName,
           });
+
+        if (insertError) {
+          console.error('Error creating profile:', insertError);
+        }
       }
     } catch (error) {
       console.error('Error fetching user name:', error);

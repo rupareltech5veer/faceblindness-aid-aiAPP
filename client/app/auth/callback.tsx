@@ -46,7 +46,9 @@ export default function AuthCallbackScreen() {
               .from('user_profiles')
               .insert({
                 user_id: user.id,
-                full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+                full_name: user.user_metadata?.full_name || 
+                          user.email?.split('@')[0] || 
+                          'User',
               });
 
             if (profileError) {
