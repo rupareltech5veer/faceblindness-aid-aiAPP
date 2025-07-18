@@ -113,8 +113,14 @@ export default function ConnectionsScreen() {
         return;
       }
 
+      let imageUrl = formData.image;
+      let faceEmbedding = null;
+      let facialTraits = {};
+      let traitDescriptions: string[] = [];
+      let landmarkData = {};
+
       if (editingConnection) {
-        // Update existing connection (simplified - without face re-analysis)
+        // Update existing connection
         const { error } = await supabase
           .from('connections')
           .update({
@@ -127,52 +133,105 @@ export default function ConnectionsScreen() {
 
         if (error) throw error;
       } else {
-        // Create new connection with face analysis
-        if (!formData.image || !formData.image.startsWith('file://')) {
+        // Create new connection
+        if (!formData.image) {
           Alert.alert('Missing Image', 'Please select an image for face recognition.');
           return;
         }
 
-        // Prepare form data for backend
-        const formDataToSend = new FormData();
-        formDataToSend.append('user_id', user.id);
-        formDataToSend.append('name', formData.name.trim());
-        formDataToSend.append('description', formData.description.trim());
-        formDataToSend.append('notes', formData.notes.trim());
-        
-        // Add image file
-        const response = await fetch(formData.image);
-        const blob = await response.blob();
-        formDataToSend.append('file', blob, 'connection.jpg');
+        // Upload image to Supabase storage if it's a new image
+        if (formData.image.startsWith('file://')) {
+          const timestamp = Date.now();
+          const fileName = `${user.id}/connection_${timestamp}.jpg`;
 
-        // Send to backend for face analysis
-        const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:8000';
-        const apiResponse = await fetch(`${backendUrl}/connections/add`, {
-          method: 'POST',
-          body: formDataToSend,
-        });
+          const response = await fetch(formData.image);
+          const blob = await response.blob();
 
-        if (!apiResponse.ok) {
-          throw new Error('Failed to process face recognition');
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('connections')
+            .upload(fileName, blob, {
+              contentType: 'image/jpeg',
+            });
+
+          if (uploadError) throw uploadError;
+
+          // Get public URL
+          const { data: urlData } = supabase.storage
+            .from('connections')
+            .getPublicUrl(fileName);
+
+          imageUrl = urlData.publicUrl;
+
+          // Try to get face analysis from backend
+          try {
+            const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+            
+            // Prepare form data for backend analysis
+            const formDataToSend = new FormData();
+            formDataToSend.append('user_id', user.id);
+            formDataToSend.append('name', formData.name.trim());
+            formDataToSend.append('role', formData.description.trim());
+            formDataToSend.append('context', formData.notes.trim());
+            formDataToSend.append('file', blob, 'connection.jpg');
+
+            const apiResponse = await fetch(`${backendUrl}/connections/add`, {
+              method: 'POST',
+              body: formDataToSend,
+            });
+
+            if (apiResponse.ok) {
+              const result = await apiResponse.json();
+              if (result.success && result.data) {
+                faceEmbedding = result.data.face_embedding || null;
+                facialTraits = result.data.facial_traits || {};
+                traitDescriptions = result.data.trait_descriptions || [];
+                landmarkData = result.data.landmark_data || {};
+              }
+            }
+          } catch (backendError) {
+            console.log('Backend analysis failed, continuing without AI features:', backendError);
+            // Continue without AI analysis - user can still save the connection
+          }
         }
 
-        const result = await apiResponse.json();
-        
-        if (result.traits && result.traits.length > 0) {
+        // Save to database
+        const { error: dbError } = await supabase
+          .from('connections')
+          .insert({
+            user_id: user.id,
+            name: formData.name.trim(),
+            image_url: imageUrl,
+            description: formData.description.trim() || null,
+            notes: formData.notes.trim() || null,
+            face_embedding: faceEmbedding,
+            facial_traits: facialTraits,
+            trait_descriptions: traitDescriptions,
+            landmark_data: landmarkData,
+          });
+
+        if (dbError) throw dbError;
+
+        // Show success message with traits if available
+        if (traitDescriptions.length > 0) {
           Alert.alert(
-            'Face Analysis Complete!', 
-            `Detected traits: ${result.traits.join(', ')}`,
+            'Connection Added!', 
+            `Face analysis complete. Detected traits: ${traitDescriptions.slice(0, 3).join(', ')}`,
             [{ text: 'OK' }]
           );
+        } else {
+          Alert.alert('Connection Added!', 'Person added to your connections successfully.');
         }
       }
 
       setShowAddModal(false);
       resetForm();
       fetchConnections();
-      
-      Alert.alert('Success!', `Connection ${editingConnection ? 'updated' : 'added'} successfully.`);
+
+      if (editingConnection) {
+        Alert.alert('Success!', 'Connection updated successfully.');
+      }
     } catch (error) {
+      console.error('Error saving connection:', error);
       Alert.alert('Save failed', 'There was an error saving the connection. Please try again.');
     } finally {
       setUploading(false);

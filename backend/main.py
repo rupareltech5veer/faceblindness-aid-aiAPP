@@ -340,6 +340,75 @@ async def add_face(
         logger.error(f"Error adding face: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/connections/add")
+async def add_connection(
+    user_id: str = Form(...),
+    name: str = Form(...),
+    role: str = Form(""),
+    context: str = Form(""),
+    file: UploadFile = File(...)
+):
+    """Add a new connection with face analysis"""
+    try:
+        # Read and process image
+        image_data = await file.read()
+        image = cv2.imdecode(np.frombuffer(image_data, np.uint8), cv2.IMREAD_COLOR)
+        
+        if image is None:
+            raise HTTPException(status_code=400, detail="Invalid image format")
+        
+        # Extract face embedding
+        embedding = extract_face_embedding(image)
+        if not embedding:
+            # Still allow connection creation without face embedding
+            embedding = None
+        
+        # Extract facial landmarks
+        landmarks = extract_facial_landmarks(image)
+        caricature_highlights = calculate_caricature_highlights(landmarks) if landmarks else {}
+        
+        # Generate traits using Claude or fallback
+        image_b64 = encode_image_to_base64(image)
+        traits = generate_traits_with_claude(image_b64, landmarks)
+        
+        # Analyze facial traits from landmarks
+        facial_traits = {}
+        if landmarks:
+            try:
+                # Use the FaceRecognitionAI class if available
+                from face_recognition_ai import FacialLandmarkAnalyzer
+                analyzer = FacialLandmarkAnalyzer()
+                facial_traits = analyzer.analyze_facial_proportions(landmarks)
+            except:
+                # Fallback to basic analysis
+                facial_traits = {"basic_analysis": True}
+        
+        return {
+            "success": True,
+            "message": "Connection processed successfully",
+            "data": {
+                "face_embedding": embedding,
+                "facial_traits": facial_traits,
+                "trait_descriptions": traits,
+                "landmark_data": landmarks,
+                "caricature_highlights": caricature_highlights
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error processing connection: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "data": {
+                "face_embedding": None,
+                "facial_traits": {},
+                "trait_descriptions": [],
+                "landmark_data": {},
+                "caricature_highlights": {}
+            }
+        }
+
 @app.post("/learn/caricature")
 async def caricature_training(request: TrainingRequest):
     """Generate caricature training exercise"""
