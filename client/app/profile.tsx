@@ -194,6 +194,23 @@ export default function ProfileScreen() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // Create avatars bucket if it doesn't exist
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const avatarBucket = buckets?.find(bucket => bucket.name === 'avatars');
+      
+      if (!avatarBucket) {
+        const { error: bucketError } = await supabase.storage.createBucket('avatars', {
+          public: true,
+          allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+          fileSizeLimit: 5242880 // 5MB
+        });
+        
+        if (bucketError) {
+          console.error('Error creating avatars bucket:', bucketError);
+          throw new Error('Failed to create storage bucket');
+        }
+      }
+
       // Upload image to storage
       const timestamp = Date.now();
       const fileName = `avatars/${user.id}/avatar_${timestamp}.jpg`;
@@ -205,6 +222,7 @@ export default function ProfileScreen() {
         .from('avatars')
         .upload(fileName, blob, {
           contentType: 'image/jpeg',
+          upsert: true
         });
 
       if (uploadError) throw uploadError;
@@ -214,7 +232,7 @@ export default function ProfileScreen() {
         .from('avatars')
         .getPublicUrl(fileName);
 
-      // Update profile
+      // Update profile using the same approach as saveProfile
       const { error: updateError } = await supabase
         .from('user_profiles')
         .update({
@@ -223,12 +241,24 @@ export default function ProfileScreen() {
         })
         .eq('user_id', user.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Error updating profile with avatar:', updateError);
+        throw new Error('Failed to update profile with new avatar');
+      }
 
-      fetchUserProfile();
+      // Update local state directly instead of fetching
+      if (userProfile) {
+        setUserProfile({
+          ...userProfile,
+          avatar_url: urlData.publicUrl,
+          updated_at: new Date().toISOString(),
+        });
+      }
+      
       Alert.alert('Success!', 'Profile photo updated successfully.');
     } catch (error) {
-      Alert.alert('Error', 'Failed to update profile photo. Please try again.');
+      console.error('Profile photo update error:', error);
+      Alert.alert('Error', `Failed to update profile photo: ${error.message || 'Please try again.'}`);
     } finally {
       setUploading(false);
     }
