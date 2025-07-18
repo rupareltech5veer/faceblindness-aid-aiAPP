@@ -194,23 +194,6 @@ export default function ProfileScreen() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Create avatars bucket if it doesn't exist
-      const { data: buckets } = await supabase.storage.listBuckets();
-      const avatarBucket = buckets?.find(bucket => bucket.name === 'avatars');
-      
-      if (!avatarBucket) {
-        const { error: bucketError } = await supabase.storage.createBucket('avatars', {
-          public: true,
-          allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
-          fileSizeLimit: 5242880 // 5MB
-        });
-        
-        if (bucketError) {
-          console.error('Error creating avatars bucket:', bucketError);
-          throw new Error('Failed to create storage bucket');
-        }
-      }
-
       // Upload image to storage
       const timestamp = Date.now();
       const fileName = `avatars/${user.id}/avatar_${timestamp}.jpg`;
