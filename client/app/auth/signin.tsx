@@ -62,8 +62,8 @@ export default function SignInScreen() {
         } else {
           errorMessage = 'Authentication failed. Please try again.';
         }
-      } else if (error.message) {
-        errorMessage = error.message;
+      } else {
+        errorMessage = 'Authentication failed. Please try again.';
       }
       
       Alert.alert('Sign In Failed', errorMessage);
