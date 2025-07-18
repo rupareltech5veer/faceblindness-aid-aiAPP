@@ -507,6 +507,7 @@ export default function ConnectionsScreen() {
       </SafeAreaView>
     </LinearGradient>
   );
+}
 
 const styles = StyleSheet.create({
   container: {
