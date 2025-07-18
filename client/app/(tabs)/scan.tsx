@@ -489,7 +489,7 @@ export default function ScanScreen() {
                     }} />
                     <View style={{ flex: 1 }}>
                       <Text style={{ fontSize: 16, fontWeight: '600', color: '#1E293B' }}>
-                  backgroundColor: face.name === 'Unknown' ? '#EF4444' : face.confidence > 0.7 ? '#10B981' : '#F59E0B',
+                        {face.name}
                       </Text>
                       {face.role && (
                         <Text style={{ fontSize: 14, color: '#64748B' }}>
@@ -501,14 +501,14 @@ export default function ScanScreen() {
                       {Math.round(face.confidence * 100)}%
                     </Text>
                   </View>
-                  {face.name !== 'Unknown' && face.traits.length > 0 && (
-                    <Text style={{ fontSize: 12, color: '#F59E0B', fontStyle: 'italic' }}>
+                ))}
+                {identifiedFaces.map((face, index) => (
+                  face.name !== 'Unknown' && face.traits.length > 0 && (
+                    <Text key={index} style={{ fontSize: 12, color: '#F59E0B', fontStyle: 'italic' }}>
                       Traits: {face.traits.slice(0, 3).join(', ')}
-                {face.name !== 'Unknown' && (
-                  <Text style={{ fontSize: 14, color: '#64748B' }}>
-                    {Math.round(face.confidence * 100)}%
-                  </Text>
-                )}
+                    </Text>
+                  )
+                ))}
               </View>
             )}
           </View>
