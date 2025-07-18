@@ -135,13 +135,22 @@ export default function ProfileScreen() {
 
       if (error) throw error;
 
-      setEditing(false);
-      // Update the local state immediately
-      setUserProfile(prev => prev ? { 
-        ...prev, 
+      // Update the local state immediately with the new data
+      const updatedProfile = userProfile ? {
+        ...userProfile,
         full_name: editedName.trim(),
         updated_at: new Date().toISOString()
-      } : null);
+      } : {
+        id: '',
+        user_id: user.id,
+        full_name: editedName.trim(),
+        avatar_url: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      setUserProfile(updatedProfile);
+      setEditing(false);
       Alert.alert('Success!', 'Profile updated successfully.');
     } catch (error) {
       Alert.alert('Error', 'Failed to update profile. Please try again.');
