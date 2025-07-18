@@ -196,7 +196,7 @@ export default function LearnScreen() {
   };
 
   const renderModuleExercise = () => {
-    if (!currentModuleData || moduleLoading) {
+    if (!currentModuleData || moduleLoading || !currentModuleData.data) {
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#6366F1" />
