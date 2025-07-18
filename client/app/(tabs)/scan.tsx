@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import {
   View,
@@ -11,6 +11,7 @@ import {
   ScrollView,
   Switch,
   ActivityIndicator,
+  StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -18,6 +19,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import { supabase } from '../../lib/supabase';
 import { scanAndIdentify, ScanResult } from '../../lib/api';
+import { Connection } from '../../lib/supabase';
 
 // Define MediaType locally to avoid undefined issues
 const MediaType = {
@@ -45,8 +47,42 @@ export default function ScanScreen() {
   const [showCaricatureOverlay, setShowCaricatureOverlay] = useState(true);
   const [imageOriginalDimensions, setImageOriginalDimensions] = useState({ width: 0, height: 0 });
   const [displayDimensions, setDisplayDimensions] = useState({ width: 0, height: 0 });
+  const [connections, setConnections] = useState<Connection[]>([]);
+  const [connectionsLoading, setConnectionsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchConnections();
+  }, []);
+
+  const fetchConnections = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('connections')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      setConnections(data || []);
+    } catch (error) {
+      console.error('Error fetching connections:', error);
+    } finally {
+      setConnectionsLoading(false);
+    }
+  };
 
   const handleCapture = async () => {
+    if (connections.length === 0) {
+      Alert.alert(
+        'No Connections Found',
+        'Please add at least one connection to use this feature. Go to the Connections tab to add your first connection.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     setIsScanning(true);
     try {
       const { status: mediaLibraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -156,6 +192,8 @@ export default function ScanScreen() {
     const { width: imgWidth, height: imgHeight } = event.nativeEvent.layout;
     setDisplayDimensions({ width: imgWidth, height: imgHeight });
   };
+
+  const canUseScanFeature = connections.length > 0;
 
   const renderFaceOverlays = () => {
     if (!photoUri || identifiedFaces.length === 0 || displayDimensions.width === 0) {
@@ -304,6 +342,41 @@ export default function ScanScreen() {
               lineHeight: 24,
             }}>Capture a photo to identify people and emotions</Text>
           </View>
+
+          {/* Connection Status */}
+          {!connectionsLoading && (
+            <View style={styles.statusContainer}>
+              <View style={[
+                styles.statusCard,
+                canUseScanFeature ? styles.statusCardEnabled : styles.statusCardDisabled
+              ]}>
+                <View style={[
+                  styles.statusIcon,
+                  canUseScanFeature ? styles.statusIconEnabled : styles.statusIconDisabled
+                ]}>
+                  <Ionicons 
+                    name={canUseScanFeature ? "checkmark-circle" : "alert-circle"} 
+                    size={20} 
+                    color={canUseScanFeature ? "#10B981" : "#F59E0B"} 
+                  />
+                </View>
+                <View style={styles.statusContent}>
+                  <Text style={[
+                    styles.statusTitle,
+                    canUseScanFeature ? styles.statusTitleEnabled : styles.statusTitleDisabled
+                  ]}>
+                    {canUseScanFeature ? 'Ready to Scan' : 'Connections Required'}
+                  </Text>
+                  <Text style={styles.statusDescription}>
+                    {canUseScanFeature 
+                      ? `${connections.length} connection${connections.length !== 1 ? 's' : ''} available for recognition`
+                      : 'Please add at least one connection to use this feature'
+                    }
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
 
           {/* Controls */}
           <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
@@ -473,10 +546,10 @@ export default function ScanScreen() {
                     shadowOpacity: 0.3,
                     shadowRadius: 16,
                     elevation: 8,
-                    opacity: isScanning || !permission?.granted ? 0.7 : 1,
+                    opacity: isScanning || !permission?.granted || !canUseScanFeature ? 0.7 : 1,
                   }}
                   onPress={handleCapture}
-                  disabled={isScanning || !permission?.granted}
+                  disabled={isScanning || !permission?.granted || !canUseScanFeature}
                 >
                   {isScanning ? (
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -489,7 +562,7 @@ export default function ScanScreen() {
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                       <Ionicons name="camera" size={24} color="#FFFFFF" />
                       <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: '600', marginLeft: 8 }}>
-                        Capture & Scan
+                        {canUseScanFeature ? 'Capture & Scan' : 'Add Connections First'}
                       </Text>
                     </View>
                   )}
@@ -637,3 +710,64 @@ export default function ScanScreen() {
     </LinearGradient>
   );
 }
+
+const styles = StyleSheet.create({
+  statusContainer: {
+    paddingHorizontal: 24,
+    marginBottom: 20,
+  },
+  statusCard: {
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  statusCardEnabled: {
+    backgroundColor: '#F0FDF4',
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+  },
+  statusCardDisabled: {
+    backgroundColor: '#FFFBEB',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  statusIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  statusIconEnabled: {
+    backgroundColor: '#DCFCE7',
+  },
+  statusIconDisabled: {
+    backgroundColor: '#FEF3C7',
+  },
+  statusContent: {
+    flex: 1,
+  },
+  statusTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  statusTitleEnabled: {
+    color: '#065F46',
+  },
+  statusTitleDisabled: {
+    color: '#92400E',
+  },
+  statusDescription: {
+    fontSize: 14,
+    color: '#64748B',
+    lineHeight: 18,
+  },
+});
