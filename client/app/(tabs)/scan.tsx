@@ -301,7 +301,7 @@ export default function ScanScreen() {
               shadowRadius: 16,
               elevation: 8,
             }}>
-              <Ionicons name="camera-outline" size={32} color="#FFFFFF" />
+              <Ionicons name="camera-outline" size={32} color="#64748B" />
               <View style={{
                 position: 'absolute',
                 top: -8,
@@ -309,7 +309,7 @@ export default function ScanScreen() {
                 width: 32,
                 height: 32,
                 borderRadius: 16,
-                backgroundColor: '#64748B',
+                backgroundColor: '#FFFFFF',
                 justifyContent: 'center',
                 alignItems: 'center',
                 shadowColor: '#000',
