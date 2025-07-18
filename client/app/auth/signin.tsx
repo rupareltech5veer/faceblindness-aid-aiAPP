@@ -88,51 +88,6 @@ export default function SignInScreen() {
     }
   };
 
-  const handleSignIn = async () => {
-    if (!email.trim() || !password.trim()) {
-      Alert.alert('Missing Information', 'Please enter both email and password.');
-      return;
-    }
-
-    setIsLoading(true);
-    
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password: password,
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      // Only navigate on successful sign in (no error thrown)
-      router.replace('/title');
-      
-    } catch (error: any) {
-      console.error('Signin error:', error);
-      
-      // Handle specific error types with user-friendly messages
-      let errorMessage = 'Failed to sign in. Please try again.';
-      
-      if (error.message?.includes('Invalid login credentials')) {
-        errorMessage = 'Invalid email or password. Please check your credentials and try again.';
-      } else if (error.message?.includes('Email not confirmed')) {
-        errorMessage = 'Please check your email and click the verification link before signing in.';
-      } else if (error.message?.includes('Too many requests')) {
-        errorMessage = 'Too many sign-in attempts. Please wait a moment and try again.';
-      } else if (error.message) {
-        errorMessage = error.message;
-      } else {
-        errorMessage = 'Failed to sign in. Please check your credentials.';
-      }
-      
-      Alert.alert('Sign In Failed', errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <LinearGradient
       colors={['#F8FAFC', '#E2E8F0']}
