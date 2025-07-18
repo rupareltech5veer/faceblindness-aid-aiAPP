@@ -21,9 +21,9 @@ import { supabase, Connection } from '../../lib/supabase';
 
 // Define MediaType locally to avoid undefined issues
 const MediaType = {
-  Images: 'Images' as const,
-  Videos: 'Videos' as const,
-  All: 'All' as const,
+  Images: 'images' as const,
+  Videos: 'videos' as const,
+  All: 'all' as const,
 };
 
 export default function ConnectionsScreen() {
