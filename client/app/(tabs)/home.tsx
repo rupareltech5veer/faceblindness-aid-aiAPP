@@ -382,7 +382,6 @@ export default function HomeScreen() {
       </Modal>
     </LinearGradient>
   );
-}
 
 const styles = StyleSheet.create({
   container: {

@@ -202,7 +202,6 @@ export default function SignInScreen() {
       </SafeAreaView>
     </LinearGradient>
   );
-}
 
 const styles = StyleSheet.create({
   container: {

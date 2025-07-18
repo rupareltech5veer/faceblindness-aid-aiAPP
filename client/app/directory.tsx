@@ -158,7 +158,6 @@ export default function DirectoryScreen() {
       />
     </SafeAreaView>
   );
-}
 
 const styles = StyleSheet.create({
   container: {

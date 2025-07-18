@@ -183,7 +183,6 @@ export default function ResetPasswordScreen() {
       </SafeAreaView>
     </LinearGradient>
   );
-}
 
 const styles = StyleSheet.create({
   container: {

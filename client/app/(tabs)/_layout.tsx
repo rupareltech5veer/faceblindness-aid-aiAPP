@@ -179,4 +179,3 @@ export default function TabsLayout() {
       </Tabs>
     </View>
   );
-}

@@ -289,7 +289,6 @@ export default function SettingsScreen() {
       </SafeAreaView>
     </LinearGradient>
   );
-}
 
 const styles = StyleSheet.create({
   container: {

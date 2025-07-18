@@ -81,7 +81,6 @@ export default function TitleScreen() {
       </SafeAreaView>
     </LinearGradient>
   );
-}
 
 const styles = StyleSheet.create({
   container: {
