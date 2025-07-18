@@ -309,7 +309,7 @@ export default function ScanScreen() {
                 width: 32,
                 height: 32,
                 borderRadius: 16,
-                backgroundColor: '#FFFFFF',
+                backgroundColor: '#64748B',
                 justifyContent: 'center',
                 alignItems: 'center',
                 shadowColor: '#000',
