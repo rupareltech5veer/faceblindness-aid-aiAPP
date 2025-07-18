@@ -196,13 +196,13 @@ export default function ProfileScreen() {
 
       // Upload image to storage
       const timestamp = Date.now();
-      const fileName = `avatars/${user.id}/avatar_${timestamp}.jpg`;
+      const fileName = `${user.id}/avatar_${timestamp}.jpg`;
 
       const response = await fetch(imageUri);
       const blob = await response.blob();
 
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('avatars')
+        .from('connections')
         .upload(fileName, blob, {
           contentType: 'image/jpeg',
           upsert: true
@@ -212,7 +212,7 @@ export default function ProfileScreen() {
 
       // Get public URL
       const { data: urlData } = supabase.storage
-        .from('avatars')
+        .from('connections')
         .getPublicUrl(fileName);
 
       // Update profile using the same approach as saveProfile
