@@ -7,41 +7,45 @@ import {
   SafeAreaView,
   ScrollView,
   Alert,
+  Modal,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase, LearningProgress } from '../../lib/supabase';
+import { getLearningModuleData, updateLearningProgress, LearningModuleData } from '../../lib/api';
 
 const learningModules = [
   {
-    id: 'memory-training',
-    title: 'Memory Training',
-    description: 'Practice remembering faces with guided exercises',
-    icon: 'book-outline',
+    id: 'caricature',
+    title: 'Caricature Training',
+    description: 'Learn distinctive facial features through AI-enhanced caricatures',
+    icon: 'brush-outline',
     color: '#6366F1',
-    totalLessons: 8,
+    totalLessons: 10,
   },
   {
-    id: 'face-quiz',
-    title: 'Face Recognition Quiz',
-    description: 'Test your ability to identify familiar faces',
-    icon: 'telescope-outline',
+    id: 'spacing',
+    title: 'Spacing Awareness',
+    description: 'Practice recognizing faces with subtle geometric variations',
+    icon: 'resize-outline',
     color: '#10B981',
     totalLessons: 12,
   },
   {
-    id: 'facial-features',
-    title: 'Facial Features Focus',
-    description: 'Learn to identify unique facial characteristics',
+    id: 'trait-tagging',
+    title: 'Trait Identification',
+    description: 'AI-assisted facial trait recognition and memory reinforcement',
     icon: 'eye-outline',
     color: '#8B5CF6',
-    totalLessons: 10,
+    totalLessons: 8,
   },
   {
-    id: 'practice-sessions',
-    title: 'Daily Practice',
-    description: 'Regular exercises to strengthen recognition skills',
-    icon: 'fitness-outline',
+    id: 'morph-matching',
+    title: 'Morph Matching',
+    description: 'Advanced face recognition through progressive morphing',
+    icon: 'swap-horizontal-outline',
     color: '#F97316',
     totalLessons: 15,
   },
@@ -77,6 +81,13 @@ const achievements = [
 export default function LearnScreen() {
   const [learningProgress, setLearningProgress] = useState<LearningProgress[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showModuleModal, setShowModuleModal] = useState(false);
+  const [currentModuleData, setCurrentModuleData] = useState<LearningModuleData | null>(null);
+  const [currentModule, setCurrentModule] = useState<string>('');
+  const [moduleLoading, setModuleLoading] = useState(false);
+  const [exerciseStep, setExerciseStep] = useState(0);
+  const [userAnswer, setUserAnswer] = useState<number | null>(null);
+  const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
     fetchLearningProgress();
@@ -95,6 +106,7 @@ export default function LearnScreen() {
       if (error) throw error;
       setLearningProgress(data || []);
     } catch (error) {
+      console.error('Error fetching learning progress:', error);
     } finally {
       setLoading(false);
     }
@@ -102,44 +114,222 @@ export default function LearnScreen() {
 
   const getModuleProgress = (moduleId: string) => {
     const progress = learningProgress.find(p => p.module_id === moduleId);
+    const module = learningModules.find(m => m.id === moduleId);
     return progress || {
       progress_percentage: 0,
       completed_lessons: 0,
-      total_lessons: learningModules.find(m => m.id === moduleId)?.totalLessons || 0,
+      total_lessons: module?.totalLessons || 0,
     };
   };
 
   const handleModulePress = async (moduleId: string) => {
+    setCurrentModule(moduleId);
+    setModuleLoading(true);
+    setShowModuleModal(true);
+    setExerciseStep(0);
+    setUserAnswer(null);
+    setShowResults(false);
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Update last accessed time
-      const { error } = await supabase
-        .from('learning_progress')
-        .upsert({
-          user_id: user.id,
-          module_id: moduleId,
-          last_accessed: new Date().toISOString(),
-        });
+      const progress = getModuleProgress(moduleId);
+      const difficultyLevel = Math.max(1, Math.floor(progress.progress_percentage / 20) + 1);
 
-      if (error) throw error;
-
-      Alert.alert(
-        'Learning Module',
-        'Learning modules will be fully implemented in the next update.',
-        [{ text: 'OK' }]
-      );
+      const moduleData = await getLearningModuleData(moduleId, user.id, difficultyLevel);
+      setCurrentModuleData(moduleData);
     } catch (error) {
+      console.error('Error loading module:', error);
+      Alert.alert('Error', 'Failed to load training module. Please try again.');
+      setShowModuleModal(false);
+    } finally {
+      setModuleLoading(false);
     }
   };
 
-  const handleQuickPractice = () => {
-    Alert.alert(
-      'Quick Practice',
-      'Practice session will be available in the next update.',
-      [{ text: 'OK' }]
-    );
+  const handleAnswerSelect = (answerIndex: number) => {
+    setUserAnswer(answerIndex);
+  };
+
+  const handleSubmitAnswer = async () => {
+    if (!currentModuleData || userAnswer === null) return;
+
+    const isCorrect = userAnswer === currentModuleData.data.correct_index;
+    const accuracy = isCorrect ? 1.0 : 0.0;
+
+    setShowResults(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // For demo purposes, we'll use a mock face_id
+      // In a real implementation, this would come from the module data
+      await updateLearningProgress(
+        user.id,
+        'mock-face-id',
+        currentModule,
+        accuracy,
+        currentModuleData.next_difficulty
+      );
+
+      // Update local progress
+      fetchLearningProgress();
+    } catch (error) {
+      console.error('Error updating progress:', error);
+    }
+  };
+
+  const handleNextExercise = () => {
+    setShowModuleModal(false);
+    setCurrentModuleData(null);
+    setExerciseStep(0);
+    setUserAnswer(null);
+    setShowResults(false);
+  };
+
+  const handleQuickPractice = async () => {
+    // Start with a random module for quick practice
+    const randomModule = learningModules[Math.floor(Math.random() * learningModules.length)];
+    handleModulePress(randomModule.id);
+  };
+
+  const renderModuleExercise = () => {
+    if (!currentModuleData || moduleLoading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#6366F1" />
+          <Text style={styles.loadingText}>Loading exercise...</Text>
+        </View>
+      );
+    }
+
+    const { data } = currentModuleData;
+
+    switch (currentModule) {
+      case 'caricature':
+        return (
+          <View style={styles.exerciseContainer}>
+            <Text style={styles.exerciseTitle}>Caricature Training</Text>
+            <Text style={styles.exerciseDescription}>
+              Study the highlighted features of this person
+            </Text>
+            
+            {data.target_face && (
+              <Image 
+                source={{ uri: data.target_face }} 
+                style={styles.exerciseImage}
+                resizeMode="contain"
+              />
+            )}
+            
+            {data.traits && (
+              <View style={styles.traitsContainer}>
+                <Text style={styles.traitsTitle}>Key Features:</Text>
+                {data.traits.map((trait, index) => (
+                  <Text key={index} style={styles.traitItem}>• {trait}</Text>
+                ))}
+              </View>
+            )}
+          </View>
+        );
+
+      case 'spacing':
+        return (
+          <View style={styles.exerciseContainer}>
+            <Text style={styles.exerciseTitle}>Spacing Recognition</Text>
+            <Text style={styles.exerciseDescription}>
+              Which face matches the target? Look carefully at facial proportions.
+            </Text>
+            
+            {data.options && Array.isArray(data.options) && (
+              <View style={styles.optionsContainer}>
+                {data.options.map((option, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.optionButton,
+                      userAnswer === index && styles.selectedOption
+                    ]}
+                    onPress={() => handleAnswerSelect(index)}
+                    disabled={showResults}
+                  >
+                    <Text style={styles.optionText}>Option {index + 1}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+        );
+
+      case 'trait-tagging':
+        return (
+          <View style={styles.exerciseContainer}>
+            <Text style={styles.exerciseTitle}>Trait Identification</Text>
+            <Text style={styles.exerciseDescription}>
+              What distinctive features do you notice in this face?
+            </Text>
+            
+            {data.suggested_traits && (
+              <View style={styles.traitsContainer}>
+                <Text style={styles.traitsTitle}>AI Suggested Traits:</Text>
+                {data.suggested_traits.map((trait, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.traitButton,
+                      userAnswer === index && styles.selectedTrait
+                    ]}
+                    onPress={() => handleAnswerSelect(index)}
+                    disabled={showResults}
+                  >
+                    <Text style={styles.traitButtonText}>{trait}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+        );
+
+      case 'morph-matching':
+        return (
+          <View style={styles.exerciseContainer}>
+            <Text style={styles.exerciseTitle}>Morph Matching</Text>
+            <Text style={styles.exerciseDescription}>
+              This face is {data.morph_percentage}% morphed. Who is the primary person?
+            </Text>
+            
+            {data.options && (
+              <View style={styles.optionsContainer}>
+                {data.options.map((option, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.optionButton,
+                      userAnswer === index && styles.selectedOption
+                    ]}
+                    onPress={() => handleAnswerSelect(index)}
+                    disabled={showResults}
+                  >
+                    <Text style={styles.optionText}>{option}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+        );
+
+      default:
+        return (
+          <View style={styles.exerciseContainer}>
+            <Text style={styles.exerciseTitle}>Training Module</Text>
+            <Text style={styles.exerciseDescription}>
+              This training module is being prepared...
+            </Text>
+          </View>
+        );
+    }
   };
 
   return (
@@ -163,9 +353,9 @@ export default function LearnScreen() {
                 <Ionicons name="sparkles-outline" size={16} color="#A78BFA" />
               </View>
             </View>
-            <Text style={styles.title}>Learning Center</Text>
+            <Text style={styles.title}>AI Learning Center</Text>
             <Text style={styles.subtitle}>
-              Improve your face recognition skills with interactive exercises
+              Improve face recognition with personalized AI training
             </Text>
           </View>
 
@@ -195,14 +385,14 @@ export default function LearnScreen() {
               onPress={handleQuickPractice}
               accessibilityLabel="Start quick practice session"
             >
-              <Ionicons name="play-circle-outline" size={24} color="#FFFFFF" />
-              <Text style={styles.quickPracticeText}>Quick Practice</Text>
+              <Ionicons name="flash-outline" size={24} color="#FFFFFF" />
+              <Text style={styles.quickPracticeText}>Quick AI Practice</Text>
             </TouchableOpacity>
           </View>
 
           {/* Learning Modules */}
           <View style={styles.modulesSection}>
-            <Text style={styles.sectionTitle}>Learning Modules</Text>
+            <Text style={styles.sectionTitle}>AI Training Modules</Text>
             {learningModules.map((module) => {
               const progress = getModuleProgress(module.id);
               return (
@@ -295,6 +485,69 @@ export default function LearnScreen() {
             </View>
           </View>
         </ScrollView>
+
+        {/* Training Module Modal */}
+        <Modal
+          visible={showModuleModal}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowModuleModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>AI Training Exercise</Text>
+                <TouchableOpacity
+                  onPress={() => setShowModuleModal(false)}
+                  style={styles.closeButton}
+                >
+                  <Ionicons name="close" size={24} color="#64748B" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+                {renderModuleExercise()}
+              </ScrollView>
+
+              <View style={styles.modalFooter}>
+                {!showResults ? (
+                  <TouchableOpacity
+                    style={[
+                      styles.submitButton,
+                      userAnswer === null && styles.submitButtonDisabled
+                    ]}
+                    onPress={handleSubmitAnswer}
+                    disabled={userAnswer === null}
+                  >
+                    <Text style={styles.submitButtonText}>Submit Answer</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.resultsContainer}>
+                    <View style={styles.resultHeader}>
+                      <Ionicons 
+                        name={userAnswer === currentModuleData?.data.correct_index ? "checkmark-circle" : "close-circle"} 
+                        size={24} 
+                        color={userAnswer === currentModuleData?.data.correct_index ? "#10B981" : "#EF4444"} 
+                      />
+                      <Text style={[
+                        styles.resultText,
+                        { color: userAnswer === currentModuleData?.data.correct_index ? "#10B981" : "#EF4444" }
+                      ]}>
+                        {userAnswer === currentModuleData?.data.correct_index ? "Correct!" : "Try Again"}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.nextButton}
+                      onPress={handleNextExercise}
+                    >
+                      <Text style={styles.nextButtonText}>Continue Training</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
     </LinearGradient>
   );
@@ -321,11 +574,11 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 20,
-   backgroundColor: '#FF5F6D',
+    backgroundColor: '#FF5F6D',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
-   shadowColor: '#FF5F6D',
+    shadowColor: '#FF5F6D',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
@@ -556,5 +809,169 @@ const styles = StyleSheet.create({
   },
   achievementDescriptionLocked: {
     color: '#CBD5E1',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    width: '90%',
+    maxHeight: '80%',
+    overflow: 'hidden',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalBody: {
+    flex: 1,
+    padding: 24,
+  },
+  modalFooter: {
+    padding: 24,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#64748B',
+    marginTop: 16,
+  },
+  exerciseContainer: {
+    alignItems: 'center',
+  },
+  exerciseTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  exerciseDescription: {
+    fontSize: 16,
+    color: '#64748B',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 24,
+  },
+  exerciseImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 16,
+    marginBottom: 24,
+  },
+  traitsContainer: {
+    width: '100%',
+    marginBottom: 24,
+  },
+  traitsTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 12,
+  },
+  traitItem: {
+    fontSize: 16,
+    color: '#64748B',
+    marginBottom: 8,
+    lineHeight: 24,
+  },
+  traitButton: {
+    backgroundColor: '#F8FAFC',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+  },
+  selectedTrait: {
+    backgroundColor: '#EEF2FF',
+    borderColor: '#6366F1',
+  },
+  traitButtonText: {
+    fontSize: 16,
+    color: '#1E293B',
+    textAlign: 'center',
+  },
+  optionsContainer: {
+    width: '100%',
+  },
+  optionButton: {
+    backgroundColor: '#F8FAFC',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+  },
+  selectedOption: {
+    backgroundColor: '#EEF2FF',
+    borderColor: '#6366F1',
+  },
+  optionText: {
+    fontSize: 16,
+    color: '#1E293B',
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  submitButton: {
+    backgroundColor: '#6366F1',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#94A3B8',
+  },
+  submitButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  resultsContainer: {
+    alignItems: 'center',
+  },
+  resultHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  resultText: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  nextButton: {
+    backgroundColor: '#10B981',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+  },
+  nextButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
