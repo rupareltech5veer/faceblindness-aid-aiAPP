@@ -12,8 +12,145 @@ import math
 from typing import Dict, List, Tuple, Optional, Any
 import logging
 from sklearn.metrics.pairwise import cosine_similarity
+import requests
+from io import BytesIO
 
 logger = logging.getLogger(__name__)
+
+class FaceGenerator:
+    """Generate synthetic face data for training when no user connections exist"""
+    
+    def __init__(self):
+        # Curated list of diverse face images from Pexels
+        self.sample_faces = [
+            {
+                "name": "Alex Chen",
+                "image_url": "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg",
+                "traits": ["expressive eyes", "defined jawline", "warm smile"],
+                "role": "Sample Person"
+            },
+            {
+                "name": "Jordan Smith",
+                "image_url": "https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg",
+                "traits": ["gentle features", "kind eyes", "soft smile"],
+                "role": "Sample Person"
+            },
+            {
+                "name": "Taylor Johnson",
+                "image_url": "https://images.pexels.com/photos/1212984/pexels-photo-1212984.jpeg",
+                "traits": ["strong features", "confident expression", "distinctive nose"],
+                "role": "Sample Person"
+            },
+            {
+                "name": "Casey Williams",
+                "image_url": "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg",
+                "traits": ["bright eyes", "friendly smile", "oval face"],
+                "role": "Sample Person"
+            },
+            {
+                "name": "Morgan Davis",
+                "image_url": "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg",
+                "traits": ["angular features", "intense gaze", "prominent cheekbones"],
+                "role": "Sample Person"
+            },
+            {
+                "name": "Riley Brown",
+                "image_url": "https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg",
+                "traits": ["round face", "cheerful expression", "dimpled smile"],
+                "role": "Sample Person"
+            },
+            {
+                "name": "Avery Wilson",
+                "image_url": "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg",
+                "traits": ["sharp features", "focused look", "defined eyebrows"],
+                "role": "Sample Person"
+            },
+            {
+                "name": "Quinn Martinez",
+                "image_url": "https://images.pexels.com/photos/1181424/pexels-photo-1181424.jpeg",
+                "traits": ["soft features", "gentle smile", "kind expression"],
+                "role": "Sample Person"
+            }
+        ]
+        
+        # Generate mock landmark data for each face
+        for face in self.sample_faces:
+            face["landmark_data"] = self._generate_mock_landmarks()
+    
+    def _generate_mock_landmarks(self) -> Dict:
+        """Generate realistic mock facial landmarks"""
+        # Generate 68 facial landmark points (standard dlib format)
+        points = []
+        
+        # Face outline (17 points)
+        for i in range(17):
+            x = 0.1 + (i / 16) * 0.8  # Spread across face width
+            y = 0.2 + (i / 16) * 0.6 + random.uniform(-0.05, 0.05)  # Face curve
+            points.append([x, y, 0.0])
+        
+        # Right eyebrow (5 points)
+        for i in range(5):
+            x = 0.2 + (i / 4) * 0.15
+            y = 0.35 + random.uniform(-0.02, 0.02)
+            points.append([x, y, 0.0])
+        
+        # Left eyebrow (5 points)
+        for i in range(5):
+            x = 0.65 + (i / 4) * 0.15
+            y = 0.35 + random.uniform(-0.02, 0.02)
+            points.append([x, y, 0.0])
+        
+        # Nose (9 points)
+        for i in range(9):
+            x = 0.45 + (i / 8) * 0.1 - 0.05
+            y = 0.45 + (i / 8) * 0.15
+            points.append([x, y, 0.0])
+        
+        # Right eye (6 points)
+        for i in range(6):
+            angle = (i / 6) * 2 * math.pi
+            x = 0.3 + 0.05 * math.cos(angle)
+            y = 0.45 + 0.03 * math.sin(angle)
+            points.append([x, y, 0.0])
+        
+        # Left eye (6 points)
+        for i in range(6):
+            angle = (i / 6) * 2 * math.pi
+            x = 0.7 + 0.05 * math.cos(angle)
+            y = 0.45 + 0.03 * math.sin(angle)
+            points.append([x, y, 0.0])
+        
+        # Mouth (20 points)
+        for i in range(20):
+            angle = (i / 20) * 2 * math.pi
+            x = 0.5 + 0.08 * math.cos(angle)
+            y = 0.7 + 0.04 * math.sin(angle)
+            points.append([x, y, 0.0])
+        
+        return {"points": points}
+    
+    def get_sample_faces(self, count: int = None) -> List[Dict]:
+        """Get sample faces for training"""
+        if count is None:
+            return self.sample_faces.copy()
+        return random.sample(self.sample_faces, min(count, len(self.sample_faces)))
+    
+    def create_training_face(self, name: str = None) -> Dict:
+        """Create a single training face with generated data"""
+        if name:
+            # Find existing face or create new one
+            existing = next((f for f in self.sample_faces if f["name"] == name), None)
+            if existing:
+                return existing.copy()
+        
+        # Generate new face
+        sample = random.choice(self.sample_faces)
+        new_face = sample.copy()
+        
+        if name:
+            new_face["name"] = name
+        
+        return new_face
 
 class AdaptiveDifficultyManager:
     """Manages adaptive difficulty progression for training modules"""
@@ -67,6 +204,7 @@ class TrainingAI:
     
     def __init__(self):
         self.difficulty_manager = AdaptiveDifficultyManager()
+        self.face_generator = FaceGenerator()
         
         # Facial landmark indices for different features
         self.landmark_indices = {
@@ -288,20 +426,30 @@ class TrainingAI:
         try:
             params = self.difficulty_manager.get_difficulty_params("caricature", level)
             
+            # Use generated faces if no real faces available
+            if not all_faces:
+                all_faces = self.face_generator.get_sample_faces()
+                face_data = random.choice(all_faces)
+            elif not face_data:
+                face_data = random.choice(all_faces)
+            
             # Load face image
             image_url = face_data.get("image_url", "")
             landmarks = face_data.get("landmark_data", {}).get("points", [])
             name = face_data.get("name", "Unknown")
-            traits = face_data.get("trait_descriptions", []) or face_data.get("traits", [])
+            traits = (face_data.get("trait_descriptions", []) or 
+                     face_data.get("traits", []) or 
+                     ["distinctive features", "memorable appearance"])
             
             # Use actual image URL if available, otherwise use placeholder
             if image_url:
                 original_image_b64 = image_url
                 exaggerated_image_b64 = image_url  # In production, apply warping
             else:
-                # Use Pexels placeholder images
-                original_image_b64 = "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg"
-                exaggerated_image_b64 = "https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg"
+                # Use generated face images
+                sample_face = self.face_generator.create_training_face()
+                original_image_b64 = sample_face["image_url"]
+                exaggerated_image_b64 = sample_face["image_url"]
             
             # Select distinctive feature to exaggerate
             features = ["eyes", "nose", "jaw"]
@@ -359,11 +507,18 @@ class TrainingAI:
         try:
             params = self.difficulty_manager.get_difficulty_params("spacing", level)
             
+            # Use generated faces if no real faces available
+            if not all_faces:
+                all_faces = self.face_generator.get_sample_faces()
+                face_data = random.choice(all_faces)
+            elif not face_data:
+                face_data = random.choice(all_faces)
+            
             name = face_data.get("name", "Unknown")
             landmarks = face_data.get("landmark_data", {}).get("points", [])
             
             # Create original and distorted versions
-            original_image_b64 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+            original_image_b64 = face_data.get("image_url", self.face_generator.create_training_face()["image_url"])
             
             # Generate distorted options
             distortion_types = ["eye_spacing", "mouth_position", "face_width"]
@@ -425,18 +580,24 @@ class TrainingAI:
         try:
             params = self.difficulty_manager.get_difficulty_params("trait_identification", level)
             
+            # Use generated faces if no real faces available
+            if not all_faces:
+                all_faces = self.face_generator.get_sample_faces()
+                face_data = random.choice(all_faces)
+            elif not face_data:
+                face_data = random.choice(all_faces)
+            
             name = face_data.get("name", "Unknown")
-            traits = face_data.get("trait_descriptions", []) or face_data.get("traits", [])
+            traits = (face_data.get("trait_descriptions", []) or 
+                     face_data.get("traits", []) or 
+                     ["expressive eyes", "defined jawline", "distinctive nose", "strong features"])
             image_url = face_data.get("image_url", "")
             
             # Use actual image URL if available
             if image_url:
                 face_image_b64 = image_url
             else:
-                face_image_b64 = "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg"
-            
-            if not traits:
-                traits = ["expressive eyes", "defined jawline", "distinctive nose", "strong features"]
+                face_image_b64 = self.face_generator.create_training_face()["image_url"]
             
             # Select traits to show
             num_traits = min(params["num_traits_shown"], len(traits))
@@ -503,18 +664,35 @@ class TrainingAI:
         try:
             params = self.difficulty_manager.get_difficulty_params("morph_matching", level)
             
+            # Use generated faces if no real faces available
+            if not all_faces:
+                all_faces = self.face_generator.get_sample_faces()
+                if len(all_faces) < 2:
+                    return {"error": "Need at least 2 faces for morph matching"}
+                face_data = random.choice(all_faces)
+            elif not face_data:
+                face_data = random.choice(all_faces)
+            
             name = face_data.get("name", "Unknown")
             
             # Select another face for morphing
             other_faces = [f for f in all_faces if f.get("id") != face_data.get("id")]
             if not other_faces:
-                return {"error": "Need at least 2 faces for morph matching"}
+                # Use name comparison for generated faces
+                other_faces = [f for f in all_faces if f.get("name") != face_data.get("name")]
+            
+            if not other_faces:
+                # Generate additional faces if needed
+                additional_faces = self.face_generator.get_sample_faces()
+                other_faces = [f for f in additional_faces if f.get("name") != name]
+                if not other_faces:
+                    return {"error": "Need at least 2 faces for morph matching"}
             
             morph_partner = random.choice(other_faces)
             morph_partner_name = morph_partner.get("name", "Unknown")
             
-            # Create morphed image (mocked for demo)
-            morphed_image_b64 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+            # Create morphed image (use one of the source images as placeholder)
+            morphed_image_b64 = face_data.get("image_url", self.face_generator.create_training_face()["image_url"])
             
             # Generate options
             options = [name, morph_partner_name]

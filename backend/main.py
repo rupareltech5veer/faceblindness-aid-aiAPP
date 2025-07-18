@@ -344,18 +344,14 @@ async def add_face(
 async def caricature_training(request: TrainingRequest):
     """Generate caricature training exercise"""
     try:
-        if not supabase:
-            return TrainingResponse(success=False, data={}, next_difficulty=1)
-        
-        # Get user's faces from connections table
-        faces_result = supabase.table("connections").select("*").eq("user_id", request.user_id).execute()
-        faces = faces_result.data
-        
-        if not faces:
-            raise HTTPException(status_code=404, detail="No faces found for user")
+        # Get user's faces from faces table
+        faces = []
+        if supabase:
+            faces_result = supabase.table("faces").select("*").eq("user_id", request.user_id).execute()
+            faces = faces_result.data or []
         
         # Select a face for training
-        target_face = random.choice(faces)
+        target_face = random.choice(faces) if faces else None
         
         # Generate caricature exercise using AI
         exercise_data = training_ai.generate_caricature_exercise(
@@ -363,7 +359,11 @@ async def caricature_training(request: TrainingRequest):
         )
         
         if "error" in exercise_data:
-            raise HTTPException(status_code=500, detail=exercise_data["error"])
+            return TrainingResponse(
+                success=False,
+                data=exercise_data,
+                next_difficulty=request.difficulty_level
+            )
         
         # Calculate next difficulty
         next_difficulty = training_ai.difficulty_manager.calculate_next_level(
@@ -378,7 +378,11 @@ async def caricature_training(request: TrainingRequest):
         
     except Exception as e:
         logger.error(f"Error in caricature training: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        return TrainingResponse(
+            success=False,
+            data={"error": f"Training generation failed: {str(e)}"},
+            next_difficulty=request.difficulty_level
+        )
 
 @app.post("/learn/spacing")
 async def spacing_training(request: TrainingRequest):
