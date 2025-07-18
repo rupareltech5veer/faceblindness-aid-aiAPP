@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -631,8 +631,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   connectionsList: {
-    paddingHorizontal: 24,
-    paddingBottom: 32,
+    padding: 24,
   },
   connectionCard: {
     backgroundColor: '#FFFFFF',
