@@ -82,24 +82,6 @@ export default function HomeScreen() {
       Alert.alert('Error', 'Failed to open image picker. Please try again.');
     }
   };
-    
-    if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please grant camera roll permissions to upload photos.');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: [ImagePicker.MediaType.Images],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-
-    if (!result.canceled && result.assets[0]) {
-      setSelectedImage(result.assets[0].uri);
-      setShowFrameModal(true);
-    }
-  };
 
   const handleFrameSelect = (frameId: string) => {
     setSelectedFrame(frameId);
