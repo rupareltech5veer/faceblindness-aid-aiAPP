@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { launchCameraAsync, requestCameraPermissionsAsync, MediaType } from 'expo-image-picker';
+import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import { supabase } from '../../lib/supabase';
 import { scanAndIdentify, ScanResult } from '../../lib/api';
@@ -42,16 +42,16 @@ export default function ScanScreen() {
   const handleCapture = async () => {
     setIsScanning(true);
     try {
-      // Request camera permission first
-      const { status } = await requestCameraPermissionsAsync();
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert('Permission needed', 'Please grant camera permissions to capture photos.');
         setIsScanning(false);
         return;
       }
 
-      const result = await launchCameraAsync({
-        mediaTypes: MediaType.Images,
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaType.Images,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,

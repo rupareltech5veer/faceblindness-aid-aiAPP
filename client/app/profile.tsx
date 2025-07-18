@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase, UserProfile } from '../lib/supabase';
-import { launchImageLibraryAsync, requestMediaLibraryPermissionsAsync, MediaType } from 'expo-image-picker';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function ProfileScreen() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -50,15 +50,15 @@ export default function ProfileScreen() {
   };
 
   const pickImage = async () => {
-    const { status } = await requestMediaLibraryPermissionsAsync();
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
     if (status !== 'granted') {
       Alert.alert('Permission needed', 'Please grant camera roll permissions to upload photos.');
       return;
     }
 
-    const result = await launchImageLibraryAsync({
-      mediaTypes: MediaType.Images,
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaType.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
