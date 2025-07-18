@@ -32,21 +32,9 @@ export default function TopNavBar({ gradientColors = ["#7C3AED", "#6366F1"] }) {
       .subscribe();
 
     // Also listen for manual refresh events
-    const handleProfileUpdate = (event) => {
-      if (event.detail && event.detail.fullName) {
-        setUserName(event.detail.fullName);
-      }
-    };
     
-    // Add event listener for profile updates
-    if (typeof window !== 'undefined' && window.addEventListener) {
-      window.addEventListener('profileUpdated', handleProfileUpdate);
-    }
     return () => {
       supabase.removeChannel(channel);
-      if (typeof window !== 'undefined' && window.removeEventListener) {
-        window.removeEventListener('profileUpdated', handleProfileUpdate);
-      }
     };
   }, []);
 

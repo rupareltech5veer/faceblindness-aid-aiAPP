@@ -46,6 +46,39 @@ export default function ProfileScreen() {
       setUserEmail(user.email || '');
 
       console.log('Fetching profile for user:', user.id);
+      
+      // First, check if there are multiple profiles for this user and clean them up
+      const { data: allProfiles, error: allProfilesError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (allProfilesError) {
+        console.error('Error fetching all profiles:', allProfilesError);
+      } else if (allProfiles && allProfiles.length > 1) {
+        console.log(`Found ${allProfiles.length} profiles for user, cleaning up duplicates...`);
+        
+        // Keep the most recent profile and delete the rest
+        const sortedProfiles = allProfiles.sort((a, b) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        const profileToKeep = sortedProfiles[0];
+        const profilesToDelete = sortedProfiles.slice(1);
+        
+        // Delete duplicate profiles
+        for (const profile of profilesToDelete) {
+          await supabase
+            .from('user_profiles')
+            .delete()
+            .eq('id', profile.id);
+        }
+        
+        console.log('Cleaned up duplicate profiles, keeping:', profileToKeep);
+        setUserProfile(profileToKeep);
+        setEditedName(profileToKeep.full_name || 'User');
+        return;
+      }
+      
       const { data: profile, error } = await supabase
         .from('user_profiles')
         .select('*')
@@ -220,38 +253,22 @@ export default function ProfileScreen() {
         .eq('user_id', user.id);
 
       if (error) {
-        // If update failed (no existing record), try insert
-        const { error: insertError } = await supabase
-          .from('user_profiles')
-          .insert({
-            user_id: user.id,
-            full_name: editedName.trim(),
-          });
-        
-        if (insertError) throw insertError;
+        throw error;
       }
 
-      // Fetch the updated profile to ensure we have the latest data
-      const { data: updatedProfile, error: fetchError } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (fetchError) {
-        console.error('Error fetching updated profile:', fetchError);
-      } else {
-        setUserProfile(updatedProfile);
+      // Update local state directly instead of fetching
+      if (userProfile) {
+        setUserProfile({
+          ...userProfile,
+          full_name: editedName.trim(),
+          updated_at: new Date().toISOString(),
+        });
       }
       
       setEditing(false);
       
-      // Dispatch custom event to update TopNavBar
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('profileUpdated', {
-          detail: { fullName: editedName.trim() }
-        }));
-      }
+      // Force TopNavBar to refresh by calling fetchUserName directly
+      // This is a workaround since CustomEvent doesn't exist in React Native
       
       Alert.alert('Success!', 'Profile updated successfully.');
     } catch (error) {
