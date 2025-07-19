@@ -22,8 +22,8 @@ const setupSlides = [
     iconColor: '#6366F1',
     backgroundColor: ['#6366F1', '#8B5CF6'] as const,
     title: 'Welcome to Memora',
-    subtitle: 'Your personal memory companion',
-    description: 'Memora helps you remember the faces and moments that matter most. Build stronger connections through better recognition.',
+    subtitle: 'Personal memory companion',
+    description: 'Memora helps you remember the faces and moments that matter most. Build stronger connections together.',
   },
   {
     id: 2,

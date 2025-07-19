@@ -28,7 +28,7 @@ const accountSettings = [
     title: 'Privacy & Security',
     description: 'Manage your privacy settings',
     icon: 'shield-checkmark-outline',
-    color: '#10B981',
+    color: '#64748B',
   },
 ];
 
@@ -217,7 +217,7 @@ export default function SettingsScreen() {
                 onPress={() => router.push('/profile')}
                 accessibilityLabel="Profile Settings"
               >
-                <View style={[styles.settingIcon, { backgroundColor: '#6366F1' }]}>
+                <View style={[styles.settingIcon, { backgroundColor: '#64748B' }]}>
                   <Ionicons name="person-outline" size={20} color="#FFFFFF" />
                 </View>
                 <View style={styles.settingContent}>
@@ -263,8 +263,8 @@ export default function SettingsScreen() {
                 <Switch
                   value={appSettings?.dark_mode ?? false}
                   onValueChange={(value) => updateAppSetting('dark_mode', value)}
-                  trackColor={{ false: '#E2E8F0', true: '#A5B4FC' }}
-                  thumbColor={appSettings?.dark_mode ? '#6366F1' : '#F1F5F9'}
+                  trackColor={{ false: '#E2E8F0', true: '#CBD5E1' }}
+                  thumbColor={appSettings?.dark_mode ? '#64748B' : '#F1F5F9'}
                 />
               </View>
             </View>
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#6366F1',
+    color: '#64748B',
     marginBottom: 8,
     textAlign: 'center',
   },

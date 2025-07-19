@@ -22,7 +22,7 @@ const learningModules = [
     title: 'Caricature Training',
     description: 'Learn distinctive facial features through AI-enhanced caricatures',
     icon: 'brush-outline',
-    color: '#6366F1',
+    color: '#F97316',
     totalLessons: 10,
   },
   {
@@ -30,7 +30,7 @@ const learningModules = [
     title: 'Spacing Awareness',
     description: 'Practice recognizing faces with subtle geometric variations',
     icon: 'resize-outline',
-    color: '#10B981',
+    color: '#F97316',
     totalLessons: 12,
   },
   {
@@ -38,7 +38,7 @@ const learningModules = [
     title: 'Trait Identification',
     description: 'AI-assisted facial trait recognition and memory reinforcement',
     icon: 'eye-outline',
-    color: '#8B5CF6',
+    color: '#F97316',
     totalLessons: 8,
   },
   {
@@ -65,7 +65,7 @@ const achievements = [
     title: 'Quick Learner',
     description: 'Finished first module',
     icon: 'star-outline',
-    color: '#10B981',
+    color: '#F59E0B',
     earned: true,
   },
   {
@@ -73,7 +73,7 @@ const achievements = [
     title: 'Memory Master',
     description: 'Mastered 5 techniques',
     icon: 'medal-outline',
-    color: '#8B5CF6',
+    color: '#F59E0B',
     earned: false,
   },
 ];
@@ -514,7 +514,7 @@ export default function LearnScreen() {
             <View style={styles.iconContainer}>
               <Ionicons name="school-outline" size={32} color="#FFFFFF" />
               <View style={styles.sparkleIcon}>
-                <Ionicons name="sparkles-outline" size={16} color="#A78BFA" />
+                <Ionicons name="sparkles-outline" size={16} color="#F59E0B" />
               </View>
             </View>
             <Text style={styles.title}>AI Learning Center</Text>
