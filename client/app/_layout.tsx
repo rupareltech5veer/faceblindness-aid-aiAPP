@@ -32,10 +32,6 @@ export default function RootLayout() {
         
         {/* Legacy screens for backward compatibility */}
         <Stack.Screen name="policy" />
-        <Stack.Screen name="dashboard" />
-        <Stack.Screen name="learning" />
-        <Stack.Screen name="upload" />
-        <Stack.Screen name="directory" />
       </Stack>
     </View>
   );
