@@ -10,6 +10,7 @@ import {
   Alert,
   Modal,
   FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -34,6 +35,7 @@ export default function HomeScreen() {
   const [selectedFrame, setSelectedFrame] = useState<string>('none');
   const [showPreview, setShowPreview] = useState(false);
   const [imageError, setImageError] = useState<{[key: string]: boolean}>({});
+  const [imageLoading, setImageLoading] = useState<{[key: string]: boolean}>({});
 
   useEffect(() => {
     fetchFavorites();
@@ -54,6 +56,7 @@ export default function HomeScreen() {
       setFavorites(data || []);
     } catch (error) {
       console.error('Error fetching favorites:', error);
+      Alert.alert('Error', 'Failed to load favorites. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -69,7 +72,7 @@ export default function HomeScreen() {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
@@ -77,6 +80,8 @@ export default function HomeScreen() {
 
       if (!result.canceled && result.assets && result.assets[0]) {
         setSelectedImage(result.assets[0].uri);
+        setSelectedFrame('none'); // Reset frame selection
+        setShowPreview(false); // Reset preview state
         setShowFrameModal(true);
       }
     } catch (error) {
@@ -87,23 +92,14 @@ export default function HomeScreen() {
 
   const handleFrameSelect = (frameId: string) => {
     setSelectedFrame(frameId);
-    setShowFrameModal(false);
     setShowPreview(true);
   };
 
-  const handleApplyFrame = () => {
-    uploadFavorite(selectedFrame);
+  const handleBackToFrameSelection = () => {
     setShowPreview(false);
-    setShowFrameModal(false);
   };
 
-  const handleCancelFrame = () => {
-    setShowPreview(false);
-    setShowFrameModal(true);
-    setSelectedFrame('none');
-  };
-
-  const uploadFavorite = async (frameStyle: string) => {
+  const handleApplyFrame = async () => {
     if (!selectedImage) return;
 
     setUploading(true);
@@ -111,13 +107,15 @@ export default function HomeScreen() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         Alert.alert('Authentication Required', 'Please sign in to save favorites.');
+        setUploading(false);
         return;
       }
 
-      // Upload image to storage
+      // Create FormData for file upload
       const timestamp = Date.now();
       const fileName = `${user.id}/${timestamp}.jpg`;
 
+      // Convert URI to blob
       const response = await fetch(selectedImage);
       const blob = await response.blob();
 
@@ -127,12 +125,19 @@ export default function HomeScreen() {
           contentType: 'image/jpeg',
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw new Error(`Upload failed: ${uploadError.message}`);
+      }
 
       // Get public URL
       const { data: urlData } = supabase.storage
         .from('favorites')
         .getPublicUrl(fileName);
+
+      if (!urlData.publicUrl) {
+        throw new Error('Failed to get public URL');
+      }
 
       // Save to database
       const { error: dbError } = await supabase
@@ -140,25 +145,39 @@ export default function HomeScreen() {
         .insert({
           user_id: user.id,
           image_url: urlData.publicUrl,
-          frame_style: frameStyle,
+          frame_style: selectedFrame,
           title: `Favorite ${favorites.length + 1}`,
         });
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error('Database error:', dbError);
+        throw new Error(`Database error: ${dbError.message}`);
+      }
 
+      // Reset states
       setShowFrameModal(false);
       setShowPreview(false);
       setSelectedImage(null);
       setSelectedFrame('none');
-      fetchFavorites();
+      
+      // Refresh favorites
+      await fetchFavorites();
       
       Alert.alert('Success!', 'Your favorite has been added.');
     } catch (error) {
       console.error('Error uploading favorite:', error);
-      Alert.alert('Upload failed', 'There was an error uploading your photo. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      Alert.alert('Upload failed', `There was an error uploading your photo: ${errorMessage}. Please try again.`);
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleCancelSelection = () => {
+    setShowFrameModal(false);
+    setShowPreview(false);
+    setSelectedImage(null);
+    setSelectedFrame('none');
   };
 
   const deleteFavorite = async (id: string, imageUrl: string) => {
@@ -193,7 +212,7 @@ export default function HomeScreen() {
                 .eq('id', id);
 
               if (error) throw error;
-              fetchFavorites();
+              await fetchFavorites();
             } catch (error) {
               console.error('Error deleting favorite:', error);
               Alert.alert('Error', 'Failed to delete favorite. Please try again.');
@@ -205,7 +224,7 @@ export default function HomeScreen() {
   };
 
   const getFrameStyle = (frameType: string) => {
-    const frame = frameStyles.find(f => f.id === frameType) || frameStyles[1]; // Default to classic if not found
+    const frame = frameStyles.find(f => f.id === frameType) || frameStyles[0];
     
     if (frame.id === 'none') {
       return {
@@ -222,11 +241,18 @@ export default function HomeScreen() {
   };
 
   const handleImageError = (itemId: string) => {
+    console.error(`Image failed to load for item: ${itemId}`);
     setImageError(prev => ({ ...prev, [itemId]: true }));
+    setImageLoading(prev => ({ ...prev, [itemId]: false }));
   };
 
-  const handleImageLoad = (itemId: string) => {
+  const handleImageLoadStart = (itemId: string) => {
+    setImageLoading(prev => ({ ...prev, [itemId]: true }));
     setImageError(prev => ({ ...prev, [itemId]: false }));
+  };
+
+  const handleImageLoadEnd = (itemId: string) => {
+    setImageLoading(prev => ({ ...prev, [itemId]: false }));
   };
 
   const renderFavorite = ({ item }: { item: Favorite }) => (
@@ -238,13 +264,21 @@ export default function HomeScreen() {
             <Text style={styles.errorText}>Failed to load image</Text>
           </View>
         ) : (
-          <Image 
-            source={{ uri: item.image_url }} 
-            style={styles.favoriteImage}
-            onError={() => handleImageError(item.id)}
-            onLoad={() => handleImageLoad(item.id)}
-            onLoadStart={() => handleImageLoad(item.id)}
-          />
+          <>
+            <Image 
+              source={{ uri: item.image_url + '?v=' + Date.now() }} // Add cache busting
+              style={styles.favoriteImage}
+              onError={() => handleImageError(item.id)}
+              onLoadStart={() => handleImageLoadStart(item.id)}
+              onLoadEnd={() => handleImageLoadEnd(item.id)}
+              onLoad={() => handleImageLoadEnd(item.id)}
+            />
+            {imageLoading[item.id] && (
+              <View style={styles.loadingOverlay}>
+                <ActivityIndicator size="small" color="#EC4899" />
+              </View>
+            )}
+          </>
         )}
         <TouchableOpacity
           style={styles.deleteButton}
@@ -285,7 +319,11 @@ export default function HomeScreen() {
           </View>
 
           {/* Add Button */}
-          <TouchableOpacity style={styles.addButton} onPress={pickImage}>
+          <TouchableOpacity 
+            style={styles.addButton} 
+            onPress={pickImage}
+            disabled={uploading}
+          >
             <Ionicons name="add-circle-outline" size={28} color="#FFFFFF" />
             <Text style={styles.addButtonText}>Add New Favorite</Text>
           </TouchableOpacity>
@@ -293,7 +331,7 @@ export default function HomeScreen() {
           {/* Favorites Grid */}
           {loading ? (
             <View style={styles.loadingContainer}>
-              <Ionicons name="heart-outline" size={64} color="#EC4899" />
+              <ActivityIndicator size="large" color="#EC4899" />
               <Text style={styles.loadingText}>Loading your favorites...</Text>
             </View>
           ) : favorites.length === 0 ? (
@@ -325,79 +363,97 @@ export default function HomeScreen() {
         visible={showFrameModal}
         transparent={true}
         animationType="slide"
-        onRequestClose={() => setShowFrameModal(false)}
+        onRequestClose={handleCancelSelection}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Choose a Frame</Text>
-            
-            {selectedImage && (
-              <View style={styles.previewContainer}>
-                {showPreview ? (
-                  <>
-                    <Text style={styles.previewTitle}>Preview with {frameStyles.find(f => f.id === selectedFrame)?.name} Frame</Text>
+            {showPreview ? (
+              // Preview Mode
+              <>
+                <Text style={styles.modalTitle}>Preview</Text>
+                
+                {selectedImage && (
+                  <View style={styles.previewContainer}>
+                    <Text style={styles.previewTitle}>
+                      {frameStyles.find(f => f.id === selectedFrame)?.name} Frame
+                    </Text>
                     <View style={[styles.framePreviewContainer, getFrameStyle(selectedFrame)]}>
-                      <Image source={{ uri: selectedImage }} style={styles.previewImage} />
+                      <Image 
+                        source={{ uri: selectedImage }} 
+                        style={styles.previewImage}
+                        onError={() => console.error('Error loading preview image')}
+                      />
                     </View>
-                  </>
-                ) : (
-                  <>
+                  </View>
+                )}
+
+                <View style={styles.previewActions}>
+                  <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={handleBackToFrameSelection}
+                    disabled={uploading}
+                  >
+                    <Text style={styles.backButtonText}>Back</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.applyButton}
+                    onPress={handleApplyFrame}
+                    disabled={uploading}
+                  >
+                    {uploading ? (
+                      <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                      <Text style={styles.applyButtonText}>Apply Frame</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : (
+              // Frame Selection Mode
+              <>
+                <Text style={styles.modalTitle}>Choose a Frame</Text>
+                
+                {selectedImage && (
+                  <View style={styles.previewContainer}>
                     <Text style={styles.previewTitle}>Selected Photo</Text>
                     <Image 
                       source={{ uri: selectedImage }} 
                       style={styles.previewImage}
-                      onError={() => console.error('Error loading preview image')}
+                      onError={() => console.error('Error loading selected image')}
                     />
-                  </>
+                  </View>
                 )}
-              </View>
-            )}
 
-            {!showPreview ? (
-              <ScrollView style={styles.frameOptions} showsVerticalScrollIndicator={false}>
-                {frameStyles.map((frame) => (
-                  <TouchableOpacity
-                    key={frame.id}
-                    style={styles.frameOption}
-                    onPress={() => handleFrameSelect(frame.id)}
-                    disabled={uploading}
-                  >
-                    <View style={[styles.framePreview, { borderColor: frame.color, borderWidth: frame.id === 'none' ? 0 : 3 }]}>
-                      <Text style={styles.frameEmoji}>{frame.preview}</Text>
-                    </View>
-                    <Text style={styles.frameName}>{frame.name}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            ) : (
-              <View style={styles.previewActions}>
+                <ScrollView style={styles.frameOptions} showsVerticalScrollIndicator={false}>
+                  {frameStyles.map((frame) => (
+                    <TouchableOpacity
+                      key={frame.id}
+                      style={styles.frameOption}
+                      onPress={() => handleFrameSelect(frame.id)}
+                      disabled={uploading}
+                    >
+                      <View style={[
+                        styles.framePreview, 
+                        { 
+                          borderColor: frame.color, 
+                          borderWidth: frame.id === 'none' ? 0 : 3 
+                        }
+                      ]}>
+                        <Text style={styles.frameEmoji}>{frame.preview}</Text>
+                      </View>
+                      <Text style={styles.frameName}>{frame.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+
                 <TouchableOpacity
-                  style={styles.previewCancelButton}
-                  onPress={handleCancelFrame}
+                  style={styles.cancelButton}
+                  onPress={handleCancelSelection}
                   disabled={uploading}
                 >
-                  <Text style={styles.previewCancelText}>Cancel</Text>
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.previewApplyButton}
-                  onPress={handleApplyFrame}
-                  disabled={uploading}
-                >
-                  <Text style={styles.previewApplyText}>
-                    {uploading ? 'Applying...' : 'Apply Frame'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            {!showPreview && (
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => setShowFrameModal(false)}
-                disabled={uploading}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
+              </>
             )}
           </View>
         </View>
@@ -553,6 +609,16 @@ const styles = StyleSheet.create({
     height: 160,
     resizeMode: 'cover',
   },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.8)',
+  },
   errorPlaceholder: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -623,29 +689,30 @@ const styles = StyleSheet.create({
     gap: 12,
     marginTop: 24,
   },
-  previewCancelButton: {
+  backButton: {
     flex: 1,
     backgroundColor: '#F1F5F9',
     paddingVertical: 16,
     borderRadius: 12,
   },
-  previewCancelText: {
+  backButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#64748B',
     textAlign: 'center',
   },
-  previewApplyButton: {
+  applyButton: {
     flex: 1,
     backgroundColor: '#EC4899',
     paddingVertical: 16,
     borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  previewApplyText: {
+  applyButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
-    textAlign: 'center',
   },
   frameOptions: {
     maxHeight: 300,
