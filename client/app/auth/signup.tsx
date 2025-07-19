@@ -70,6 +70,7 @@ export default function SignUpScreen() {
         email: formData.email.trim(),
         password: formData.password,
         options: {
+          emailRedirectTo: 'faceblindness-aid://auth/callback',
           data: {
             full_name: formData.fullName.trim(),
           }
@@ -80,8 +81,16 @@ export default function SignUpScreen() {
         throw error;
       }
 
-      if (data.user) {
-        // Create user profile
+      if (data.user && !data.session) {
+        // User needs email verification
+        Alert.alert(
+          'Verify Your Email',
+          'Please check your email and click the verification link to activate your account.',
+          [{ text: 'Continue', onPress: () => router.replace('/auth/signin') }]
+        );
+      } else if (data.user && data.session) {
+        // User is immediately signed in (email confirmation disabled)
+        // Create profile immediately
         const { error: profileError } = await supabase
           .from('user_profiles')
           .insert({
@@ -95,13 +104,12 @@ export default function SignUpScreen() {
 
         Alert.alert(
           'Account Created!',
-          'Your account has been created successfully. Please sign in to continue.',
-          [{ text: 'Continue', onPress: () => router.replace('/auth/signin') }]
+          'Your account has been created successfully.',
+          [{ text: 'Continue', onPress: () => router.replace('/(tabs)/home') }]
         );
       }
       
     } catch (error: any) {
-      console.error('Signup error:', error);
       Alert.alert('Signup Failed', error.message || 'Failed to create account. Please try again.');
     } finally {
       setIsLoading(false);

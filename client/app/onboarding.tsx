@@ -1,4 +1,5 @@
 import React from 'react';
+import { useFocusEffect } from 'expo-router';
 import {
   View,
   Text,
@@ -6,6 +7,9 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Dimensions,
+  Image,
+  Animated,
+  Easing,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -14,11 +18,85 @@ import { StorageService } from '../lib/storage';
 
 const { width, height } = Dimensions.get('window');
 
+const iconPositions = [
+  { top: 50, left: 50 },    // 1
+  { top: 175, left: 300 }, // 2
+  { top: 325, left: 20 },  // 3
+  { top: 450, left: 320 }, // 4
+  { top: 600, left: 70 },  // 5
+  { top: 675, left: 290 }, // 6
+];
+const animationOrder = [0, 2, 4, 5, 3, 1]; // 1->3->5->6->4->2 and repeat
+
+const iconNames: (
+  | 'heart-outline'
+  | 'eye-outline'
+  | 'people-outline'
+  | 'sparkles-outline'
+  | 'star-outline'
+  | 'cloud-outline'
+)[] = [
+  'heart-outline',
+  'eye-outline',
+  'people-outline',
+  'sparkles-outline',
+  'star-outline',
+  'cloud-outline',
+];
+
 export default function OnboardingScreen() {
   const handleGetStarted = async () => {
     await StorageService.setFirstLaunchComplete();
     router.replace('/setup');
   };
+
+  // Animated scale values for each icon
+  const animatedScales = iconNames.map(() => React.useRef(new Animated.Value(1)).current);
+
+  // Random scaling animation logic
+  useFocusEffect(
+    React.useCallback(() => {
+      let timeouts: ReturnType<typeof setTimeout>[] = [];
+
+      // Helper to animate scale for one icon
+      const animateScale = (i: number) => {
+        // Random duration between 400ms and 1200ms
+        const duration = 400 + Math.random() * 800;
+        // Random delay before next animation
+        const delay = 300 + Math.random() * 1200;
+        // Random target scale between 1.2 and 1.6
+        const targetScale = 1.2 + Math.random() * 0.4;
+        Animated.sequence([
+          Animated.timing(animatedScales[i], {
+            toValue: targetScale,
+            duration,
+            useNativeDriver: true,
+            easing: Easing.inOut(Easing.ease),
+          }),
+          Animated.timing(animatedScales[i], {
+            toValue: 1,
+            duration,
+            useNativeDriver: true,
+            easing: Easing.inOut(Easing.ease),
+          }),
+        ]).start(() => {
+          // Schedule next animation with random delay
+          timeouts[i] = setTimeout(() => animateScale(i), delay);
+        });
+      };
+
+      // Start animation for each icon
+      iconNames.forEach((_, i) => {
+        animateScale(i);
+      });
+
+      return () => {
+        // Stop all timeouts and reset scales
+        timeouts.forEach(t => clearTimeout(t));
+        animatedScales.forEach(scale => scale.setValue(1));
+      };
+    }, [])
+  );
 
   return (
     <LinearGradient
@@ -29,27 +107,32 @@ export default function OnboardingScreen() {
         <View style={styles.content}>
           {/* Floating Background Icons */}
           <View style={styles.floatingIconsContainer}>
-            <View style={[styles.floatingIcon, styles.floatingIcon1]}>
-              <Ionicons name="heart-outline" size={24} color="rgba(255,255,255,0.3)" />
-            </View>
-            <View style={[styles.floatingIcon, styles.floatingIcon2]}>
-              <Ionicons name="eye-outline" size={24} color="rgba(255,255,255,0.3)" />
-            </View>
-            <View style={[styles.floatingIcon, styles.floatingIcon3]}>
-              <Ionicons name="people-outline" size={20} color="rgba(255,255,255,0.3)" />
-            </View>
-            <View style={[styles.floatingIcon, styles.floatingIcon4]}>
-              <Ionicons name="sparkles-outline" size={20} color="rgba(255,255,255,0.3)" />
-            </View>
+            {iconNames.map((name, i) => (
+              <Animated.View
+                key={name}
+                style={[
+                  styles.floatingIcon,
+                  {
+                    top: iconPositions[i].top,
+                    left: iconPositions[i].left,
+                    transform: [{ scale: animatedScales[i] }],
+                  },
+                ]}
+              >
+                <Ionicons name={name} size={i < 3 ? 24 : 22} color="rgba(255,255,255,0.3)" />
+              </Animated.View>
+            ))}
           </View>
 
           {/* Main Content */}
           <View style={styles.mainContent}>
             {/* Central Logo */}
             <View style={styles.logoContainer}>
-              <View style={styles.logo}>
-                <Ionicons name="heart" size={64} color="#FFFFFF" />
-              </View>
+              <Image 
+                source={require('../assets/dolphin-logo-nobg.png')}
+                style={styles.logo}
+                resizeMode="contain"
+              />
             </View>
 
             {/* App Name and Slogan */}
@@ -98,23 +181,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    backdropFilter: 'blur(10px)',
-  },
-  floatingIcon1: {
-    top: 100,
-    left: 30,
-  },
-  floatingIcon2: {
-    top: 200,
-    right: 40,
-  },
-  floatingIcon3: {
-    top: 300,
-    left: 50,
-  },
-  floatingIcon4: {
-    bottom: 200,
-    right: 30,
   },
   mainContent: {
     flex: 1,
@@ -123,36 +189,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   logoContainer: {
-    marginBottom: 60,
+    marginTop: -300,
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   logo: {
-    width: 140,
-    height: 140,
-    borderRadius: 28,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 12,
+    width: 300,
+    height: 300,
   },
   appName: {
-    fontSize: 56,
+    marginTop: 150,
+    fontSize: 48,
     fontWeight: '800',
     color: '#FFFFFF',
-    marginBottom: 16,
+    marginBottom: 8,
     textAlign: 'center',
-    letterSpacing: -2,
+    letterSpacing: -1,
   },
   slogan: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '500',
     color: 'rgba(255,255,255,0.9)',
     textAlign: 'center',
-    lineHeight: 28,
-    marginBottom: 80,
+    lineHeight: 24,
+    marginBottom: 40,
     paddingHorizontal: 20,
   },
   getStartedButton: {

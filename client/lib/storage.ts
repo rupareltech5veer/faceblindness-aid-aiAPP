@@ -1,41 +1,53 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 export class StorageService {
-  static async setOnboardingCompleted(): Promise<void> {
-    await StorageService.save('onboardingCompleted', 'true');
-  }
-  static async save(key: string, value: string): Promise<void> {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.setItem(key, value);
-    } else {
-      // Replace with AsyncStorage if using React Native
-    }
-  }
-
-  static async get(key: string): Promise<string | null> {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      return window.localStorage.getItem(key);
-    } else {
-      return null;
-    }
-  }
-
-  static async remove(key: string): Promise<void> {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.removeItem(key);
-    } else {
-      // AsyncStorage.removeItem
-    }
-  }
+  private static readonly FIRST_LAUNCH_KEY = 'hasLaunchedBefore';
+  private static readonly ONBOARDING_COMPLETED_KEY = 'onboardingCompleted';
 
   static async isFirstLaunch(): Promise<boolean> {
-    const alreadyLaunched = await this.get('alreadyLaunched');
-    if (alreadyLaunched === null) {
-      await this.save('alreadyLaunched', 'true');
-      return true; // First launch
+    try {
+      const hasLaunched = await AsyncStorage.getItem(this.FIRST_LAUNCH_KEY);
+      return hasLaunched === null;
+    } catch (error) {
+      console.error('Error checking first launch:', error);
+      return true;
     }
-    return false; // Not first launch
   }
 
   static async setFirstLaunchComplete(): Promise<void> {
-    await this.save('alreadyLaunched', 'true');
+    try {
+      await AsyncStorage.setItem(this.FIRST_LAUNCH_KEY, 'true');
+    } catch (error) {
+      console.error('Error setting first launch complete:', error);
+    }
+  }
+
+  static async isOnboardingCompleted(): Promise<boolean> {
+    try {
+      const completed = await AsyncStorage.getItem(this.ONBOARDING_COMPLETED_KEY);
+      return completed === 'true';
+    } catch (error) {
+      console.error('Error checking onboarding status:', error);
+      return false;
+    }
+  }
+
+  static async setOnboardingCompleted(): Promise<void> {
+    try {
+      await AsyncStorage.setItem(this.ONBOARDING_COMPLETED_KEY, 'true');
+    } catch (error) {
+      console.error('Error setting onboarding completed:', error);
+    }
+  }
+
+  static async clearAll(): Promise<void> {
+    try {
+      await AsyncStorage.multiRemove([
+        this.FIRST_LAUNCH_KEY,
+        this.ONBOARDING_COMPLETED_KEY,
+      ]);
+    } catch (error) {
+      console.error('Error clearing storage:', error);
+    }
   }
 }

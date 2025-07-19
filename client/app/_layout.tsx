@@ -1,9 +1,10 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { View } from 'react-native';
 
 export default function RootLayout() {
   return (
-    <>
+    <View style={{ flex: 1 }}>
       <StatusBar style="auto" />
       <Stack
         screenOptions={{
@@ -19,9 +20,15 @@ export default function RootLayout() {
         {/* Authentication screens */}
         <Stack.Screen name="auth/signin" />
         <Stack.Screen name="auth/signup" />
+        <Stack.Screen name="auth/callback" />
+        <Stack.Screen name="auth/reset-password" />
+        <Stack.Screen name="auth/verify-email" />
         
         {/* Main app with tabs */}
         <Stack.Screen name="(tabs)" />
+        
+        {/* Profile screen */}
+        <Stack.Screen name="profile" />
         
         {/* Legacy screens for backward compatibility */}
         <Stack.Screen name="policy" />
@@ -29,10 +36,7 @@ export default function RootLayout() {
         <Stack.Screen name="learning" />
         <Stack.Screen name="upload" />
         <Stack.Screen name="directory" />
-        <Stack.Screen name="learn" />
-        <Stack.Screen name="scan" />
-        <Stack.Screen name="settings" />
       </Stack>
-    </>
+    </View>
   );
 }

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { supabase, UserProfile, AppSettings } from '../../lib/supabase';
 import { StorageService } from '../../lib/storage';
 
@@ -91,19 +92,49 @@ export default function SettingsScreen() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Update local state immediately for better UX
+      setAppSettings(prev => prev ? { ...prev, [key]: value } : {
+        id: '',
+        user_id: user.id,
+        dark_mode: key === 'dark_mode' ? value : false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+
+      const updateObj: Partial<AppSettings> = {
+        user_id: user.id,
+        dark_mode: key === 'dark_mode' ? value : (appSettings?.dark_mode ?? false),
+        updated_at: new Date().toISOString(),
+      };
+
       const { error } = await supabase
         .from('app_settings')
-        .upsert({
+        .upsert(updateObj);
+
+      if (error) {
+        // Revert local state on error
+        setAppSettings(prev => prev ? { ...prev, [key]: !value } : {
+          id: '',
           user_id: user.id,
-          [key]: value,
+          dark_mode: key === 'dark_mode' ? !value : false,
+          created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });
-
-      if (error) throw error;
-
-      setAppSettings(prev => prev ? { ...prev, [key]: value } : null);
+        Alert.alert('Error', 'Failed to update setting. Please try again.');
+      }
     } catch (error) {
-      console.error('Error updating setting:', error);
+      // Revert local state on error
+      setAppSettings(prev => {
+        // Use last fetched user id if available
+        const userId = prev?.user_id ?? '';
+        return prev ? { ...prev, [key]: !value } : {
+          id: '',
+          user_id: userId,
+          dark_mode: key === 'dark_mode' ? !value : false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+      });
       Alert.alert('Error', 'Failed to update setting. Please try again.');
     }
   };
@@ -131,7 +162,6 @@ export default function SettingsScreen() {
               await StorageService.clearAll();
               router.replace('/auth/signin');
             } catch (error) {
-              console.error('Error signing out:', error);
               Alert.alert('Error', 'Failed to sign out. Please try again.');
             }
           },
@@ -152,158 +182,111 @@ export default function SettingsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.logoContainer}>
-          <Ionicons name="settings" size={24} color="#6366F1" />
-          <Text style={styles.logoText}>Settings</Text>
-        </View>
-      </View>
-
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* User Profile */}
-        <View style={styles.profileSection}>
-          <View style={styles.profileCard}>
-            <View style={styles.profileIcon}>
-              <Ionicons name="person-outline" size={32} color="#FFFFFF" />
-            </View>
-            <View style={styles.profileInfo}>
-              <View style={styles.profileNameRow}>
-                <Ionicons name="star" size={16} color="#F59E0B" />
-                <Text style={styles.profileName}>
-                  {userProfile?.full_name || 'User'}
-                </Text>
-              </View>
-              <Text style={styles.profileEmail}>
-                {userProfile?.user_id ? 'Memora Member' : 'Guest User'}
-              </Text>
-              <View style={styles.membershipBadge}>
-                <Text style={styles.membershipText}>Premium Member</Text>
+    <LinearGradient
+      colors={['rgba(189, 189, 189, 0.3)', 'rgba(97, 97, 97, 0.35)']}
+      start={[0, 0]}
+      end={[1, 1]}
+      style={{ flex: 1 }}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView 
+          style={styles.content} 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 95 }}
+          nestedScrollEnabled={false}
+          removeClippedSubviews={false}
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="settings-outline" size={32} color="#FFFFFF" />
+              <View style={styles.sparkleIcon}>
+                <Ionicons name="sparkles-outline" size={16} color="#64748B" />
               </View>
             </View>
+            <Text style={styles.title}>Settings</Text>
+            <Text style={styles.subtitle}>Customize your app experience</Text>
           </View>
-        </View>
 
-        {/* Account Settings */}
-        <View style={styles.settingsSection}>
-          <View style={styles.sectionHeader}>
+          {/* Account Settings */}
+          <View style={styles.settingsSection}>
             <Text style={styles.sectionTitle}>Account</Text>
-          </View>
-          <View style={styles.settingsGroup}>
-            {accountSettings.map((setting) => (
+            <View style={styles.settingsGroup}>
               <TouchableOpacity
-                key={setting.id}
                 style={styles.settingItem}
-                onPress={() => handleSettingPress(setting.id)}
-                accessibilityLabel={setting.title}
+                onPress={() => router.push('/profile')}
+                accessibilityLabel="Profile Settings"
               >
-                <View style={[styles.settingIcon, { backgroundColor: setting.color }]}>
-                  <Ionicons name={setting.icon as any} size={20} color="#FFFFFF" />
+                <View style={[styles.settingIcon, { backgroundColor: '#6366F1' }]}>
+                  <Ionicons name="person-outline" size={20} color="#FFFFFF" />
                 </View>
                 <View style={styles.settingContent}>
-                  <Text style={styles.settingTitle}>{setting.title}</Text>
-                  <Text style={styles.settingDescription}>{setting.description}</Text>
+                  <Text style={styles.settingTitle}>Profile Settings</Text>
+                  <Text style={styles.settingDescription}>Edit your profile information</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
               </TouchableOpacity>
-            ))}
+              
+              {accountSettings.slice(1).map((setting, index) => (
+                <TouchableOpacity
+                  key={`account-${setting.id}-${index + 1}`}
+                  style={styles.settingItem}
+                  onPress={() => handleSettingPress(setting.id)}
+                  accessibilityLabel={setting.title}
+                >
+                  <View style={[styles.settingIcon, { backgroundColor: setting.color }]}>
+                    <Ionicons name={setting.icon as any} size={20} color="#FFFFFF" />
+                  </View>
+                  <View style={styles.settingContent}>
+                    <Text style={styles.settingTitle}>{setting.title}</Text>
+                    <Text style={styles.settingDescription}>{setting.description}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
-        </View>
 
-        {/* App Settings */}
-        <View style={styles.settingsSection}>
-          <View style={styles.sectionHeader}>
+          {/* App Settings */}
+          <View style={styles.settingsSection}>
             <Text style={styles.sectionTitle}>App Settings</Text>
-          </View>
-          <View style={styles.settingsGroup}>
-            {appSettingsConfig.map((setting) => (
-              <TouchableOpacity
-                key={setting.id}
-                style={styles.settingItem}
-                onPress={() => handleSettingPress(setting.id)}
-                accessibilityLabel={setting.title}
-              >
-                <View style={[styles.settingIcon, { backgroundColor: setting.color }]}>
-                  <Ionicons name={setting.icon as any} size={20} color="#FFFFFF" />
+            <View style={styles.settingsGroup}>
+              {/* Dark Mode Toggle */}
+              <View style={styles.settingItem}>
+                <View style={[styles.settingIcon, { backgroundColor: '#64748B' }]}>
+                  <Ionicons name="moon-outline" size={20} color="#FFFFFF" />
                 </View>
                 <View style={styles.settingContent}>
-                  <Text style={styles.settingTitle}>{setting.title}</Text>
-                  <Text style={styles.settingDescription}>{setting.description}</Text>
+                  <Text style={styles.settingTitle}>Dark Mode</Text>
+                  <Text style={styles.settingDescription}>Toggle dark theme</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
-              </TouchableOpacity>
-            ))}
-            
-            {/* Notifications Toggle */}
-            <View style={styles.settingItem}>
-              <View style={[styles.settingIcon, { backgroundColor: '#F59E0B' }]}>
-                <Ionicons name="notifications-outline" size={20} color="#FFFFFF" />
+                <Switch
+                  value={appSettings?.dark_mode ?? false}
+                  onValueChange={(value) => updateAppSetting('dark_mode', value)}
+                  trackColor={{ false: '#E2E8F0', true: '#A5B4FC' }}
+                  thumbColor={appSettings?.dark_mode ? '#6366F1' : '#F1F5F9'}
+                />
               </View>
-              <View style={styles.settingContent}>
-                <Text style={styles.settingTitle}>Push Notifications</Text>
-                <Text style={styles.settingDescription}>Receive app notifications</Text>
-              </View>
-              <Switch
-                value={appSettings?.notifications_enabled ?? true}
-                onValueChange={(value) => updateAppSetting('notifications_enabled', value)}
-                trackColor={{ false: '#E2E8F0', true: '#A5B4FC' }}
-                thumbColor={appSettings?.notifications_enabled ? '#6366F1' : '#F1F5F9'}
-              />
-            </View>
-
-            {/* Dark Mode Toggle */}
-            <View style={styles.settingItem}>
-              <View style={[styles.settingIcon, { backgroundColor: '#64748B' }]}>
-                <Ionicons name="moon-outline" size={20} color="#FFFFFF" />
-              </View>
-              <View style={styles.settingContent}>
-                <Text style={styles.settingTitle}>Dark Mode</Text>
-                <Text style={styles.settingDescription}>Toggle dark theme</Text>
-              </View>
-              <Switch
-                value={appSettings?.dark_mode ?? false}
-                onValueChange={(value) => updateAppSetting('dark_mode', value)}
-                trackColor={{ false: '#E2E8F0', true: '#A5B4FC' }}
-                thumbColor={appSettings?.dark_mode ? '#6366F1' : '#F1F5F9'}
-              />
-            </View>
-
-            {/* Sound Toggle */}
-            <View style={styles.settingItem}>
-              <View style={[styles.settingIcon, { backgroundColor: '#EF4444' }]}>
-                <Ionicons name="volume-high-outline" size={20} color="#FFFFFF" />
-              </View>
-              <View style={styles.settingContent}>
-                <Text style={styles.settingTitle}>Sound Effects</Text>
-                <Text style={styles.settingDescription}>App sounds and feedback</Text>
-              </View>
-              <Switch
-                value={appSettings?.sound_enabled ?? true}
-                onValueChange={(value) => updateAppSetting('sound_enabled', value)}
-                trackColor={{ false: '#E2E8F0', true: '#A5B4FC' }}
-                thumbColor={appSettings?.sound_enabled ? '#6366F1' : '#F1F5F9'}
-              />
             </View>
           </View>
-        </View>
 
-        {/* Sign Out Button */}
-        <View style={styles.signOutSection}>
-          <TouchableOpacity
-            style={styles.signOutButton}
-            onPress={handleSignOut}
-            accessibilityLabel="Sign out of your account"
-          >
-            <View style={styles.signOutIcon}>
-              <Ionicons name="log-out-outline" size={20} color="#EF4444" />
-            </View>
-            <Text style={styles.signOutText}>Sign Out</Text>
-            <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          {/* Sign Out Button */}
+          <View style={styles.signOutSection}>
+            <TouchableOpacity
+              style={styles.signOutButton}
+              onPress={handleSignOut}
+              accessibilityLabel="Sign out of your account"
+            >
+              <View style={styles.signOutIcon}>
+                <Ionicons name="log-out-outline" size={20} color="#EF4444" />
+              </View>
+              <Text style={styles.signOutText}>Sign Out</Text>
+              <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
@@ -312,29 +295,76 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+  containerDark: {
+    backgroundColor: '#0F172A',
   },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  logoText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1E293B',
-    marginLeft: 8,
+  safeArea: {
+    flex: 1,
   },
   content: {
     flex: 1,
     paddingHorizontal: 24,
+  },
+  header: {
+    alignItems: 'center',
+    paddingTop: 60,
+    paddingBottom: 40,
+  },
+  iconContainer: {
+    position: 'relative',
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    backgroundColor: '#64748B',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+    shadowColor: '#64748B',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  iconContainerDark: {
+    backgroundColor: '#475569',
+    shadowColor: '#000',
+  },
+  sparkleIcon: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  sparkleIconDark: {
+    backgroundColor: '#1E293B',
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#6366F1',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  titleDark: {
+    color: '#A5B4FC',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#64748B',
+    textAlign: 'center',
+  },
+  subtitleDark: {
+    color: '#94A3B8',
   },
   loadingContainer: {
     flex: 1,
@@ -346,146 +376,111 @@ const styles = StyleSheet.create({
     color: '#64748B',
     marginTop: 16,
   },
-  profileSection: {
-    paddingVertical: 24,
-  },
-  profileCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  profileIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
-    backgroundColor: '#6366F1',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  profileInfo: {
-    flex: 1,
-  },
-  profileNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  profileName: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1E293B',
-    marginLeft: 8,
-  },
-  profileEmail: {
-    fontSize: 16,
-    color: '#64748B',
-    marginBottom: 8,
-  },
-  membershipBadge: {
-    backgroundColor: '#FEF3C7',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
-  },
-  membershipText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#92400E',
-  },
   settingsSection: {
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    backgroundColor: '#6366F1',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    marginBottom: 32,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 24,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#1E293B',
+    marginBottom: 16,
+  },
+  sectionTitleDark: {
+    color: '#F1F5F9',
   },
   settingsGroup: {
     backgroundColor: '#FFFFFF',
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
+    borderRadius: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+  settingsGroupDark: {
+    backgroundColor: '#1E293B',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
   },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
   },
+  settingItemDark: {
+    borderBottomColor: '#334155',
+  },
   settingIcon: {
-    width: 40,
-    height: 40,
+    width: 48,
+    height: 48,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 20,
   },
   settingContent: {
     flex: 1,
   },
   settingTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     color: '#1E293B',
-    marginBottom: 2,
+    marginBottom: 4,
+  },
+  settingTitleDark: {
+    color: '#F1F5F9',
   },
   settingDescription: {
     fontSize: 14,
     color: '#64748B',
   },
+  settingDescriptionDark: {
+    color: '#94A3B8',
+  },
   signOutSection: {
-    marginTop: 16,
     marginBottom: 32,
   },
   signOutButton: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: 20,
+    padding: 24,
     flexDirection: 'row',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
+    elevation: 8,
     borderWidth: 1,
     borderColor: '#FEE2E2',
   },
+  signOutButtonDark: {
+    backgroundColor: '#1E293B',
+    borderColor: '#7F1D1D',
+    shadowOpacity: 0.3,
+  },
   signOutIcon: {
-    width: 40,
-    height: 40,
+    width: 48,
+    height: 48,
     borderRadius: 12,
     backgroundColor: '#FEE2E2',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 20,
+  },
+  signOutIconDark: {
+    backgroundColor: '#7F1D1D',
   },
   signOutText: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     color: '#EF4444',
+  },
+  signOutTextDark: {
+    color: '#F87171',
   },
 });

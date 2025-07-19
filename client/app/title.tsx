@@ -1,23 +1,114 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   SafeAreaView,
+  Image,
+  Animated,
+  Easing,
 } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { supabase } from '../lib/supabase';
+
+const iconPositions = [
+  { top: 50, left: 50 },    // 1
+  { top: 175, left: 300 }, // 2
+  { top: 325, left: 20 },  // 3
+  { top: 450, left: 320 }, // 4
+  { top: 600, left: 70 },  // 5
+  { top: 675, left: 290 }, // 6
+];
+
+const iconNames: (
+  | 'heart-outline'
+  | 'eye-outline'
+  | 'people-outline'
+  | 'sparkles-outline'
+  | 'star-outline'
+  | 'cloud-outline'
+)[] = [
+  'heart-outline',
+  'eye-outline',
+  'people-outline',
+  'sparkles-outline',
+  'star-outline',
+  'cloud-outline',
+];
 
 export default function TitleScreen() {
-  useEffect(() => {
-    // Auto-dismiss after 3 seconds
-    const timer = setTimeout(() => {
-      router.replace('/(tabs)/home');
-    }, 3000);
+  // Animated scale values for each icon
+  const animatedScales = iconNames.map(() => React.useRef(new Animated.Value(1)).current);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      let timeouts: ReturnType<typeof setTimeout>[] = [];
+
+      // Helper to animate scale for one icon
+      const animateScale = (i: number) => {
+        // Random duration between 400ms and 1200ms
+        const duration = 400 + Math.random() * 800;
+        // Random delay before next animation
+        const delay = 300 + Math.random() * 1200;
+        // Random target scale between 1.2 and 1.6
+        const targetScale = 1.2 + Math.random() * 0.4;
+        Animated.sequence([
+          Animated.timing(animatedScales[i], {
+            toValue: targetScale,
+            duration,
+            useNativeDriver: true,
+            easing: Easing.inOut(Easing.ease),
+          }),
+          Animated.timing(animatedScales[i], {
+            toValue: 1,
+            duration,
+            useNativeDriver: true,
+            easing: Easing.inOut(Easing.ease),
+          }),
+        ]).start(() => {
+          // Schedule next animation with random delay
+          timeouts[i] = setTimeout(() => animateScale(i), delay);
+        });
+      };
+
+      // Start animation for each icon
+      iconNames.forEach((_, i) => {
+        animateScale(i);
+      });
+
+      return () => {
+        // Stop all timeouts and reset scales
+        timeouts.forEach(t => clearTimeout(t));
+        animatedScales.forEach(scale => scale.setValue(1));
+      };
+    }, [])
+  );
+
+  // ...existing code...
+
+  // Auto-dismiss after 3 seconds
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      checkAuthAndNavigate();
+    }, 3000);
     return () => clearTimeout(timer);
   }, []);
+
+  const checkAuthAndNavigate = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        router.replace('/(tabs)/home');
+      } else {
+        router.replace('/auth/signin');
+      }
+    } catch (error) {
+      router.replace('/auth/signin');
+    }
+  };
 
   return (
     <LinearGradient
@@ -28,27 +119,32 @@ export default function TitleScreen() {
         <View style={styles.content}>
           {/* Floating Background Icons */}
           <View style={styles.floatingIconsContainer}>
-            <View style={[styles.floatingIcon, styles.floatingIcon1]}>
-              <Ionicons name="heart-outline" size={20} color="rgba(255,255,255,0.3)" />
-            </View>
-            <View style={[styles.floatingIcon, styles.floatingIcon2]}>
-              <Ionicons name="people-outline" size={20} color="rgba(255,255,255,0.3)" />
-            </View>
-            <View style={[styles.floatingIcon, styles.floatingIcon3]}>
-              <Ionicons name="camera-outline" size={18} color="rgba(255,255,255,0.3)" />
-            </View>
-            <View style={[styles.floatingIcon, styles.floatingIcon4]}>
-              <Ionicons name="sparkles-outline" size={18} color="rgba(255,255,255,0.3)" />
-            </View>
+            {iconNames.map((name, i) => (
+              <Animated.View
+                key={name}
+                style={[
+                  styles.floatingIcon,
+                  {
+                    top: iconPositions[i].top,
+                    left: iconPositions[i].left,
+                    transform: [{ scale: animatedScales[i] }],
+                  },
+                ]}
+              >
+                <Ionicons name={name} size={i < 3 ? 24 : 22} color="rgba(255,255,255,0.3)" />
+              </Animated.View>
+            ))}
           </View>
 
           {/* Main Content */}
           <View style={styles.mainContent}>
             {/* Central Logo */}
             <View style={styles.logoContainer}>
-              <View style={styles.logo}>
-                <Ionicons name="heart" size={56} color="#FFFFFF" />
-              </View>
+              <Image 
+                source={require('../assets/dolphin-logo-nobg.png')}
+                style={styles.logo}
+                resizeMode="contain"
+              />
             </View>
 
             {/* App Name and Slogan */}
@@ -81,28 +177,12 @@ const styles = StyleSheet.create({
   },
   floatingIcon: {
     position: 'absolute',
-    width: 50,
-    height: 50,
-    borderRadius: 12,
+    width: 60,
+    height: 60,
+    borderRadius: 16,
     backgroundColor: 'rgba(255,255,255,0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  floatingIcon1: {
-    top: 120,
-    left: 40,
-  },
-  floatingIcon2: {
-    top: 200,
-    right: 50,
-  },
-  floatingIcon3: {
-    bottom: 250,
-    left: 60,
-  },
-  floatingIcon4: {
-    bottom: 180,
-    right: 40,
   },
   mainContent: {
     flex: 1,
@@ -111,35 +191,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   logoContainer: {
-    marginBottom: 40,
+    marginTop: -300,
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   logo: {
-    width: 120,
-    height: 120,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    width: 300,
+    height: 300,
   },
   appName: {
+    marginTop: 150,
     fontSize: 48,
     fontWeight: '800',
     color: '#FFFFFF',
-    marginBottom: 12,
+    marginBottom: 8,
     textAlign: 'center',
     letterSpacing: -1,
   },
   slogan: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '500',
     color: 'rgba(255,255,255,0.9)',
     textAlign: 'center',
-    lineHeight: 26,
+    lineHeight: 22,
     paddingHorizontal: 20,
+    marginBottom: 0,
   },
 });
