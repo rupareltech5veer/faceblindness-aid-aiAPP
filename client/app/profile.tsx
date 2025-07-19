@@ -417,7 +417,7 @@ export default function ProfileScreen() {
               style={styles.backButton}
               onPress={() => router.back()}
             >
-              <Ionicons name="chevron-back" size={24} color="#6366F1" />
+              <Ionicons name="chevron-back" size={24} color="#64748B" />
             </TouchableOpacity>
             <Text style={styles.title}>Profile</Text>
             <TouchableOpacity
@@ -495,10 +495,10 @@ export default function ProfileScreen() {
               onPress={handleChangePassword}
             >
               <View style={styles.actionIcon}>
-                <Ionicons name="lock-closed-outline" size={24} color="#6366F1" />
+                <Ionicons name="lock-closed-outline" size={24} color="#64748B" />
               </View>
               <Text style={styles.actionText}>Change Password</Text>
-              <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
+              <Ionicons name="chevron-forward" size={20} color="#64748B" />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -557,7 +557,7 @@ const styles = StyleSheet.create({
   editButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: '#6366F1',
+    backgroundColor: '#64748B',
     borderRadius: 8,
   },
   editButtonText: {
@@ -614,7 +614,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#6366F1',
+    backgroundColor: '#64748B',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
