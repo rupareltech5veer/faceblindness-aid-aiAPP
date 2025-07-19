@@ -291,7 +291,7 @@ export default function ScanScreen() {
               width: 80,
               height: 80,
               borderRadius: 20,
-              backgroundColor: '#A8E063',
+              backgroundColor: '#56AB2F',
               justifyContent: 'center',
               alignItems: 'center',
               marginBottom: 24,
@@ -301,7 +301,7 @@ export default function ScanScreen() {
               shadowRadius: 16,
               elevation: 8,
             }}>
-              <Ionicons name="camera-outline" size={32} color="#64748B" />
+              <Ionicons name="camera-outline" size={32} color="white" />
               <View style={{
                 position: 'absolute',
                 top: -8,
@@ -390,8 +390,8 @@ export default function ScanScreen() {
                 <Switch
                   value={showEmotionOverlay}
                   onValueChange={setShowEmotionOverlay}
-                  trackColor={{ false: '#E2E8F0', true: '#A5B4FC' }}
-                  thumbColor={showEmotionOverlay ? '#6366F1' : '#F1F5F9'}
+                  trackColor={{ false: '#E2E8F0', true: '#A8E063' }}
+                  thumbColor={showEmotionOverlay ? '#56AB2F' : '#F1F5F9'}
                 />
               </View>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -401,8 +401,8 @@ export default function ScanScreen() {
                 <Switch
                   value={showCaricatureOverlay}
                   onValueChange={setShowCaricatureOverlay}
-                  trackColor={{ false: '#E2E8F0', true: '#A5B4FC' }}
-                  thumbColor={showCaricatureOverlay ? '#6366F1' : '#F1F5F9'}
+                  trackColor={{ false: '#E2E8F0', true: '#A8E063' }}
+                  thumbColor={showCaricatureOverlay ? '#56AB2F' : '#F1F5F9'}
                 />
               </View>
             </View>
@@ -458,7 +458,7 @@ export default function ScanScreen() {
                     <TouchableOpacity
                       onPress={requestCameraPermission}
                       style={{
-                        backgroundColor: '#6366F1',
+                        backgroundColor: '#56AB2F',
                         paddingHorizontal: 20,
                         paddingVertical: 12,
                         borderRadius: 12,
