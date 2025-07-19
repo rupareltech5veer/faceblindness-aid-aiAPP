@@ -70,11 +70,10 @@ export default function ResetPasswordScreen() {
       Alert.alert(
         'Password Updated!',
         'Your password has been successfully updated. Please sign in with your new password.',
-        [{ text: 'Continue', onPress: () => router.replace('/auth/signin') }]
+        [{ text: 'Continue', onPress: () => router.replace('/(tabs)/home') }]
       );
       
     } catch (error: any) {
-      console.error('Password reset error:', error);
       Alert.alert('Reset Failed', error.message || 'Failed to reset password. Please try again.');
     } finally {
       setIsLoading(false);

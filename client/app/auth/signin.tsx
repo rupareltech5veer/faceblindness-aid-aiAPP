@@ -40,17 +40,58 @@ export default function SignInScreen() {
         throw error;
       }
 
-      // Only navigate on successful sign in (no error thrown)
+      // Check if user profile exists, create if not
+      if (data.user) {
+        const { data: existingProfile } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('user_id', data.user.id)
+          .single();
+
+        if (!existingProfile) {
+          // Create profile with user metadata or email-based name
+          const defaultName = data.user.user_metadata?.full_name || 
+                             data.user.email?.split('@')[0] || 
+                             'User';
+          
+          const { error: profileError } = await supabase
+            .from('user_profiles')
+            .insert({
+              user_id: data.user.id,
+              full_name: defaultName,
+            });
+
+          if (profileError) {
+            console.error('Error creating profile:', profileError);
+          }
+        }
+      }
+
+      // Navigate on successful sign in
       router.replace('/title');
       
     } catch (error: any) {
-      console.error('Signin error:', error);
-      // Only show error alert if sign in actually failed
-      if (error.message) {
-        Alert.alert('Sign In Failed', error.message);
+      // Handle specific error types with user-friendly messages
+      let errorMessage = 'Failed to sign in. Please try again.';
+      
+      if (error.message?.includes('Invalid login credentials') || error.message?.includes('invalid_credentials')) {
+        errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+      } else if (error.message?.includes('Email not confirmed')) {
+        errorMessage = 'Please check your email and click the verification link before signing in.';
+      } else if (error.message?.includes('Too many requests')) {
+        errorMessage = 'Too many sign-in attempts. Please wait a moment and try again.';
+      } else if (error.name === 'AuthApiError' && error.message) {
+        // Handle other AuthApiError cases
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+        } else {
+          errorMessage = 'Authentication failed. Please try again.';
+        }
       } else {
-        Alert.alert('Sign In Failed', 'Failed to sign in. Please check your credentials.');
+        errorMessage = 'Authentication failed. Please try again.';
       }
+      
+      Alert.alert('Sign In Failed', errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -64,7 +105,7 @@ export default function SignInScreen() {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: 'faceblindness-aid://auth/callback?type=recovery',
+        redirectTo: 'exp://192.168.1.100:8081/--/auth/reset-password',
       });
 
       if (error) throw error;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,8 @@ import {
   Modal,
   TextInput,
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -29,6 +31,7 @@ export default function ConnectionsScreen() {
     image: null as string | null,
   });
   const [uploading, setUploading] = useState(false);
+  const [imageErrors, setImageErrors] = useState<{[key: string]: boolean}>({});
 
   useEffect(() => {
     fetchConnections();
@@ -81,22 +84,36 @@ export default function ConnectionsScreen() {
   };
 
   const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    console.log('pickImage function called - checking permissions...');
     
-    if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please grant camera roll permissions to upload photos.');
-      return;
-    }
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      console.log('Permission status:', status);
+      
+      if (status !== 'granted') {
+        console.log('Permission denied for media library');
+        Alert.alert('Permission needed', 'Please grant camera roll permissions to upload photos.');
+        return;
+      }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
+      console.log('Permission granted, launching image picker...');
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
 
-    if (!result.canceled && result.assets[0]) {
-      setFormData(prev => ({ ...prev, image: result.assets[0].uri }));
+      console.log('Image picker result:', result);
+      if (!result.canceled && result.assets && result.assets[0]) {
+        console.log('Image selected:', result.assets[0].uri);
+        setFormData(prev => ({ ...prev, image: result.assets[0].uri }));
+      } else {
+        console.log('Image picker was canceled or no image selected');
+      }
+    } catch (error) {
+      console.error('Error in pickImage:', error);
+      Alert.alert('Error', 'Failed to open image picker. Please try again.');
     }
   };
 
@@ -109,67 +126,131 @@ export default function ConnectionsScreen() {
     setUploading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
-      let imageUrl = formData.image;
-
-      // Upload new image if selected
-      if (formData.image && formData.image.startsWith('file://')) {
-        const timestamp = Date.now();
-        const fileName = `${user.id}/${timestamp}.jpg`;
-
-        const response = await fetch(formData.image);
-        const blob = await response.blob();
-
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('connections')
-          .upload(fileName, blob, {
-            contentType: 'image/jpeg',
-          });
-
-        if (uploadError) throw uploadError;
-
-        const { data: urlData } = supabase.storage
-          .from('connections')
-          .getPublicUrl(fileName);
-
-        imageUrl = urlData.publicUrl;
+      if (!user) {
+        Alert.alert('Authentication Required', 'Please sign in to save connections.');
+        return;
       }
 
-      const connectionData = {
-        user_id: user.id,
-        name: formData.name.trim(),
-        description: formData.description.trim() || null,
-        notes: formData.notes.trim() || null,
-        image_url: imageUrl,
-        updated_at: new Date().toISOString(),
-      };
+      let imageUrl = formData.image;
+      let faceEmbedding = null;
+      let facialTraits = {};
+      let traitDescriptions: string[] = [];
+      let landmarkData = {};
 
       if (editingConnection) {
         // Update existing connection
         const { error } = await supabase
           .from('connections')
-          .update(connectionData)
+          .update({
+            name: formData.name.trim(),
+            description: formData.description.trim() || null,
+            notes: formData.notes.trim() || null,
+            updated_at: new Date().toISOString(),
+          })
           .eq('id', editingConnection.id);
 
         if (error) throw error;
       } else {
         // Create new connection
-        const { error } = await supabase
-          .from('connections')
-          .insert(connectionData);
+        if (!formData.image) {
+          Alert.alert('Missing Image', 'Please select an image for face recognition.');
+          return;
+        }
 
-        if (error) throw error;
+        // Upload image to Supabase storage if it's a new image
+        if (formData.image.startsWith('file://')) {
+          const timestamp = Date.now();
+          const fileName = `${user.id}/connection_${timestamp}.jpg`;
+
+          const response = await fetch(formData.image);
+          const blob = await response.blob();
+
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('connections')
+            .upload(fileName, blob, {
+              contentType: 'image/jpeg',
+            });
+
+          if (uploadError) throw uploadError;
+
+          // Get public URL
+          const { data: urlData } = supabase.storage
+            .from('connections')
+            .getPublicUrl(fileName);
+
+          imageUrl = urlData.publicUrl;
+
+          // Try to get face analysis from backend
+          try {
+            const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+            
+            // Prepare form data for backend analysis
+            const formDataToSend = new FormData();
+            formDataToSend.append('user_id', user.id);
+            formDataToSend.append('name', formData.name.trim());
+            formDataToSend.append('role', formData.description.trim());
+            formDataToSend.append('context', formData.notes.trim());
+            formDataToSend.append('file', blob, 'connection.jpg');
+
+            const apiResponse = await fetch(`${backendUrl}/connections/add`, {
+              method: 'POST',
+              body: formDataToSend,
+            });
+
+            if (apiResponse.ok) {
+              const result = await apiResponse.json();
+              if (result.success && result.data) {
+                faceEmbedding = result.data.face_embedding || null;
+                facialTraits = result.data.facial_traits || {};
+                traitDescriptions = result.data.trait_descriptions || [];
+                landmarkData = result.data.landmark_data || {};
+              }
+            }
+          } catch (backendError) {
+            console.log('Backend analysis failed, continuing without AI features:', backendError);
+            // Continue without AI analysis - user can still save the connection
+          }
+        }
+
+        // Save to database
+        const { error: dbError } = await supabase
+          .from('connections')
+          .insert({
+            user_id: user.id,
+            name: formData.name.trim(),
+            image_url: imageUrl,
+            description: formData.description.trim() || null,
+            notes: formData.notes.trim() || null,
+            face_embedding: faceEmbedding,
+            facial_traits: facialTraits,
+            trait_descriptions: traitDescriptions,
+            landmark_data: landmarkData,
+          });
+
+        if (dbError) throw dbError;
+
+        // Show success message with traits if available
+        if (traitDescriptions.length > 0) {
+          Alert.alert(
+            'Connection Added!', 
+            `Face analysis complete. Detected traits: ${traitDescriptions.slice(0, 3).join(', ')}`,
+            [{ text: 'OK' }]
+          );
+        } else {
+          Alert.alert('Connection Added!', 'Person added to your connections successfully.');
+        }
       }
 
       setShowAddModal(false);
       resetForm();
       fetchConnections();
-      
-      Alert.alert('Success!', `Connection ${editingConnection ? 'updated' : 'added'} successfully.`);
-    } catch (error) {
-      console.error('Save error:', error);
-      Alert.alert('Save failed', 'There was an error saving the connection. Please try again.');
+
+      if (editingConnection) {
+        Alert.alert('Success!', 'Connection updated successfully.');
+      }
+    } catch (error: any) {
+      console.error('Error saving connection:', error);
+      Alert.alert('Save failed', `There was an error saving the connection: ${error?.message || 'Please try again.'}`);
     } finally {
       setUploading(false);
     }
@@ -188,11 +269,12 @@ export default function ConnectionsScreen() {
             try {
               // Delete image from storage if exists
               if (connection.image_url) {
-                const fileName = connection.image_url.split('/').pop();
+                const urlParts = connection.image_url.split('/');
+                const fileName = urlParts[urlParts.length - 1];
                 if (fileName) {
                   await supabase.storage
                     .from('connections')
-                    .remove([fileName]);
+                    .remove([`${connection.user_id}/${fileName}`]);
                 }
               }
 
@@ -214,11 +296,33 @@ export default function ConnectionsScreen() {
     );
   };
 
+  const handleImageError = (itemId: string) => {
+    setImageErrors(prev => ({ ...prev, [itemId]: true }));
+  };
+
+  const handleImageLoad = (itemId: string) => {
+    setImageErrors(prev => ({ ...prev, [itemId]: false }));
+  };
+
   const renderConnection = ({ item }: { item: Connection }) => (
     <View style={styles.connectionCard}>
       <View style={styles.connectionHeader}>
         {item.image_url ? (
-          <Image source={{ uri: item.image_url }} style={styles.connectionImage} />
+          <>
+            {imageErrors[item.id] ? (
+              <View style={[styles.connectionImage, styles.errorPlaceholder]}>
+                <Ionicons name="person-outline" size={24} color="#94A3B8" />
+                <Text style={styles.errorText}>Failed to load</Text>
+              </View>
+            ) : (
+              <Image 
+                source={{ uri: item.image_url }} 
+                style={styles.connectionImage}
+                onError={() => handleImageError(item.id)}
+                onLoad={() => handleImageLoad(item.id)}
+              />
+            )}
+          </>
         ) : (
           <View style={styles.placeholderImage}>
             <Ionicons name="person-outline" size={32} color="#94A3B8" />
@@ -285,11 +389,7 @@ export default function ConnectionsScreen() {
         </View>
 
         {/* Content */}
-        <ScrollView 
-          style={styles.content}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 95 }}
-        >
+        <View style={styles.content}>
           {loading ? (
             <View style={styles.loadingContainer}>
               <Ionicons name="people-outline" size={64} color="#6366F1" />
@@ -310,11 +410,11 @@ export default function ConnectionsScreen() {
               data={connections}
               renderItem={renderConnection}
               keyExtractor={(item) => item.id}
-              contentContainerStyle={styles.connectionsList}
               showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.connectionsList}
             />
           )}
-        </ScrollView>
+        </View>
 
       {/* Add/Edit Modal */}
       <Modal
@@ -323,17 +423,32 @@ export default function ConnectionsScreen() {
         animationType="slide"
         onRequestClose={() => setShowAddModal(false)}
       >
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
           <View style={styles.modalContent}>
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView 
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={styles.scrollViewContent}
+            >
               <Text style={styles.modalTitle}>
                 {editingConnection ? 'Edit Connection' : 'Add New Connection'}
               </Text>
 
               {/* Image Picker */}
-              <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
+              <TouchableOpacity 
+                style={styles.imagePicker} 
+                onPress={pickImage}
+                activeOpacity={0.7}
+              >
                 {formData.image ? (
-                  <Image source={{ uri: formData.image }} style={styles.selectedImage} />
+                  <Image 
+                    source={{ uri: formData.image }} 
+                    style={styles.selectedImage}
+                    onError={() => console.error('Error loading selected image')}
+                  />
                 ) : (
                   <View style={styles.imagePickerPlaceholder}>
                     <Ionicons name="camera-outline" size={32} color="#94A3B8" />
@@ -351,6 +466,7 @@ export default function ConnectionsScreen() {
                   onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
                   placeholder="Enter person's name"
                   placeholderTextColor="#94A3B8"
+                  returnKeyType="next"
                 />
               </View>
 
@@ -363,20 +479,27 @@ export default function ConnectionsScreen() {
                   onChangeText={(text) => setFormData(prev => ({ ...prev, description: text }))}
                   placeholder="Brief description (e.g., colleague, friend)"
                   placeholderTextColor="#94A3B8"
+                  returnKeyType="next"
                 />
               </View>
 
               {/* Notes Input */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Notes</Text>
+                <Text style={styles.inputHint}>
+                  Personal details, memorable stories, or unique characteristics that help you remember this person
+                </Text>
                 <TextInput
                   style={[styles.textInput, styles.textArea]}
                   value={formData.notes}
                   onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))}
-                  placeholder="Personal notes, memorable details, etc."
+                  placeholder="e.g., 'Loves hiking, has a distinctive laugh, met at Sarah's birthday party'"
                   placeholderTextColor="#94A3B8"
                   multiline
                   numberOfLines={4}
+                  returnKeyType="done"
+                  blurOnSubmit={true}
+                  textAlignVertical="top"
                 />
               </View>
 
@@ -401,7 +524,7 @@ export default function ConnectionsScreen() {
               </View>
             </ScrollView>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
       </SafeAreaView>
     </LinearGradient>
@@ -551,19 +674,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   connectionImage: {
-    width: 64,
-    height: 64,
+    width: 80,
+    height: 80,
     borderRadius: 16,
     marginRight: 20,
+    resizeMode: 'cover',
+  },
+  errorPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  errorText: {
+    fontSize: 10,
+    color: '#94A3B8',
+    marginTop: 2,
+    textAlign: 'center',
   },
   placeholderImage: {
-    width: 64,
-    height: 64,
+    width: 80,
+    height: 80,
     borderRadius: 16,
     backgroundColor: '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 20,
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    borderStyle: 'dashed',
   },
   connectionInfo: {
     flex: 1,
@@ -619,6 +759,9 @@ const styles = StyleSheet.create({
     padding: 24,
     maxHeight: '90%',
   },
+  scrollViewContent: {
+    paddingBottom: 20,
+  },
   modalTitle: {
     fontSize: 24,
     fontWeight: '700',
@@ -659,6 +802,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#374151',
     marginBottom: 8,
+  },
+  inputHint: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 8,
+    fontStyle: 'italic',
+    lineHeight: 18,
   },
   textInput: {
     borderWidth: 1,

@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { View, Text } from 'react-native';
+import { View, Text, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import TopNavBar from '../../components/TopNavBar';
@@ -44,7 +44,7 @@ export default function TabsLayout() {
 
   return (
     <View style={{ flex: 1 }}>
-      <TopNavBar userName="User" gradientColors={getTabGradient(currentTab)} />
+      <TopNavBar gradientColors={getTabGradient(currentTab)} />
       <Tabs
         screenOptions={({ route }) => ({
           tabBarActiveTintColor: '#FFFFFF',

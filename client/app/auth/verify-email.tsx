@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../../lib/supabase';
+import type { ColorValue } from 'react-native';
 
 export default function VerifyEmailScreen() {
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
@@ -56,7 +57,6 @@ export default function VerifyEmailScreen() {
         }, 3000);
       }
     } catch (error) {
-      console.error('Email verification error:', error);
       setStatus('error');
       setMessage('Email verification failed. Please try again.');
       
@@ -78,7 +78,7 @@ export default function VerifyEmailScreen() {
     }
   };
 
-  const getStatusColor = () => {
+  const getStatusColor = (): [ColorValue, ColorValue] => {
     switch (status) {
       case 'verifying':
         return ['#6366F1', '#8B5CF6'];
@@ -86,6 +86,8 @@ export default function VerifyEmailScreen() {
         return ['#10B981', '#059669'];
       case 'error':
         return ['#EF4444', '#DC2626'];
+      default:
+        return ['#6366F1', '#8B5CF6'];
     }
   };
 

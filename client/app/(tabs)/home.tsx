@@ -31,6 +31,9 @@ export default function HomeScreen() {
   const [showFrameModal, setShowFrameModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [selectedFrame, setSelectedFrame] = useState<string>('none');
+  const [showPreview, setShowPreview] = useState(false);
+  const [imageError, setImageError] = useState<{[key: string]: boolean}>({});
 
   useEffect(() => {
     fetchFavorites();
@@ -57,24 +60,47 @@ export default function HomeScreen() {
   };
 
   const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
-    if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please grant camera roll permissions to upload photos.');
-      return;
-    }
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please grant camera roll permissions to upload photos.');
+        return;
+      }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
 
-    if (!result.canceled && result.assets[0]) {
-      setSelectedImage(result.assets[0].uri);
-      setShowFrameModal(true);
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setSelectedImage(result.assets[0].uri);
+        setShowFrameModal(true);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to open image picker. Please try again.');
     }
+  };
+
+  const handleFrameSelect = (frameId: string) => {
+    setSelectedFrame(frameId);
+    setShowFrameModal(false);
+    setShowPreview(true);
+  };
+
+  const handleApplyFrame = () => {
+    uploadFavorite(selectedFrame);
+    setShowPreview(false);
+    setShowFrameModal(false);
+  };
+
+  const handleCancelFrame = () => {
+    setShowPreview(false);
+    setShowFrameModal(true);
+    setSelectedFrame('none');
   };
 
   const uploadFavorite = async (frameStyle: string) => {
@@ -83,7 +109,10 @@ export default function HomeScreen() {
     setUploading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user) {
+        Alert.alert('Authentication Required', 'Please sign in to save favorites.');
+        return;
+      }
 
       // Upload image to storage
       const timestamp = Date.now();
@@ -118,12 +147,14 @@ export default function HomeScreen() {
       if (dbError) throw dbError;
 
       setShowFrameModal(false);
+      setShowPreview(false);
       setSelectedImage(null);
+      setSelectedFrame('none');
       fetchFavorites();
       
       Alert.alert('Success!', 'Your favorite has been added.');
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('Error uploading favorite:', error);
       Alert.alert('Upload failed', 'There was an error uploading your photo. Please try again.');
     } finally {
       setUploading(false);
@@ -142,13 +173,17 @@ export default function HomeScreen() {
           onPress: async () => {
             try {
               // Extract filename from URL for storage deletion
-              const fileName = imageUrl.split('/').pop();
+              const urlParts = imageUrl.split('/');
+              const fileName = urlParts[urlParts.length - 1];
               
               // Delete from storage
               if (fileName) {
-                await supabase.storage
-                  .from('favorites')
-                  .remove([fileName]);
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                  await supabase.storage
+                    .from('favorites')
+                    .remove([`${user.id}/${fileName}`]);
+                }
               }
 
               // Delete from database
@@ -175,19 +210,42 @@ export default function HomeScreen() {
     if (frame.id === 'none') {
       return {
         borderWidth: 0,
+        backgroundColor: 'transparent',
       };
     }
     
     return {
       borderColor: frame.color,
       borderWidth: 4,
+      backgroundColor: 'transparent',
     };
+  };
+
+  const handleImageError = (itemId: string) => {
+    setImageError(prev => ({ ...prev, [itemId]: true }));
+  };
+
+  const handleImageLoad = (itemId: string) => {
+    setImageError(prev => ({ ...prev, [itemId]: false }));
   };
 
   const renderFavorite = ({ item }: { item: Favorite }) => (
     <View style={styles.favoriteCard}>
       <View style={[styles.imageContainer, getFrameStyle(item.frame_style)]}>
-        <Image source={{ uri: item.image_url }} style={styles.favoriteImage} />
+        {imageError[item.id] ? (
+          <View style={[styles.favoriteImage, styles.errorPlaceholder]}>
+            <Ionicons name="image-outline" size={32} color="#94A3B8" />
+            <Text style={styles.errorText}>Failed to load image</Text>
+          </View>
+        ) : (
+          <Image 
+            source={{ uri: item.image_url }} 
+            style={styles.favoriteImage}
+            onError={() => handleImageError(item.id)}
+            onLoad={() => handleImageLoad(item.id)}
+            onLoadStart={() => handleImageLoad(item.id)}
+          />
+        )}
         <TouchableOpacity
           style={styles.deleteButton}
           onPress={() => deleteFavorite(item.id, item.image_url)}
@@ -275,33 +333,72 @@ export default function HomeScreen() {
             
             {selectedImage && (
               <View style={styles.previewContainer}>
-                <Image source={{ uri: selectedImage }} style={styles.previewImage} />
+                {showPreview ? (
+                  <>
+                    <Text style={styles.previewTitle}>Preview with {frameStyles.find(f => f.id === selectedFrame)?.name} Frame</Text>
+                    <View style={[styles.framePreviewContainer, getFrameStyle(selectedFrame)]}>
+                      <Image source={{ uri: selectedImage }} style={styles.previewImage} />
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.previewTitle}>Selected Photo</Text>
+                    <Image 
+                      source={{ uri: selectedImage }} 
+                      style={styles.previewImage}
+                      onError={() => console.error('Error loading preview image')}
+                    />
+                  </>
+                )}
               </View>
             )}
 
-            <ScrollView style={styles.frameOptions} showsVerticalScrollIndicator={false}>
-              {frameStyles.map((frame) => (
+            {!showPreview ? (
+              <ScrollView style={styles.frameOptions} showsVerticalScrollIndicator={false}>
+                {frameStyles.map((frame) => (
+                  <TouchableOpacity
+                    key={frame.id}
+                    style={styles.frameOption}
+                    onPress={() => handleFrameSelect(frame.id)}
+                    disabled={uploading}
+                  >
+                    <View style={[styles.framePreview, { borderColor: frame.color, borderWidth: frame.id === 'none' ? 0 : 3 }]}>
+                      <Text style={styles.frameEmoji}>{frame.preview}</Text>
+                    </View>
+                    <Text style={styles.frameName}>{frame.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            ) : (
+              <View style={styles.previewActions}>
                 <TouchableOpacity
-                  key={frame.id}
-                  style={styles.frameOption}
-                  onPress={() => uploadFavorite(frame.id)}
+                  style={styles.previewCancelButton}
+                  onPress={handleCancelFrame}
                   disabled={uploading}
                 >
-                  <View style={[styles.framePreview, { borderColor: frame.color }]}>
-                    <Text style={styles.frameEmoji}>{frame.preview}</Text>
-                  </View>
-                  <Text style={styles.frameName}>{frame.name}</Text>
+                  <Text style={styles.previewCancelText}>Cancel</Text>
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
+                <TouchableOpacity
+                  style={styles.previewApplyButton}
+                  onPress={handleApplyFrame}
+                  disabled={uploading}
+                >
+                  <Text style={styles.previewApplyText}>
+                    {uploading ? 'Applying...' : 'Apply Frame'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => setShowFrameModal(false)}
-              disabled={uploading}
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
+            {!showPreview && (
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setShowFrameModal(false)}
+                disabled={uploading}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </Modal>
@@ -456,6 +553,17 @@ const styles = StyleSheet.create({
     height: 160,
     resizeMode: 'cover',
   },
+  errorPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+  },
+  errorText: {
+    fontSize: 12,
+    color: '#94A3B8',
+    marginTop: 8,
+    textAlign: 'center',
+  },
   deleteButton: {
     position: 'absolute',
     top: 8,
@@ -494,10 +602,50 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
+  previewTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  framePreviewContainer: {
+    padding: 8,
+    borderRadius: 12,
+  },
   previewImage: {
     width: 120,
     height: 120,
     borderRadius: 12,
+  },
+  previewActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 24,
+  },
+  previewCancelButton: {
+    flex: 1,
+    backgroundColor: '#F1F5F9',
+    paddingVertical: 16,
+    borderRadius: 12,
+  },
+  previewCancelText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#64748B',
+    textAlign: 'center',
+  },
+  previewApplyButton: {
+    flex: 1,
+    backgroundColor: '#EC4899',
+    paddingVertical: 16,
+    borderRadius: 12,
+  },
+  previewApplyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textAlign: 'center',
   },
   frameOptions: {
     maxHeight: 300,
@@ -519,7 +667,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 16,
     backgroundColor: '#FFFFFF',
-    borderWidth: 3,
   },
   frameEmoji: {
     fontSize: 20,

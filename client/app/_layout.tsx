@@ -22,9 +22,13 @@ export default function RootLayout() {
         <Stack.Screen name="auth/signup" />
         <Stack.Screen name="auth/callback" />
         <Stack.Screen name="auth/reset-password" />
+        <Stack.Screen name="auth/verify-email" />
         
         {/* Main app with tabs */}
         <Stack.Screen name="(tabs)" />
+        
+        {/* Profile screen */}
+        <Stack.Screen name="profile" />
         
         {/* Legacy screens for backward compatibility */}
         <Stack.Screen name="policy" />
