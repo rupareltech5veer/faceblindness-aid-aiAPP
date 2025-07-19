@@ -70,7 +70,7 @@ export default function ResetPasswordScreen() {
       Alert.alert(
         'Password Updated!',
         'Your password has been successfully updated. Please sign in with your new password.',
-        [{ text: 'Continue', onPress: () => router.replace('/(tabs)/home') }]
+        [{ text: 'Continue', onPress: () => router.replace('/auth/signin') }]
       );
       
     } catch (error: any) {
@@ -172,11 +172,11 @@ export default function ResetPasswordScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={() => router.replace('/auth/signin')}
+              onPress={() => router.replace('/(tabs)/settings')}
               style={styles.backToSignIn}
-              accessibilityLabel="Back to sign in"
+              accessibilityLabel="Back to Settings"
             >
-              <Text style={styles.backToSignInText}>Back to Sign In</Text>
+              <Text style={styles.backToSignInText}>Back</Text>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>

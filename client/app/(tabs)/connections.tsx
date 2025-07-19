@@ -20,6 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { supabase, Connection } from '../../lib/supabase';
 
 export default function ConnectionsScreen() {
+  
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -36,6 +37,7 @@ export default function ConnectionsScreen() {
   useEffect(() => {
     fetchConnections();
   }, []);
+
 
   const fetchConnections = async () => {
     try {
@@ -369,163 +371,169 @@ export default function ConnectionsScreen() {
       style={{ flex: 1 }}
     >
       <SafeAreaView style={styles.safeArea}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.iconContainer}>
-            <Ionicons name="people-outline" size={32} color="#FFFFFF" />
-            <View style={styles.sparkleIcon}>
-              <Ionicons name="sparkles-outline" size={16} color="#A5B4FC" />
-            </View>
-          </View>
-          <Text style={styles.title}>Connections</Text>
-          <Text style={styles.subtitle}>
-            Organize your relationships and build stronger connections
-          </Text>
-          
-          <TouchableOpacity style={styles.addButton} onPress={openAddModal}>
-            <Ionicons name="add-circle-outline" size={28} color="#FFFFFF" />
-            <Text style={styles.addButtonText}>Add Connection</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Content */}
-        <View style={styles.content}>
-          {loading ? (
-            <View style={styles.loadingContainer}>
-              <Ionicons name="people-outline" size={64} color="#6366F1" />
-              <Text style={styles.loadingText}>Loading your connections...</Text>
-            </View>
-          ) : connections.length === 0 ? (
-            <View style={styles.emptyState}>
-              <View style={styles.emptyIconContainer}>
-                <Ionicons name="people-outline" size={64} color="#6366F1" />
-              </View>
-              <Text style={styles.emptyTitle}>No connections yet</Text>
-              <Text style={styles.emptySubtitle}>
-                Add your first connection to get started
-              </Text>
-            </View>
-          ) : (
-            <FlatList
-              data={connections}
-              renderItem={renderConnection}
-              keyExtractor={(item) => item.id}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.connectionsList}
-            />
-          )}
-        </View>
-
-      {/* Add/Edit Modal */}
-      <Modal
-        visible={showAddModal}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowAddModal(false)}
-      >
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.modalOverlay}
+        <ScrollView 
+          style={styles.content} 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 95 }}
         >
-          <View style={styles.modalContent}>
-            <ScrollView 
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-              contentContainerStyle={styles.scrollViewContent}
-            >
-              <Text style={styles.modalTitle}>
-                {editingConnection ? 'Edit Connection' : 'Add New Connection'}
-              </Text>
-
-              {/* Image Picker */}
-              <TouchableOpacity 
-                style={styles.imagePicker} 
-                onPress={pickImage}
-                activeOpacity={0.7}
-              >
-                {formData.image ? (
-                  <Image 
-                    source={{ uri: formData.image }} 
-                    style={styles.selectedImage}
-                    onError={() => console.error('Error loading selected image')}
-                  />
-                ) : (
-                  <View style={styles.imagePickerPlaceholder}>
-                    <Ionicons name="camera-outline" size={32} color="#94A3B8" />
-                    <Text style={styles.imagePickerText}>Add Photo</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-
-              {/* Name Input */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Name *</Text>
-                <TextInput
-                  style={styles.textInput}
-                  value={formData.name}
-                  onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
-                  placeholder="Enter person's name"
-                  placeholderTextColor="#94A3B8"
-                  returnKeyType="next"
-                />
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="people-outline" size={32} color="#FFFFFF" />
+              <View style={styles.sparkleIcon}>
+                <Ionicons name="sparkles-outline" size={16} color="#A5B4FC" />
               </View>
-
-              {/* Description Input */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Description</Text>
-                <TextInput
-                  style={styles.textInput}
-                  value={formData.description}
-                  onChangeText={(text) => setFormData(prev => ({ ...prev, description: text }))}
-                  placeholder="Brief description (e.g., colleague, friend)"
-                  placeholderTextColor="#94A3B8"
-                  returnKeyType="next"
-                />
-              </View>
-
-              {/* Notes Input */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Notes</Text>
-                <Text style={styles.inputHint}>
-                  Personal details, memorable stories, or unique characteristics that help you remember this person
-                </Text>
-                <TextInput
-                  style={[styles.textInput, styles.textArea]}
-                  value={formData.notes}
-                  onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))}
-                  placeholder="e.g., 'Loves hiking, has a distinctive laugh, met at Sarah's birthday party'"
-                  placeholderTextColor="#94A3B8"
-                  multiline
-                  numberOfLines={4}
-                  returnKeyType="done"
-                  blurOnSubmit={true}
-                  textAlignVertical="top"
-                />
-              </View>
-
-              {/* Action Buttons */}
-              <View style={styles.modalActions}>
-                <TouchableOpacity
-                  style={styles.cancelButton}
-                  onPress={() => setShowAddModal(false)}
-                  disabled={uploading}
-                >
-                  <Text style={styles.cancelButtonText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.saveButton, uploading && styles.saveButtonDisabled]}
-                  onPress={saveConnection}
-                  disabled={uploading}
-                >
-                  <Text style={styles.saveButtonText}>
-                    {uploading ? 'Saving...' : 'Save'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </ScrollView>
+            </View>
+            <Text style={styles.title}>Connections</Text>
+            <Text style={styles.subtitle}>
+              Organize your relationships and build stronger connections
+            </Text>
+            
+            <TouchableOpacity style={styles.addButton} onPress={openAddModal}>
+              <Ionicons name="add-circle-outline" size={28} color="#FFFFFF" />
+              <Text style={styles.addButtonText}>Add Connection</Text>
+            </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
-      </Modal>
+
+          {/* Content */}
+          <View style={styles.content}>
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <Ionicons name="people-outline" size={64} color="#6366F1" />
+                <Text style={styles.loadingText}>Loading your connections...</Text>
+              </View>
+            ) : connections.length === 0 ? (
+              <View style={styles.emptyState}>
+                <View style={styles.emptyIconContainer}>
+                  <Ionicons name="people-outline" size={64} color="#6366F1" />
+                </View>
+                <Text style={styles.emptyTitle}>No connections yet</Text>
+                <Text style={styles.emptySubtitle}>
+                  Add your first connection to get started
+                </Text>
+              </View>
+            ) : (
+              <FlatList
+                data={connections}
+                renderItem={renderConnection}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.connectionsList}
+              />
+            )}
+          </View>
+
+        {/* Add/Edit Modal */}
+        <Modal
+          visible={showAddModal}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowAddModal(false)}
+        >
+          <KeyboardAvoidingView 
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.modalOverlay}
+          >
+            <View style={styles.modalContent}>
+              <ScrollView 
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={styles.scrollViewContent}
+              >
+                <Text style={styles.modalTitle}>
+                  {editingConnection ? 'Edit Connection' : 'Add New Connection'}
+                </Text>
+
+                {/* Image Picker */}
+                <TouchableOpacity 
+                  style={styles.imagePicker} 
+                  onPress={pickImage}
+                  activeOpacity={0.7}
+                >
+                  {formData.image ? (
+                    <Image 
+                      source={{ uri: formData.image }} 
+                      style={styles.selectedImage}
+                      onError={() => console.error('Error loading selected image')}
+                    />
+                  ) : (
+                    <View style={styles.imagePickerPlaceholder}>
+                      <Ionicons name="camera-outline" size={32} color="#94A3B8" />
+                      <Text style={styles.imagePickerText}>Add Photo</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+
+                {/* Name Input */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Name *</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={formData.name}
+                    onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
+                    placeholder="Enter person's name"
+                    placeholderTextColor="#94A3B8"
+                    returnKeyType="next"
+                  />
+                </View>
+
+                {/* Description Input */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Description</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    value={formData.description}
+                    onChangeText={(text) => setFormData(prev => ({ ...prev, description: text }))}
+                    placeholder="Brief description (e.g., colleague, friend)"
+                    placeholderTextColor="#94A3B8"
+                    returnKeyType="next"
+                  />
+                </View>
+
+                {/* Notes Input */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Notes</Text>
+                  <Text style={styles.inputHint}>
+                    Personal details, memorable stories, or unique characteristics that help you remember this person
+                  </Text>
+                  <TextInput
+                    style={[styles.textInput, styles.textArea]}
+                    value={formData.notes}
+                    onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))}
+                    placeholder="e.g., 'Loves hiking, has a distinctive laugh, met at Sarah's birthday party'"
+                    placeholderTextColor="#94A3B8"
+                    multiline
+                    numberOfLines={4}
+                    returnKeyType="done"
+                    blurOnSubmit={true}
+                    textAlignVertical="top"
+                  />
+                </View>
+
+                {/* Action Buttons */}
+                <View style={styles.modalActions}>
+                  <TouchableOpacity
+                    style={styles.cancelButton}
+                    onPress={() => setShowAddModal(false)}
+                    disabled={uploading}
+                  >
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.saveButton, uploading && styles.saveButtonDisabled]}
+                    onPress={saveConnection}
+                    disabled={uploading}
+                  >
+                    <Text style={styles.saveButtonText}>
+                      {uploading ? 'Saving...' : 'Save'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </ScrollView>
+            </View>
+          </KeyboardAvoidingView>
+        </Modal>
+        </ScrollView>
       </SafeAreaView>
     </LinearGradient>
   );
