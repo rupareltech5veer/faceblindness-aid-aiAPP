@@ -3,7 +3,17 @@ import { View, Text, Image, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../lib/supabase';
 
-export default function TopNavBar({ gradientColors = ["#7C3AED", "#6366F1"] }) {
+// Map tab names to gradients
+const TAB_GRADIENTS = {
+  home: ["#6366F1", "#8B5CF6"],
+  learn: ["#8B5CF6", "#D946EF"],
+  scan: ["#D946EF", "#6366F1"],
+  settings: ["#7C3AED", "#6366F1"],
+  connections: ["#06B6D4", "#6366F1"],
+  profile: ["#F59E42", "#6366F1"],
+};
+
+export default function TopNavBar({ tabName = 'home', gradientColors }) {
   const [userName, setUserName] = useState('User');
 
   useEffect(() => {
@@ -81,25 +91,16 @@ export default function TopNavBar({ gradientColors = ["#7C3AED", "#6366F1"] }) {
     }
   };
 
+  // Use tab gradient or fallback
+  const textGradient = gradientColors || TAB_GRADIENTS[tabName] || ["#6366F1", "#8B5CF6"];
   return (
     <LinearGradient
-      colors={gradientColors}
+      colors={textGradient}
       start={[0, 0]}
       end={[1, 1]}
       style={styles.gradient}
     >
-      <View style={styles.container}>
-        <View style={styles.logoContainer}>
-          <Image 
-            source={require('../assets/dolphin-logo-nobg.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </View>
-        <Text style={styles.text}>
-          Welcome {userName}
-        </Text>
-      </View>
+      <Text style={styles.text}>Welcome {userName}</Text>
     </LinearGradient>
   );
 }
@@ -122,22 +123,18 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    gap: 12,
-  },
-  logoContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logo: {
-    width: 60,
-    height: 60,
+  centeredTextContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   text: {
     color: '#FFFFFF',
-    fontSize: 20,
+    fontSize: 25,
     fontWeight: '900',
   },
 });

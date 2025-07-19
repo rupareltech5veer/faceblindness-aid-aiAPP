@@ -81,6 +81,7 @@ export default function SettingsScreen() {
 
       setAppSettings(settings);
     } catch (error) {
+      console.error('Error fetching user data:', error);
     } finally {
       setLoading(false);
     }
@@ -95,31 +96,27 @@ export default function SettingsScreen() {
       setAppSettings(prev => prev ? { ...prev, [key]: value } : {
         id: '',
         user_id: user.id,
-        notifications_enabled: true,
         dark_mode: key === 'dark_mode' ? value : false,
-        sound_enabled: true,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       });
 
+      const updateObj: Partial<AppSettings> = {
+        user_id: user.id,
+        dark_mode: key === 'dark_mode' ? value : (appSettings?.dark_mode ?? false),
+        updated_at: new Date().toISOString(),
+      };
+
       const { error } = await supabase
         .from('app_settings')
-        .upsert({
-          user_id: user.id,
-          notifications_enabled: key === 'notifications_enabled' ? value : (appSettings?.notifications_enabled ?? true),
-          dark_mode: key === 'dark_mode' ? value : (appSettings?.dark_mode ?? false),
-          sound_enabled: key === 'sound_enabled' ? value : (appSettings?.sound_enabled ?? true),
-          updated_at: new Date().toISOString(),
-        });
+        .upsert(updateObj);
 
       if (error) {
         // Revert local state on error
         setAppSettings(prev => prev ? { ...prev, [key]: !value } : {
           id: '',
           user_id: user.id,
-          notifications_enabled: key === 'notifications_enabled' ? !value : true,
           dark_mode: key === 'dark_mode' ? !value : false,
-          sound_enabled: key === 'sound_enabled' ? !value : true,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });
@@ -127,14 +124,16 @@ export default function SettingsScreen() {
       }
     } catch (error) {
       // Revert local state on error
-      setAppSettings(prev => prev ? { ...prev, [key]: !value } : {
-        id: '',
-        user_id: user.id,
-        notifications_enabled: key === 'notifications_enabled' ? !value : true,
-        dark_mode: key === 'dark_mode' ? !value : false,
-        sound_enabled: key === 'sound_enabled' ? !value : true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+      setAppSettings(prev => {
+        // Use last fetched user id if available
+        const userId = prev?.user_id ?? '';
+        return prev ? { ...prev, [key]: !value } : {
+          id: '',
+          user_id: userId,
+          dark_mode: key === 'dark_mode' ? !value : false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
       });
       Alert.alert('Error', 'Failed to update setting. Please try again.');
     }

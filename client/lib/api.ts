@@ -12,7 +12,7 @@ export interface ScanResult {
     confidence: number;
     emotion: string;
     traits: string[];
-    context?: string;
+    caricature_highlights?: { [key: string]: number };
   }>;
   processing_time: number;
 }
@@ -30,7 +30,6 @@ export interface LearningModuleData {
     correct_indices?: number[];
     original_image?: string;
     modified_image?: string;
-    face_image?: string;
     morphed_image?: string;
     hints?: string[];
     show_hints?: boolean;
@@ -39,6 +38,14 @@ export interface LearningModuleData {
     target_name?: string;
     distractor_name?: string;
     difficulty?: number;
+    traits?: string[];
+    highlights?: { [key: string]: number };
+    name?: string;
+    role?: string;
+    context?: string;
+    suggested_traits?: string[];
+    existing_traits?: string[];
+    correct_answer?: string;
   };
   next_difficulty: number;
 }
@@ -68,10 +75,10 @@ const mockLearningData: Record<string, LearningModuleData> = {
       level: 1,
       question: "Identify the caricature features",
       options: [],
-      target_face: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg",
+      target_name: "Alex",
+      face_image: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg",
       traits: ["distinctive eyebrows", "strong jawline", "warm smile"],
-      highlights: { eyes: 0.8, jaw: 0.6, smile: 0.7 },
-      name: "Alex"
+      highlights: { eyes: 0.8, jaw: 0.6, smile: 0.7 }
     },
     next_difficulty: 2
   },
@@ -259,7 +266,7 @@ export async function updateLearningProgress(
   totalLessons: number // Added totalLessons
 ): Promise<{ success: boolean; message: string }> {
   try {
-    console.log('Updating learning progress:', { userId, connectionId, moduleType, accuracy, currentLevel });
+    console.log('Updating learning progress:', { userId, moduleId, moduleType, accuracy, currentLevel });
     
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 500));

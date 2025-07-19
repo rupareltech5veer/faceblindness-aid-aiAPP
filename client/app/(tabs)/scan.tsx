@@ -87,7 +87,7 @@ export default function ScanScreen() {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'], // Use array of MediaType instead of deprecated MediaTypeOptions.Images
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
@@ -291,7 +291,7 @@ export default function ScanScreen() {
               width: 80,
               height: 80,
               borderRadius: 20,
-              backgroundColor: '#6366F1',
+              backgroundColor: '#A8E063',
               justifyContent: 'center',
               alignItems: 'center',
               marginBottom: 24,

@@ -98,7 +98,7 @@ export default function ConnectionsScreen() {
 
       console.log('Permission granted, launching image picker...');
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
@@ -248,7 +248,7 @@ export default function ConnectionsScreen() {
       if (editingConnection) {
         Alert.alert('Success!', 'Connection updated successfully.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving connection:', error);
       Alert.alert('Save failed', `There was an error saving the connection: ${error?.message || 'Please try again.'}`);
     } finally {

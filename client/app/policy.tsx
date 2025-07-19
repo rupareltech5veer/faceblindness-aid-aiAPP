@@ -14,7 +14,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
 
-const slides = [
+type Slide = {
+  id: number;
+  icon: string;
+  iconColor: string;
+  backgroundColor: [string, string];
+  title: string;
+  subtitle: string;
+  description: string;
+};
+
+const slides: Slide[] = [
   {
     id: 1,
     icon: 'eye-outline',

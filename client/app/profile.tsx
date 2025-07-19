@@ -174,7 +174,7 @@ export default function ProfileScreen() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
@@ -240,7 +240,7 @@ export default function ProfileScreen() {
       }
       
       Alert.alert('Success!', 'Profile photo updated successfully.');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Profile photo update error:', error);
       Alert.alert('Error', `Failed to update profile photo: ${error?.message || 'Please try again.'}`);
     } finally {
@@ -285,7 +285,7 @@ export default function ProfileScreen() {
       // This is a workaround since CustomEvent doesn't exist in React Native
       
       Alert.alert('Success!', 'Profile updated successfully.');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Profile update error:', error);
       Alert.alert('Error', `Failed to update profile: ${error?.message || 'Please try again.'}`);
     }

@@ -86,7 +86,7 @@ export default function LearnScreen() {
   const [currentModule, setCurrentModule] = useState<string>('');
   const [moduleLoading, setModuleLoading] = useState(false);
   const [exerciseStep, setExerciseStep] = useState(0);
-  const [userAnswer, setUserAnswer] = useState<number | null>(null);
+  const [userAnswer, setUserAnswer] = useState<number | number[] | null>(null);
   const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
@@ -181,8 +181,9 @@ export default function LearnScreen() {
     if (data.is_multiple_choice && data.correct_indices) {
       // Multiple choice - check if selected answers match correct indices
       const selectedAnswers = Array.isArray(userAnswer) ? userAnswer : [userAnswer];
-      isCorrect = selectedAnswers.length === data.correct_indices.length &&
-                  selectedAnswers.every(answer => data.correct_indices.includes(answer));
+      isCorrect = Array.isArray(data.correct_indices) &&
+                  selectedAnswers.length === data.correct_indices.length &&
+                  selectedAnswers.every(answer => data.correct_indices!.includes(answer));
     } else if (data.correct_index !== undefined) {
       // Single choice
       isCorrect = userAnswer === data.correct_index;
@@ -248,18 +249,18 @@ export default function LearnScreen() {
     const { data } = currentModuleData;
     
     // Handle error cases
-    if (data.error) {
+    if ('error' in data && data.error) {
       return (
-        <View style={styles.exerciseContainer}>
-          <Text style={styles.exerciseTitle}>Training Not Available</Text>
-          <Text style={styles.exerciseDescription}>{data.error}</Text>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => setShowModuleModal(false)}
-          >
-            <Text style={styles.closeButtonText}>Close</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={styles.exerciseContainer}>
+        <Text style={styles.exerciseTitle}>Training Not Available</Text>
+        <Text style={styles.exerciseDescription}>{String(data.error)}</Text>
+        <TouchableOpacity
+        style={styles.closeButton}
+        onPress={() => setShowModuleModal(false)}
+        >
+        <Text style={styles.closeButtonText}>Close</Text>
+        </TouchableOpacity>
+      </View>
       );
     }
     
@@ -360,7 +361,7 @@ export default function LearnScreen() {
                     resizeMode="contain"
                   />
                   <Text style={styles.imageOptionLabel}>
-                    {data.option_labels ? data.option_labels[index] : `Option ${index + 1}`}
+                    {`Option ${index + 1}`}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -417,34 +418,35 @@ export default function LearnScreen() {
             )}
             
             <View style={styles.optionsContainer}>
-              {data.options && data.options.map((option, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={[
-                    styles.traitButton,
-                    (data.is_multiple_choice ? 
-                      (userAnswer && Array.isArray(userAnswer) && userAnswer.includes(index)) :
-                      userAnswer === index
-                    ) && styles.selectedTrait
-                  ]}
-                  onPress={() => {
-                    if (data.is_multiple_choice) {
-                      // Handle multiple selection
-                      const currentAnswers = Array.isArray(userAnswer) ? userAnswer : [];
-                      if (currentAnswers.includes(index)) {
-                        setUserAnswer(currentAnswers.filter(i => i !== index));
+              {data.options && data.options.map((option, index) => {
+                const isSelected = data.is_multiple_choice
+                  ? Array.isArray(userAnswer) && userAnswer.includes(index)
+                  : userAnswer === index;
+                return (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.traitButton,
+                      isSelected ? styles.selectedTrait : null
+                    ]}
+                    onPress={() => {
+                      if (data.is_multiple_choice) {
+                        const currentAnswers: number[] = Array.isArray(userAnswer) ? userAnswer : [];
+                        if (currentAnswers.includes(index)) {
+                          setUserAnswer(currentAnswers.filter(i => i !== index));
+                        } else {
+                          setUserAnswer([...currentAnswers, index]);
+                        }
                       } else {
-                        setUserAnswer([...currentAnswers, index]);
+                        handleAnswerSelect(index);
                       }
-                    } else {
-                      handleAnswerSelect(index);
-                    }
-                  }}
-                  disabled={showResults}
-                >
-                  <Text style={styles.traitButtonText}>{option}</Text>
-                </TouchableOpacity>
-              ))}
+                    }}
+                    disabled={showResults}
+                  >
+                    <Text style={styles.traitButtonText}>{option}</Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
         );

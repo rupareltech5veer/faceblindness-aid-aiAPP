@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../../lib/supabase';
+import type { ColorValue } from 'react-native';
 
 export default function AuthCallbackScreen() {
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
@@ -103,7 +104,7 @@ export default function AuthCallbackScreen() {
     }
   };
 
-  const getStatusColor = () => {
+  const getStatusColor = (): [ColorValue, ColorValue] => {
     switch (status) {
       case 'processing':
         return ['#6366F1', '#8B5CF6'];
@@ -111,6 +112,8 @@ export default function AuthCallbackScreen() {
         return ['#10B981', '#059669'];
       case 'error':
         return ['#EF4444', '#DC2626'];
+      default:
+        return ['#6366F1', '#8B5CF6'];
     }
   };
 
