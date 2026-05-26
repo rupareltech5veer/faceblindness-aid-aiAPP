@@ -1,5 +1,5 @@
 
-# 🐬 Memora: Faceblindness Aid AI App
+# 🐬 Memora: Faceblindness Aid AI Application
 
 Welcome to Memora!  
 This project helps people with faceblindness recognize and remember faces using AI-powered tools.  
